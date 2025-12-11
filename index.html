@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moderation Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="dashboard">
+        <header class="header">
+            <h1>🛡️ Moderation Dashboard</h1>
+            <p class="subtitle">User Management & Moderation System</p>
+        </header>
+
+        <main class="main-content">
+            <!-- Search and Filters -->
+            <div class="search-section">
+                <div class="search-box">
+                    <input type="text" id="userSearch" placeholder="Search users by name, email, or ID...">
+                    <button class="btn btn-primary" onclick="searchUsers()">Search</button>
+                </div>
+                <div class="filters">
+                    <select id="statusFilter" onchange="filterUsers()">
+                        <option value="all">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="warned">Warned</option>
+                        <option value="muted">Muted</option>
+                        <option value="banned">Banned</option>
+                    </select>
+                    <select id="riskFilter" onchange="filterUsers()">
+                        <option value="all">All Risk Levels</option>
+                        <option value="low">Low Risk</option>
+                        <option value="medium">Medium Risk</option>
+                        <option value="high">High Risk</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Users Grid -->
+            <div class="users-grid" id="usersGrid">
+                <!-- User cards will be dynamically inserted here -->
+            </div>
+        </main>
+
+        <!-- User Detail Modal -->
+        <div class="modal-overlay" id="userModal">
+            <div class="modal">
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+                <div class="modal-content" id="modalContent">
+                    <!-- User details will be inserted here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast Notifications -->
+        <div class="toast-container" id="toastContainer"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
