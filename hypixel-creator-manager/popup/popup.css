@@ -1,4 +1,4 @@
-/* Reset and Base Styles */
+/* Popup Styles */
 * {
   margin: 0;
   padding: 0;
@@ -9,8 +9,8 @@ body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
   color: #e0e0e0;
-  min-width: 380px;
-  max-width: 400px;
+  min-width: 320px;
+  max-width: 350px;
 }
 
 .container {
@@ -38,7 +38,7 @@ header {
 }
 
 h1 {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   background: linear-gradient(90deg, #ffd700, #ffaa00);
   -webkit-background-clip: text;
@@ -49,12 +49,11 @@ h1 {
 .badge {
   background: linear-gradient(135deg, #ff6b35, #f7931e);
   color: white;
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 10px;
+  font-size: 10px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
 }
 
 /* Status Bar */
@@ -62,7 +61,7 @@ h1 {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 12px;
+  padding: 10px 12px;
   background: rgba(255, 255, 255, 0.05);
   border-radius: 8px;
   margin-bottom: 16px;
@@ -87,6 +86,10 @@ h1 {
   animation: pulse 0.5s infinite;
 }
 
+.status-bar.warning .status-dot {
+  background: #ff9800;
+}
+
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
@@ -98,12 +101,81 @@ h1 {
 }
 
 .section h2 {
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 600;
-  color: #b0b0b0;
-  margin-bottom: 10px;
+  color: #888;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  margin-bottom: 10px;
+}
+
+/* Main Buttons */
+.main-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.btn-large {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 16px;
+  border-radius: 12px;
+  text-align: left;
+}
+
+.btn-large .btn-icon {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+.btn-large .btn-label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.btn-large .btn-desc {
+  font-size: 11px;
+  opacity: 0.7;
+  margin-top: 2px;
+}
+
+/* Stats Row */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.mini-stat {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 10px;
+  text-align: center;
+}
+
+.mini-stat.warning {
+  background: rgba(247, 147, 30, 0.1);
+  border: 1px solid rgba(247, 147, 30, 0.2);
+}
+
+.mini-stat.danger {
+  background: rgba(245, 87, 108, 0.1);
+  border: 1px solid rgba(245, 87, 108, 0.2);
+}
+
+.mini-stat-value {
+  display: block;
+  font-size: 18px;
+  font-weight: 700;
+  color: white;
+}
+
+.mini-stat-label {
+  font-size: 9px;
+  color: #888;
+  text-transform: uppercase;
 }
 
 /* Button Grid */
@@ -123,11 +195,10 @@ h1 {
   padding: 12px 8px;
   border: none;
   border-radius: 10px;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
-  position: relative;
 }
 
 .btn:hover {
@@ -139,17 +210,25 @@ h1 {
   transform: translateY(0);
 }
 
-.btn-icon {
-  font-size: 18px;
+.btn-action {
+  background: rgba(255, 255, 255, 0.05);
+  color: #e0e0e0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  flex-direction: row;
+  gap: 8px;
+}
+
+.btn-action:hover {
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .hotkey {
   font-size: 9px;
-  opacity: 0.6;
+  opacity: 0.5;
   background: rgba(0, 0, 0, 0.2);
   padding: 2px 6px;
   border-radius: 4px;
-  margin-top: 2px;
+  margin-left: auto;
 }
 
 /* Button Variants */
@@ -167,65 +246,12 @@ h1 {
   color: #1a1a2e;
 }
 
-.btn-success {
-  background: linear-gradient(135deg, #11998e, #38ef7d);
-  color: #1a1a2e;
-}
-
-.btn-warning {
-  background: linear-gradient(135deg, #f093fb, #f5576c);
-  color: white;
-}
-
-.btn-outline {
-  background: rgba(255, 255, 255, 0.05);
-  color: #e0e0e0;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.btn-outline:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.2);
-}
-
-/* Notes List */
-.notes-list {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.btn-note {
-  flex-direction: row;
-  justify-content: space-between;
-  padding: 10px 12px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  text-align: left;
-  font-size: 11px;
-}
-
-.btn-note:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.btn-note .hotkey {
-  margin-top: 0;
-  flex-shrink: 0;
-}
-
-.btn-custom {
-  border-style: dashed;
-  color: #888;
-}
-
-/* Collapsible Settings */
+/* Collapsible */
 .collapsible-header {
   cursor: pointer;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 0;
 }
 
 .collapse-icon {
@@ -239,45 +265,41 @@ h1 {
 
 .collapsible-content {
   display: none;
-  padding-top: 12px;
+  padding-top: 10px;
 }
 
 .collapsible.open .collapsible-content {
   display: block;
 }
 
-/* Settings Items */
-.setting-item {
+/* Shortcuts List */
+.shortcut-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.shortcut-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
-}
-
-.setting-item label {
-  font-size: 12px;
-  color: #b0b0b0;
-}
-
-.setting-item input {
-  padding: 6px 10px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.03);
   border-radius: 6px;
-  background: rgba(255, 255, 255, 0.05);
-  color: #e0e0e0;
-  font-size: 12px;
-  width: 120px;
-}
-
-.setting-item input:focus {
-  outline: none;
-  border-color: #667eea;
-}
-
-.btn-small {
-  padding: 8px 16px;
   font-size: 11px;
-  width: 100%;
+}
+
+.shortcut-key {
+  background: rgba(102, 126, 234, 0.2);
+  color: #667eea;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 10px;
+}
+
+.shortcut-desc {
+  color: #888;
 }
 
 /* Footer */
@@ -289,13 +311,12 @@ footer {
 }
 
 footer p {
-  font-size: 11px;
-  color: #666;
+  font-size: 10px;
+  color: #555;
 }
 
 footer .version {
   margin-top: 4px;
-  font-size: 10px;
 }
 
 /* Scrollbar */
@@ -310,8 +331,4 @@ footer .version {
 ::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.2);
   border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
 }

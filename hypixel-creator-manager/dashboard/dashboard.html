@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Creator Dashboard - Hypixel Creator Manager</title>
+  <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+  <div class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <span class="logo-icon">🎮</span>
+        <div class="logo-text">
+          <h1>Creator Manager</h1>
+          <span class="badge">Hypixel</span>
+        </div>
+      </div>
+      
+      <nav class="sidebar-nav">
+        <a href="#" class="nav-item active" data-page="overview">
+          <span class="nav-icon">📊</span>
+          <span>Overview</span>
+        </a>
+        <a href="#" class="nav-item" data-page="creators">
+          <span class="nav-icon">👥</span>
+          <span>All Creators</span>
+        </a>
+        <a href="#" class="nav-item" data-page="reviews">
+          <span class="nav-icon">📋</span>
+          <span>Review Queue</span>
+          <span class="nav-badge" id="navReviewCount">0</span>
+        </a>
+        <a href="#" class="nav-item" data-page="warnings">
+          <span class="nav-icon">⚠️</span>
+          <span>Warnings</span>
+        </a>
+        <a href="#" class="nav-item" data-page="inactive">
+          <span class="nav-icon">💤</span>
+          <span>Inactive</span>
+        </a>
+      </nav>
+      
+      <div class="sidebar-footer">
+        <a href="#" class="nav-item" data-page="settings">
+          <span class="nav-icon">⚙️</span>
+          <span>Settings</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Header -->
+      <header class="main-header">
+        <div class="header-left">
+          <h2 id="pageTitle">Overview</h2>
+          <span class="header-subtitle" id="pageSubtitle">Dashboard overview and statistics</span>
+        </div>
+        <div class="header-right">
+          <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInput" placeholder="Search creators...">
+          </div>
+          <div class="connection-indicator" id="connectionIndicator">
+            <span class="status-dot disconnected"></span>
+            <span>Not connected</span>
+          </div>
+          <button id="btnConnect" class="btn btn-primary">Connect</button>
+        </div>
+      </header>
+
+      <!-- Page: Overview -->
+      <div class="page active" id="page-overview">
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon">👥</div>
+            <div class="stat-info">
+              <span class="stat-value" id="statTotalCreators">-</span>
+              <span class="stat-label">Total Creators</span>
+            </div>
+          </div>
+          <div class="stat-card stat-warning">
+            <div class="stat-icon">📋</div>
+            <div class="stat-info">
+              <span class="stat-value" id="statNeedsReview">-</span>
+              <span class="stat-label">Need Review</span>
+            </div>
+          </div>
+          <div class="stat-card stat-danger">
+            <div class="stat-icon">⚠️</div>
+            <div class="stat-info">
+              <span class="stat-value" id="statWarnings">-</span>
+              <span class="stat-label">Have Warnings</span>
+            </div>
+          </div>
+          <div class="stat-card stat-info">
+            <div class="stat-icon">💤</div>
+            <div class="stat-info">
+              <span class="stat-value" id="statInactive">-</span>
+              <span class="stat-label">Inactive (6+ mo)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="charts-row">
+          <div class="chart-card">
+            <h3>Creators by Rank</h3>
+            <div class="chart-placeholder" id="chartRanks">
+              <div class="chart-bars"></div>
+            </div>
+          </div>
+          <div class="chart-card">
+            <h3>Creators by Language</h3>
+            <div class="chart-placeholder" id="chartLanguages">
+              <div class="chart-bars"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="activity-section">
+          <h3>Review Queue Preview</h3>
+          <div class="activity-list" id="recentQueue">
+            <div class="empty-state">
+              <span class="empty-icon">📊</span>
+              <p>Connect your sheet to see the review queue</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Page: All Creators -->
+      <div class="page" id="page-creators">
+        <div class="page-actions">
+          <button id="btnRefreshCreators" class="btn btn-outline">
+            <span>🔄</span> Refresh
+          </button>
+          <button id="btnExportCreators" class="btn btn-outline">
+            <span>📥</span> Export
+          </button>
+        </div>
+        
+        <div class="table-container">
+          <table class="data-table" id="creatorsTable">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Rank</th>
+                <th>Subscribers</th>
+                <th>Last Upload</th>
+                <th>Last Checked</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="creatorsTableBody">
+              <tr>
+                <td colspan="7" class="empty-cell">Connect to load creators</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Page: Review Queue -->
+      <div class="page" id="page-reviews">
+        <div class="page-actions">
+          <button id="btnBulkReview" class="btn btn-primary" disabled>
+            <span>✓</span> Review Selected
+          </button>
+          <button id="btnRefreshQueue" class="btn btn-outline">
+            <span>🔄</span> Refresh
+          </button>
+        </div>
+        
+        <div class="review-list" id="reviewList">
+          <div class="empty-state">
+            <span class="empty-icon">📋</span>
+            <p>Connect your sheet to see creators needing review</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Page: Warnings -->
+      <div class="page" id="page-warnings">
+        <div class="warnings-list" id="warningsList">
+          <div class="empty-state">
+            <span class="empty-icon">⚠️</span>
+            <p>Connect your sheet to see creators with warnings</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Page: Inactive -->
+      <div class="page" id="page-inactive">
+        <div class="inactive-list" id="inactiveList">
+          <div class="empty-state">
+            <span class="empty-icon">💤</span>
+            <p>Connect your sheet to see inactive creators</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Page: Settings -->
+      <div class="page" id="page-settings">
+        <div class="settings-section">
+          <h3>Google Sheets Connection</h3>
+          <div class="setting-group">
+            <label>Spreadsheet ID or URL</label>
+            <input type="text" id="settingSheetId" placeholder="Paste your Google Sheet URL or ID">
+            <p class="setting-help">You can paste the full URL from your browser, we'll extract the ID automatically.</p>
+          </div>
+          <button id="btnConnectSheet" class="btn btn-primary">Connect to Sheet</button>
+        </div>
+        
+        <div class="settings-section">
+          <h3>Review Settings</h3>
+          <div class="setting-group">
+            <label>Your Name (for reviews)</label>
+            <input type="text" id="settingReviewerName" value="Judge">
+          </div>
+          <div class="setting-group">
+            <label>Overdue Review Threshold (months)</label>
+            <input type="number" id="settingOverdueMonths" value="3" min="1" max="12">
+          </div>
+          <div class="setting-group">
+            <label>Inactive Channel Threshold (months)</label>
+            <input type="number" id="settingInactiveMonths" value="6" min="1" max="24">
+          </div>
+          <button id="btnSaveSettings" class="btn btn-primary">Save Settings</button>
+        </div>
+        
+        <div class="settings-section">
+          <h3>Setup Guide</h3>
+          <div class="setup-guide">
+            <h4>First Time Setup</h4>
+            <ol>
+              <li>
+                <strong>Create a Google Cloud Project:</strong>
+                <a href="https://console.cloud.google.com/projectcreate" target="_blank">Go to Google Cloud Console</a>
+              </li>
+              <li>
+                <strong>Enable the Google Sheets API:</strong>
+                <a href="https://console.cloud.google.com/apis/library/sheets.googleapis.com" target="_blank">Enable Sheets API</a>
+              </li>
+              <li>
+                <strong>Create OAuth Credentials:</strong>
+                Go to APIs & Services → Credentials → Create Credentials → OAuth Client ID
+              </li>
+              <li>
+                <strong>Configure the Extension:</strong>
+                Copy your Client ID and update the manifest.json file
+              </li>
+              <li>
+                <strong>Reload the Extension:</strong>
+                Go to edge://extensions/ and reload this extension
+              </li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal" id="modal">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modalTitle">Modal Title</h3>
+        <button class="modal-close" id="modalClose">×</button>
+      </div>
+      <div class="modal-body" id="modalBody">
+        <!-- Dynamic content -->
+      </div>
+      <div class="modal-footer" id="modalFooter">
+        <button class="btn btn-outline" id="modalCancel">Cancel</button>
+        <button class="btn btn-primary" id="modalConfirm">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../lib/sheets-api.js"></script>
+  <script src="dashboard.js"></script>
+</body>
+</html>

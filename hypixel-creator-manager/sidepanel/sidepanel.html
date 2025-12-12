@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Creator Manager - Side Panel</title>
+  <link rel="stylesheet" href="sidepanel.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <div class="logo">
+        <span class="logo-icon">🎮</span>
+        <div class="logo-text">
+          <h1>Creator Manager</h1>
+          <span class="badge">Hypixel</span>
+        </div>
+      </div>
+      <button id="btnOpenDashboard" class="btn-icon-only" title="Open Dashboard">
+        <span>📊</span>
+      </button>
+    </header>
+
+    <!-- Connection Status -->
+    <div class="connection-status" id="connectionStatus">
+      <div class="status-indicator disconnected"></div>
+      <span class="status-text">Not connected</span>
+      <button id="btnConnect" class="btn btn-small btn-primary">Connect Sheet</button>
+    </div>
+
+    <!-- Current Creator Card -->
+    <section class="section" id="creatorSection" style="display: none;">
+      <div class="creator-card">
+        <div class="creator-header">
+          <h3 id="creatorName">Loading...</h3>
+          <span class="creator-rank" id="creatorRank">YOUTUBER</span>
+        </div>
+        <div class="creator-stats">
+          <div class="stat">
+            <span class="stat-value" id="creatorSubs">-</span>
+            <span class="stat-label">Subscribers</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value" id="creatorLastUpload">-</span>
+            <span class="stat-label">Last Upload</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value" id="creatorLastChecked">-</span>
+            <span class="stat-label">Last Checked</span>
+          </div>
+        </div>
+        <div class="creator-channel">
+          <a href="#" id="creatorChannelLink" target="_blank" class="channel-link">
+            <span>🔗</span> Open Channel
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quick Actions -->
+    <section class="section">
+      <h2>⚡ Quick Actions</h2>
+      <div class="action-grid">
+        <button id="btnQuickReview" class="btn btn-action btn-primary" disabled>
+          <span class="btn-icon">✓</span>
+          <span class="btn-text">Quick Review</span>
+          <span class="btn-hotkey">Alt+R</span>
+        </button>
+        <button id="btnOpenChannel" class="btn btn-action btn-secondary" disabled>
+          <span class="btn-icon">🔗</span>
+          <span class="btn-text">Open Channel</span>
+        </button>
+        <button id="btnClearCheckup" class="btn btn-action btn-success" disabled>
+          <span class="btn-icon">🧹</span>
+          <span class="btn-text">Clear Checkup</span>
+        </button>
+        <button id="btnAddWarning" class="btn btn-action btn-warning" disabled>
+          <span class="btn-icon">⚠️</span>
+          <span class="btn-text">Add Warning</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Quick Notes -->
+    <section class="section">
+      <h2>📝 Quick Notes</h2>
+      <div class="notes-grid">
+        <button class="btn btn-note" data-note="Channel inactive - no uploads in X months" disabled>
+          <span>💤 Inactive Channel</span>
+          <span class="btn-hotkey">Alt+1</span>
+        </button>
+        <button class="btn btn-note" data-note="Channel no longer produces gaming content" disabled>
+          <span>🎬 Non-Gaming</span>
+          <span class="btn-hotkey">Alt+2</span>
+        </button>
+        <button class="btn btn-note" data-note="Content reviewed - meets standards ✓" disabled>
+          <span>✅ Meets Standards</span>
+          <span class="btn-hotkey">Alt+3</span>
+        </button>
+        <button id="btnCustomNote" class="btn btn-note btn-custom" disabled>
+          <span>✏️ Custom Note...</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Review Queue -->
+    <section class="section">
+      <h2>📋 Review Queue <span class="queue-count" id="queueCount">0</span></h2>
+      <div class="queue-list" id="queueList">
+        <div class="queue-empty">
+          <span>Connect your sheet to see creators needing review</span>
+        </div>
+      </div>
+      <button id="btnRefreshQueue" class="btn btn-outline btn-full" disabled>
+        <span>🔄</span> Refresh Queue
+      </button>
+    </section>
+
+    <!-- Settings -->
+    <section class="section collapsible">
+      <h2 class="collapsible-header" id="settingsToggle">
+        ⚙️ Settings
+        <span class="collapse-icon">▼</span>
+      </h2>
+      <div class="collapsible-content" id="settingsContent">
+        <div class="setting-item">
+          <label>Sheet ID:</label>
+          <input type="text" id="sheetId" placeholder="From your Google Sheet URL">
+        </div>
+        <div class="setting-item">
+          <label>Your Name:</label>
+          <input type="text" id="reviewerName" value="Judge">
+        </div>
+        <div class="setting-item">
+          <label>Overdue (months):</label>
+          <input type="number" id="overdueMonths" value="3" min="1" max="12">
+        </div>
+        <button id="btnSaveSettings" class="btn btn-primary btn-full">Save Settings</button>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+      <button id="btnFullDashboard" class="btn btn-outline btn-full">
+        <span>📊</span> Open Full Dashboard
+      </button>
+      <p class="version">v2.0.0 • Made for Hypixel 💜</p>
+    </footer>
+  </div>
+
+  <script src="../lib/sheets-api.js"></script>
+  <script src="sidepanel.js"></script>
+</body>
+</html>
