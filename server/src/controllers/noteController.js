@@ -1,4 +1,4 @@
-import db from '../database/db.js'
+import { run, all, get, lastInsertRowId } from '../database/db.js'
 import { NotFoundError, ValidationError } from '../middleware/errorHandler.js'
 
 // Get notes by player
@@ -6,16 +6,16 @@ export function getNotesByPlayer(req, res, next) {
   try {
     const { id } = req.params
 
-    const player = db.prepare('SELECT id FROM players WHERE id = ?').get(id)
+    const player = get('SELECT id FROM players WHERE id = ?', [id])
     if (!player) {
       throw new NotFoundError('Player not found')
     }
 
-    const notes = db.prepare(`
+    const notes = all(`
       SELECT * FROM notes
       WHERE player_id = ?
       ORDER BY is_important DESC, created_at DESC
-    `).all(id)
+    `, [id])
 
     res.json(notes)
   } catch (error) {
@@ -33,23 +33,25 @@ export function createNote(req, res, next) {
       throw new ValidationError('Note content is required')
     }
 
-    const player = db.prepare('SELECT id, player_name FROM players WHERE id = ?').get(id)
+    const player = get('SELECT id, player_name FROM players WHERE id = ?', [id])
     if (!player) {
       throw new NotFoundError('Player not found')
     }
 
-    const result = db.prepare(`
+    run(`
       INSERT INTO notes (player_id, content, is_important)
       VALUES (?, ?, ?)
-    `).run(id, content.trim(), is_important ? 1 : 0)
+    `, [id, content.trim(), is_important ? 1 : 0])
+
+    const noteId = lastInsertRowId()
 
     // Log activity
-    db.prepare(`
+    run(`
       INSERT INTO activity_log (player_id, action_type, details)
       VALUES (?, 'note', ?)
-    `).run(id, content.substring(0, 100))
+    `, [id, content.substring(0, 100)])
 
-    const note = db.prepare('SELECT * FROM notes WHERE id = ?').get(result.lastInsertRowid)
+    const note = get('SELECT * FROM notes WHERE id = ?', [noteId])
 
     res.status(201).json(note)
   } catch (error) {
@@ -63,7 +65,7 @@ export function updateNote(req, res, next) {
     const { id } = req.params
     const { content, is_important } = req.body
 
-    const note = db.prepare('SELECT id FROM notes WHERE id = ?').get(id)
+    const note = get('SELECT id FROM notes WHERE id = ?', [id])
     if (!note) {
       throw new NotFoundError('Note not found')
     }
@@ -91,11 +93,9 @@ export function updateNote(req, res, next) {
     updates.push('updated_at = CURRENT_TIMESTAMP')
     values.push(id)
 
-    db.prepare(`
-      UPDATE notes SET ${updates.join(', ')} WHERE id = ?
-    `).run(...values)
+    run(`UPDATE notes SET ${updates.join(', ')} WHERE id = ?`, values)
 
-    const updatedNote = db.prepare('SELECT * FROM notes WHERE id = ?').get(id)
+    const updatedNote = get('SELECT * FROM notes WHERE id = ?', [id])
 
     res.json(updatedNote)
   } catch (error) {
@@ -108,12 +108,12 @@ export function deleteNote(req, res, next) {
   try {
     const { id } = req.params
 
-    const note = db.prepare('SELECT id FROM notes WHERE id = ?').get(id)
+    const note = get('SELECT id FROM notes WHERE id = ?', [id])
     if (!note) {
       throw new NotFoundError('Note not found')
     }
 
-    db.prepare('DELETE FROM notes WHERE id = ?').run(id)
+    run('DELETE FROM notes WHERE id = ?', [id])
 
     res.json({ message: 'Note deleted successfully' })
   } catch (error) {

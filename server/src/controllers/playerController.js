@@ -1,4 +1,4 @@
-import db from '../database/db.js'
+import { run, all, get, lastInsertRowId } from '../database/db.js'
 import { v4 as uuidv4 } from 'uuid'
 import { NotFoundError, ValidationError } from '../middleware/errorHandler.js'
 
@@ -46,7 +46,7 @@ export function getAllPlayers(req, res, next) {
     query += ` ORDER BY p.${sortColumn} ${order} LIMIT ? OFFSET ?`
     params.push(parseInt(limit), offset)
 
-    const players = db.prepare(query).all(...params)
+    const players = all(query, params)
 
     // Get total count
     let countQuery = `SELECT COUNT(*) as total FROM players p WHERE 1=1`
@@ -61,7 +61,8 @@ export function getAllPlayers(req, res, next) {
       countParams.push(`%${search}%`, `%${search}%`)
     }
 
-    const { total } = db.prepare(countQuery).get(...countParams)
+    const countResult = get(countQuery, countParams)
+    const total = countResult ? countResult.total : 0
 
     res.json({
       players,
@@ -82,7 +83,7 @@ export function getPlayerById(req, res, next) {
   try {
     const { id } = req.params
 
-    const player = db.prepare(`
+    const player = get(`
       SELECT 
         p.*,
         (SELECT COUNT(*) FROM punishments WHERE player_id = p.id) as punishment_count,
@@ -93,7 +94,7 @@ export function getPlayerById(req, res, next) {
         (SELECT COUNT(*) FROM notes WHERE player_id = p.id) as note_count
       FROM players p
       WHERE p.id = ?
-    `).get(id)
+    `, [id])
 
     if (!player) {
       throw new NotFoundError('Player not found')
@@ -114,13 +115,13 @@ export function searchPlayers(req, res, next) {
       return res.json([])
     }
 
-    const players = db.prepare(`
+    const players = all(`
       SELECT id, player_name, player_uuid, status, last_seen
       FROM players
       WHERE player_name LIKE ? OR player_uuid LIKE ?
       ORDER BY player_name ASC
       LIMIT 10
-    `).all(`%${q}%`, `%${q}%`)
+    `, [`%${q}%`, `%${q}%`])
 
     res.json(players)
   } catch (error) {
@@ -146,23 +147,24 @@ export function createPlayer(req, res, next) {
     const uuid = player_uuid || uuidv4()
 
     // Check if player already exists
-    const existing = db.prepare('SELECT id FROM players WHERE player_uuid = ?').get(uuid)
+    const existing = get('SELECT id FROM players WHERE player_uuid = ?', [uuid])
     if (existing) {
       throw new ValidationError('Player with this UUID already exists')
     }
 
-    const result = db.prepare(`
+    run(`
       INSERT INTO players (player_name, player_uuid, ip_address, hardware_id, status)
       VALUES (?, ?, ?, ?, ?)
-    `).run(player_name, uuid, ip_address, hardware_id, status)
+    `, [player_name, uuid, ip_address, hardware_id, status])
 
-    const player = db.prepare('SELECT * FROM players WHERE id = ?').get(result.lastInsertRowid)
+    const playerId = lastInsertRowId()
+    const player = get('SELECT * FROM players WHERE id = ?', [playerId])
 
     // Log activity
-    db.prepare(`
+    run(`
       INSERT INTO activity_log (player_id, action_type, details)
       VALUES (?, 'join', 'Player created')
-    `).run(player.id)
+    `, [playerId])
 
     res.status(201).json(player)
   } catch (error) {
@@ -177,7 +179,7 @@ export function updatePlayer(req, res, next) {
     const updates = req.body
 
     // Check if player exists
-    const existing = db.prepare('SELECT id FROM players WHERE id = ?').get(id)
+    const existing = get('SELECT id FROM players WHERE id = ?', [id])
     if (!existing) {
       throw new NotFoundError('Player not found')
     }
@@ -201,13 +203,9 @@ export function updatePlayer(req, res, next) {
     setClause.push('updated_at = CURRENT_TIMESTAMP')
     values.push(id)
 
-    db.prepare(`
-      UPDATE players 
-      SET ${setClause.join(', ')}
-      WHERE id = ?
-    `).run(...values)
+    run(`UPDATE players SET ${setClause.join(', ')} WHERE id = ?`, values)
 
-    const player = db.prepare('SELECT * FROM players WHERE id = ?').get(id)
+    const player = get('SELECT * FROM players WHERE id = ?', [id])
 
     res.json(player)
   } catch (error) {
@@ -220,12 +218,12 @@ export function deletePlayer(req, res, next) {
   try {
     const { id } = req.params
 
-    const existing = db.prepare('SELECT id FROM players WHERE id = ?').get(id)
+    const existing = get('SELECT id FROM players WHERE id = ?', [id])
     if (!existing) {
       throw new NotFoundError('Player not found')
     }
 
-    db.prepare('DELETE FROM players WHERE id = ?').run(id)
+    run('DELETE FROM players WHERE id = ?', [id])
 
     res.json({ message: 'Player deleted successfully' })
   } catch (error) {
@@ -238,27 +236,30 @@ export function getPlayerStats(req, res, next) {
   try {
     const { id } = req.params
 
-    const player = db.prepare('SELECT id FROM players WHERE id = ?').get(id)
+    const player = get('SELECT id FROM players WHERE id = ?', [id])
     if (!player) {
       throw new NotFoundError('Player not found')
     }
 
-    const stats = {
-      punishments: db.prepare(`
-        SELECT 
-          COUNT(*) as total,
-          SUM(CASE WHEN type = 'warn' THEN 1 ELSE 0 END) as warns,
-          SUM(CASE WHEN type = 'mute' THEN 1 ELSE 0 END) as mutes,
-          SUM(CASE WHEN type = 'kick' THEN 1 ELSE 0 END) as kicks,
-          SUM(CASE WHEN type = 'ban' THEN 1 ELSE 0 END) as bans,
-          SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END) as active
-        FROM punishments WHERE player_id = ?
-      `).get(id),
-      notes: db.prepare('SELECT COUNT(*) as total FROM notes WHERE player_id = ?').get(id),
-      activity: db.prepare('SELECT COUNT(*) as total FROM activity_log WHERE player_id = ?').get(id),
-    }
+    const punishmentStats = get(`
+      SELECT 
+        COUNT(*) as total,
+        SUM(CASE WHEN type = 'warn' THEN 1 ELSE 0 END) as warns,
+        SUM(CASE WHEN type = 'mute' THEN 1 ELSE 0 END) as mutes,
+        SUM(CASE WHEN type = 'kick' THEN 1 ELSE 0 END) as kicks,
+        SUM(CASE WHEN type = 'ban' THEN 1 ELSE 0 END) as bans,
+        SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END) as active
+      FROM punishments WHERE player_id = ?
+    `, [id])
 
-    res.json(stats)
+    const noteStats = get('SELECT COUNT(*) as total FROM notes WHERE player_id = ?', [id])
+    const activityStats = get('SELECT COUNT(*) as total FROM activity_log WHERE player_id = ?', [id])
+
+    res.json({
+      punishments: punishmentStats,
+      notes: noteStats,
+      activity: activityStats,
+    })
   } catch (error) {
     next(error)
   }
