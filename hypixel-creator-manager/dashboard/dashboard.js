@@ -19,14 +19,44 @@ async function loadSettings() {
     const settings = await chrome.storage.sync.get({
       reviewerName: 'Judge',
       overdueMonths: 3,
-      inactiveMonths: 6
+      inactiveMonths: 6,
+      youtubeApiKey: '',
+      twitchClientId: '',
+      twitchClientSecret: ''
     });
     
     document.getElementById('settingReviewerName').value = settings.reviewerName;
     document.getElementById('settingOverdueMonths').value = settings.overdueMonths;
     document.getElementById('settingInactiveMonths').value = settings.inactiveMonths;
+    
+    // API settings
+    if (document.getElementById('settingYoutubeApiKey')) {
+      document.getElementById('settingYoutubeApiKey').value = settings.youtubeApiKey || '';
+      updateApiStatusBadge('youtube', !!settings.youtubeApiKey);
+    }
+    if (document.getElementById('settingTwitchClientId')) {
+      document.getElementById('settingTwitchClientId').value = settings.twitchClientId || '';
+    }
+    if (document.getElementById('settingTwitchClientSecret')) {
+      document.getElementById('settingTwitchClientSecret').value = settings.twitchClientSecret || '';
+      updateApiStatusBadge('twitch', !!(settings.twitchClientId && settings.twitchClientSecret));
+    }
   } catch (error) {
     console.error('Error loading settings:', error);
+  }
+}
+
+// Update API status badge
+function updateApiStatusBadge(api, isConfigured) {
+  const badge = document.getElementById(`${api}ApiStatusBadge`);
+  if (badge) {
+    if (isConfigured) {
+      badge.textContent = '✓ Configured';
+      badge.classList.add('configured');
+    } else {
+      badge.textContent = 'Not Configured';
+      badge.classList.remove('configured');
+    }
   }
 }
 
@@ -102,6 +132,50 @@ function setupEventListeners() {
   document.getElementById('modalClose').addEventListener('click', closeModal);
   document.getElementById('modalCancel').addEventListener('click', closeModal);
   document.querySelector('.modal-backdrop').addEventListener('click', closeModal);
+  
+  // API Settings
+  document.getElementById('btnSaveApiKeys')?.addEventListener('click', saveApiKeys);
+  
+  // Toggle password visibility for API keys
+  setupPasswordToggle('btnToggleYoutubeKey', 'settingYoutubeApiKey');
+  setupPasswordToggle('btnToggleTwitchId', 'settingTwitchClientId');
+  setupPasswordToggle('btnToggleTwitchSecret', 'settingTwitchClientSecret');
+}
+
+// Setup password toggle
+function setupPasswordToggle(btnId, inputId) {
+  const btn = document.getElementById(btnId);
+  const input = document.getElementById(inputId);
+  
+  if (btn && input) {
+    btn.addEventListener('click', () => {
+      const isPassword = input.type === 'password';
+      input.type = isPassword ? 'text' : 'password';
+      btn.textContent = isPassword ? 'Hide' : 'Show';
+    });
+  }
+}
+
+// Save API keys
+async function saveApiKeys() {
+  const youtubeApiKey = document.getElementById('settingYoutubeApiKey')?.value.trim() || '';
+  const twitchClientId = document.getElementById('settingTwitchClientId')?.value.trim() || '';
+  const twitchClientSecret = document.getElementById('settingTwitchClientSecret')?.value.trim() || '';
+  
+  try {
+    await chrome.storage.sync.set({
+      youtubeApiKey,
+      twitchClientId,
+      twitchClientSecret
+    });
+    
+    updateApiStatusBadge('youtube', !!youtubeApiKey);
+    updateApiStatusBadge('twitch', !!(twitchClientId && twitchClientSecret));
+    
+    showNotification('API keys saved!', 'success');
+  } catch (error) {
+    showNotification('Failed to save API keys', 'error');
+  }
 }
 
 // Setup file upload
@@ -288,23 +362,23 @@ function renderCreatorsTable(creators) {
   tbody.innerHTML = creators.slice(0, 100).map(({ rowIndex, creator }) => `
     <tr data-row="${rowIndex}">
       <td>
-        <div style="display: flex; align-items: center; gap: 10px;">
-          <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; font-size: 14px; color: white;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #FFAA00, #FF5500); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; color: #0D0D0D; box-shadow: 0 2px 8px rgba(255, 170, 0, 0.3);">
             ${(creator.name || '?').charAt(0).toUpperCase()}
           </div>
           <div>
-            <div style="font-weight: 500;">${escapeHtml(creator.name || 'Unknown')}</div>
-            <div style="font-size: 11px; color: #888;">${escapeHtml((creator.uuid || '').substring(0, 8))}...</div>
+            <div style="font-weight: 600; font-size: 14px;">${escapeHtml(creator.name || 'Unknown')}</div>
+            <div style="font-size: 11px; color: #666;">${escapeHtml((creator.uuid || '').substring(0, 8))}...</div>
           </div>
         </div>
       </td>
-      <td><span style="padding: 4px 8px; background: rgba(102, 126, 234, 0.2); border-radius: 4px; font-size: 11px;">${escapeHtml(creator.rankGiven || '-')}</span></td>
-      <td>${formatNumber(creator.subscribers) || '-'}</td>
+      <td><span style="padding: 5px 12px; background: linear-gradient(135deg, rgba(255, 170, 0, 0.15), rgba(255, 85, 0, 0.1)); border: 1px solid rgba(255, 170, 0, 0.3); border-radius: 6px; font-size: 11px; font-weight: 600; color: #FFAA00;">${escapeHtml(creator.rankGiven || 'CREATOR')}</span></td>
+      <td style="font-weight: 600; color: #55FFFF;">${formatNumber(creator.subscribers) || '-'}</td>
       <td>${escapeHtml(creator.lastUploadAgo || '-')}</td>
       <td>${escapeHtml(creator.lastChecked || 'Never')}</td>
       <td>${getStatusBadge(creator)}</td>
       <td>
-        <button class="btn btn-outline btn-view" data-row="${rowIndex}" style="padding: 6px 12px; font-size: 11px;">View</button>
+        <button class="btn btn-primary btn-view" data-row="${rowIndex}" style="padding: 8px 16px; font-size: 12px;">View →</button>
       </td>
     </tr>
   `).join('');
@@ -322,15 +396,15 @@ function renderCreatorsTable(creators) {
 // Get status badge
 function getStatusBadge(creator) {
   if (creator.requiresCheckup) {
-    return '<span style="padding: 4px 8px; background: rgba(245, 87, 108, 0.2); color: #f5576c; border-radius: 4px; font-size: 11px;">Needs Checkup</span>';
+    return '<span style="padding: 5px 12px; background: rgba(255, 85, 85, 0.15); border: 1px solid rgba(255, 85, 85, 0.3); color: #FF5555; border-radius: 6px; font-size: 11px; font-weight: 600;">⚠️ Needs Checkup</span>';
   }
   if (creator.warnings) {
-    return '<span style="padding: 4px 8px; background: rgba(247, 147, 30, 0.2); color: #f7931e; border-radius: 4px; font-size: 11px;">Has Warning</span>';
+    return '<span style="padding: 5px 12px; background: rgba(255, 85, 0, 0.15); border: 1px solid rgba(255, 85, 0, 0.3); color: #FF5500; border-radius: 6px; font-size: 11px; font-weight: 600;">⚠️ Has Warning</span>';
   }
   if (!creator.lastChecked) {
-    return '<span style="padding: 4px 8px; background: rgba(79, 172, 254, 0.2); color: #4facfe; border-radius: 4px; font-size: 11px;">Never Reviewed</span>';
+    return '<span style="padding: 5px 12px; background: rgba(85, 255, 255, 0.15); border: 1px solid rgba(85, 255, 255, 0.3); color: #55FFFF; border-radius: 6px; font-size: 11px; font-weight: 600;">📋 Never Reviewed</span>';
   }
-  return '<span style="padding: 4px 8px; background: rgba(56, 239, 125, 0.2); color: #38ef7d; border-radius: 4px; font-size: 11px;">Active</span>';
+  return '<span style="padding: 5px 12px; background: rgba(85, 255, 85, 0.15); border: 1px solid rgba(85, 255, 85, 0.3); color: #55FF55; border-radius: 6px; font-size: 11px; font-weight: 600;">✓ Active</span>';
 }
 
 // Load review queue
@@ -584,9 +658,9 @@ async function handleClearData() {
   document.getElementById('navReviewCount').textContent = '0';
 }
 
-// Open creator modal
+// Open creator profile page
 function openCreatorModal(rowIndex) {
-  console.log('Opening modal for row:', rowIndex);
+  console.log('Opening creator profile for row:', rowIndex);
   
   if (!csvManager || !csvManager.hasData()) {
     console.error('CSV Manager not initialized or no data');
@@ -603,66 +677,8 @@ function openCreatorModal(rowIndex) {
     return;
   }
   
-  document.getElementById('modalTitle').textContent = creator.name || 'Unknown Creator';
-  document.getElementById('modalBody').innerHTML = `
-    <div style="display: grid; gap: 16px;">
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-        <div>
-          <label style="font-size: 11px; color: #888; display: block;">UUID</label>
-          <span style="font-size: 13px;">${escapeHtml(creator.uuid || '-')}</span>
-        </div>
-        <div>
-          <label style="font-size: 11px; color: #888; display: block;">Rank</label>
-          <span style="font-size: 13px;">${escapeHtml(creator.rankGiven || '-')}</span>
-        </div>
-        <div>
-          <label style="font-size: 11px; color: #888; display: block;">Subscribers</label>
-          <span style="font-size: 13px;">${escapeHtml(creator.subscribers || '-')}</span>
-        </div>
-        <div>
-          <label style="font-size: 11px; color: #888; display: block;">Last Upload</label>
-          <span style="font-size: 13px;">${escapeHtml(creator.lastUploadAgo || '-')}</span>
-        </div>
-        <div>
-          <label style="font-size: 11px; color: #888; display: block;">Last Checked</label>
-          <span style="font-size: 13px;">${escapeHtml(creator.lastChecked || 'Never')}</span>
-        </div>
-        <div>
-          <label style="font-size: 11px; color: #888; display: block;">Reviewed By</label>
-          <span style="font-size: 13px;">${escapeHtml(creator.contentReviewBy || '-')}</span>
-        </div>
-      </div>
-      
-      <div>
-        <label style="font-size: 11px; color: #888; display: block;">Channel</label>
-        <a href="${escapeHtml(creator.channel || '#')}" target="_blank" style="color: #4facfe; font-size: 13px; word-break: break-all;">${escapeHtml(creator.channel || '-')}</a>
-      </div>
-      
-      <div>
-        <label style="font-size: 11px; color: #888; display: block;">Notes</label>
-        <div style="font-size: 13px; white-space: pre-wrap; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px; max-height: 100px; overflow-y: auto;">
-          ${escapeHtml(creator.notes || 'No notes')}
-        </div>
-      </div>
-      
-      ${creator.warnings ? `
-        <div>
-          <label style="font-size: 11px; color: #f5576c; display: block;">⚠️ Warnings</label>
-          <div style="font-size: 13px; white-space: pre-wrap; background: rgba(245, 87, 108, 0.1); padding: 12px; border-radius: 8px; border: 1px solid rgba(245, 87, 108, 0.3);">
-            ${escapeHtml(creator.warnings)}
-          </div>
-        </div>
-      ` : ''}
-    </div>
-  `;
-  
-  document.getElementById('modalConfirm').textContent = 'Review';
-  document.getElementById('modalConfirm').onclick = async () => {
-    await quickReview(rowIndex);
-    closeModal();
-  };
-  
-  document.getElementById('modal').classList.add('active');
+  // Navigate to creator profile page
+  window.location.href = `../creator/creator.html?row=${rowIndex}`;
 }
 
 // Close modal
@@ -732,27 +748,4 @@ function formatNumber(num) {
 window.quickReview = quickReview;
 window.openCreatorModal = openCreatorModal;
 
-// Add notification styles
-const notificationStyles = document.createElement('style');
-notificationStyles.textContent = `
-  .notification {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    padding: 16px 24px;
-    border-radius: 10px;
-    background: #333;
-    color: white;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    z-index: 10000;
-    animation: notificationIn 0.3s ease;
-  }
-  .notification-success { background: linear-gradient(135deg, #11998e, #38ef7d); color: #1a1a2e; }
-  .notification-error { background: linear-gradient(135deg, #f5576c, #f093fb); }
-  .notification-info { background: linear-gradient(135deg, #667eea, #764ba2); }
-  .notification button { background: none; border: none; color: inherit; font-size: 20px; cursor: pointer; }
-  @keyframes notificationIn { from { transform: translateX(100%); opacity: 0; } }
-`;
-document.head.appendChild(notificationStyles);
+// Notification styles are now in CSS file

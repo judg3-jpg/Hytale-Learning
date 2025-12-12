@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Creator Profile - Hypixel Creator Manager</title>
+  <link rel="stylesheet" href="creator.css">
+</head>
+<body>
+  <div class="app">
+    <!-- Header -->
+    <header class="main-header">
+      <div class="header-left">
+        <a href="../dashboard/dashboard.html" class="back-btn">
+          <span>←</span> Back to Dashboard
+        </a>
+      </div>
+      <div class="header-center">
+        <span class="logo-icon">🎮</span>
+        <h1>HYPIXEL</h1>
+        <span class="logo-sub">Creator Manager</span>
+      </div>
+      <div class="header-right">
+        <button id="btnRefreshStats" class="btn btn-gold">
+          <span>🔄</span> Refresh Stats
+        </button>
+      </div>
+    </header>
+
+    <!-- Loading State -->
+    <div class="loading-state" id="loadingState">
+      <div class="loading-spinner"></div>
+      <p>Loading creator data...</p>
+    </div>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent" style="display: none;">
+      <!-- Creator Banner -->
+      <section class="creator-banner" id="creatorBanner">
+        <div class="banner-overlay"></div>
+        <div class="banner-content">
+          <div class="creator-avatar" id="creatorAvatar">
+            <span id="avatarInitial">?</span>
+          </div>
+          <div class="creator-info">
+            <h2 id="creatorName">Loading...</h2>
+            <div class="creator-badges">
+              <span class="badge badge-rank" id="creatorRank">CREATOR</span>
+              <span class="badge badge-platform" id="creatorPlatform">YOUTUBE</span>
+            </div>
+            <p class="creator-channel" id="creatorChannel">
+              <a href="#" target="_blank" id="channelLink">View Channel →</a>
+            </p>
+          </div>
+          <div class="creator-quick-stats">
+            <div class="quick-stat">
+              <span class="quick-stat-value" id="quickStatSubs">-</span>
+              <span class="quick-stat-label">Subscribers</span>
+            </div>
+            <div class="quick-stat">
+              <span class="quick-stat-value" id="quickStatViews">-</span>
+              <span class="quick-stat-label">Total Views</span>
+            </div>
+            <div class="quick-stat">
+              <span class="quick-stat-value" id="quickStatVideos">-</span>
+              <span class="quick-stat-label">Videos</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Quick Actions -->
+      <section class="quick-actions">
+        <button id="btnQuickReview" class="btn btn-gold btn-large">
+          <span>✓</span> Mark as Reviewed
+        </button>
+        <button id="btnAddNote" class="btn btn-dark btn-large">
+          <span>📝</span> Add Note
+        </button>
+        <button id="btnAddWarning" class="btn btn-red btn-large">
+          <span>⚠️</span> Add Warning
+        </button>
+        <button id="btnClearCheckup" class="btn btn-dark btn-large">
+          <span>🧹</span> Clear Checkup
+        </button>
+      </section>
+
+      <!-- Stats Grid -->
+      <section class="stats-grid">
+        <!-- Channel Stats Card -->
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <h3>📊 Channel Statistics</h3>
+            <span class="stat-card-badge" id="statsSource">From CSV</span>
+          </div>
+          <div class="stat-card-body">
+            <div class="stat-row">
+              <span class="stat-label">Subscribers</span>
+              <span class="stat-value" id="statSubscribers">-</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Total Views</span>
+              <span class="stat-value" id="statTotalViews">-</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Video Count</span>
+              <span class="stat-value" id="statVideoCount">-</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Last Upload</span>
+              <span class="stat-value" id="statLastUpload">-</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Channel Created</span>
+              <span class="stat-value" id="statChannelCreated">-</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Review Status Card -->
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <h3>📋 Review Status</h3>
+          </div>
+          <div class="stat-card-body">
+            <div class="stat-row">
+              <span class="stat-label">Last Checked</span>
+              <span class="stat-value" id="statLastChecked">-</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Reviewed By</span>
+              <span class="stat-value" id="statReviewedBy">-</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Date Accepted</span>
+              <span class="stat-value" id="statDateAccepted">-</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Accepted By</span>
+              <span class="stat-value" id="statAcceptedBy">-</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Status</span>
+              <span class="stat-value" id="statStatus">-</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Creator Info Card -->
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <h3>👤 Creator Info</h3>
+          </div>
+          <div class="stat-card-body">
+            <div class="stat-row">
+              <span class="stat-label">UUID</span>
+              <span class="stat-value stat-small" id="statUUID">-</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Creator Code</span>
+              <span class="stat-value" id="statCreatorCode">-</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Language</span>
+              <span class="stat-value" id="statLanguage">-</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Locale</span>
+              <span class="stat-value" id="statLocale">-</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Contact</span>
+              <span class="stat-value stat-small" id="statContact">-</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Recent Videos -->
+      <section class="recent-videos" id="recentVideosSection" style="display: none;">
+        <h3>🎬 Recent Videos</h3>
+        <div class="videos-grid" id="videosGrid">
+          <!-- Videos will be inserted here -->
+        </div>
+      </section>
+
+      <!-- Notes & Warnings -->
+      <section class="notes-section">
+        <div class="notes-card">
+          <div class="notes-card-header">
+            <h3>📝 Notes</h3>
+            <button class="btn btn-small btn-dark" id="btnAddNoteInline">+ Add Note</button>
+          </div>
+          <div class="notes-content" id="notesContent">
+            <p class="no-notes">No notes yet</p>
+          </div>
+        </div>
+
+        <div class="notes-card warnings">
+          <div class="notes-card-header">
+            <h3>⚠️ Warnings</h3>
+            <button class="btn btn-small btn-red" id="btnAddWarningInline">+ Add Warning</button>
+          </div>
+          <div class="notes-content" id="warningsContent">
+            <p class="no-notes">No warnings</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- API Status -->
+      <section class="api-status" id="apiStatus">
+        <div class="api-status-item" id="youtubeApiStatus">
+          <span class="api-icon">📺</span>
+          <span class="api-name">YouTube API</span>
+          <span class="api-badge not-configured">Not Configured</span>
+        </div>
+        <div class="api-status-item" id="twitchApiStatus">
+          <span class="api-icon">🎮</span>
+          <span class="api-name">Twitch API</span>
+          <span class="api-badge not-configured">Not Configured</span>
+        </div>
+        <a href="../dashboard/dashboard.html#settings" class="api-configure-link">Configure API Keys →</a>
+      </section>
+    </main>
+
+    <!-- Error State -->
+    <div class="error-state" id="errorState" style="display: none;">
+      <span class="error-icon">❌</span>
+      <h3>Creator Not Found</h3>
+      <p id="errorMessage">Could not load creator data.</p>
+      <a href="../dashboard/dashboard.html" class="btn btn-gold">Back to Dashboard</a>
+    </div>
+  </div>
+
+  <script src="../lib/csv-manager.js"></script>
+  <script src="../lib/api-manager.js"></script>
+  <script src="creator.js"></script>
+</body>
+</html>
