@@ -304,10 +304,19 @@ function renderCreatorsTable(creators) {
       <td>${escapeHtml(creator.lastChecked || 'Never')}</td>
       <td>${getStatusBadge(creator)}</td>
       <td>
-        <button class="btn btn-outline" style="padding: 6px 12px; font-size: 11px;" onclick="openCreatorModal(${rowIndex})">View</button>
+        <button class="btn btn-outline btn-view" data-row="${rowIndex}" style="padding: 6px 12px; font-size: 11px;">View</button>
       </td>
     </tr>
   `).join('');
+  
+  // Add click handlers for view buttons
+  tbody.querySelectorAll('.btn-view').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const rowIndex = parseInt(btn.dataset.row);
+      openCreatorModal(rowIndex);
+    });
+  });
 }
 
 // Get status badge
@@ -383,10 +392,10 @@ function renderReviewQueue(queue) {
       </div>
       <span class="review-item-reason">${escapeHtml(item.reason)}</span>
       <div class="review-item-actions">
-        <button class="btn btn-success" style="padding: 8px 16px;" onclick="quickReview(${item.rowIndex})">
+        <button class="btn btn-success btn-quick-review" data-row="${item.rowIndex}" style="padding: 8px 16px;">
           <span>✓</span> Review
         </button>
-        <button class="btn btn-outline" style="padding: 8px 16px;" onclick="openCreatorModal(${item.rowIndex})">
+        <button class="btn btn-outline btn-view" data-row="${item.rowIndex}" style="padding: 8px 16px;">
           View
         </button>
       </div>
@@ -403,6 +412,22 @@ function renderReviewQueue(queue) {
         selectedForReview.delete(row);
       }
       document.getElementById('btnBulkReview').disabled = selectedForReview.size === 0;
+    });
+  });
+  
+  // Setup quick review buttons
+  container.querySelectorAll('.btn-quick-review').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      quickReview(parseInt(btn.dataset.row));
+    });
+  });
+  
+  // Setup view buttons
+  container.querySelectorAll('.btn-view').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      openCreatorModal(parseInt(btn.dataset.row));
     });
   });
 }
@@ -431,9 +456,17 @@ async function loadWarnings() {
         <div class="review-item-name">${escapeHtml(creator.name || 'Unknown')}</div>
         <div class="review-item-meta" style="color: #f5576c;">${escapeHtml((creator.warnings || '').split('\n')[0])}</div>
       </div>
-      <button class="btn btn-outline" style="padding: 8px 16px;" onclick="openCreatorModal(${rowIndex})">View</button>
+      <button class="btn btn-outline btn-view" data-row="${rowIndex}" style="padding: 8px 16px;">View</button>
     </div>
   `).join('');
+  
+  // Setup view buttons
+  container.querySelectorAll('.btn-view').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      openCreatorModal(parseInt(btn.dataset.row));
+    });
+  });
 }
 
 // Load inactive
@@ -464,9 +497,17 @@ async function loadInactive() {
         <div class="review-item-name">${escapeHtml(creator.name || 'Unknown')}</div>
         <div class="review-item-meta">Last upload: ${escapeHtml(creator.lastUploadAgo || 'Unknown')}</div>
       </div>
-      <button class="btn btn-outline" style="padding: 8px 16px;" onclick="openCreatorModal(${rowIndex})">View</button>
+      <button class="btn btn-outline btn-view" data-row="${rowIndex}" style="padding: 8px 16px;">View</button>
     </div>
   `).join('');
+  
+  // Setup view buttons
+  container.querySelectorAll('.btn-view').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      openCreatorModal(parseInt(btn.dataset.row));
+    });
+  });
 }
 
 // Quick review
@@ -545,8 +586,22 @@ async function handleClearData() {
 
 // Open creator modal
 function openCreatorModal(rowIndex) {
+  console.log('Opening modal for row:', rowIndex);
+  
+  if (!csvManager || !csvManager.hasData()) {
+    console.error('CSV Manager not initialized or no data');
+    showNotification('No data loaded', 'error');
+    return;
+  }
+  
   const creator = csvManager.getRow(rowIndex);
-  if (!creator) return;
+  console.log('Creator data:', creator);
+  
+  if (!creator) {
+    console.error('Creator not found at row:', rowIndex);
+    showNotification('Creator not found', 'error');
+    return;
+  }
   
   document.getElementById('modalTitle').textContent = creator.name || 'Unknown Creator';
   document.getElementById('modalBody').innerHTML = `
