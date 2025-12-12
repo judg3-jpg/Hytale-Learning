@@ -1,0 +1,72 @@
+{
+  "manifest_version": 3,
+  "name": "Hypixel Creator Manager",
+  "version": "1.0.0",
+  "description": "Streamline your Hypixel creator sheet management with quick reviews, auto-fill, and bulk actions.",
+  "author": "Judge",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "permissions": [
+    "activeTab",
+    "storage",
+    "contextMenus"
+  ],
+  "host_permissions": [
+    "https://docs.google.com/spreadsheets/*"
+  ],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    },
+    "default_title": "Hypixel Creator Manager"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://docs.google.com/spreadsheets/*"],
+      "js": ["content/content.js"],
+      "css": ["content/content.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "commands": {
+    "quick-review": {
+      "suggested_key": {
+        "default": "Alt+R"
+      },
+      "description": "Quick Review - Mark as reviewed by Judge"
+    },
+    "note-inactive": {
+      "suggested_key": {
+        "default": "Alt+1"
+      },
+      "description": "Insert note: Channel inactive"
+    },
+    "note-non-gaming": {
+      "suggested_key": {
+        "default": "Alt+2"
+      },
+      "description": "Insert note: Non-gaming content"
+    },
+    "note-reviewed": {
+      "suggested_key": {
+        "default": "Alt+3"
+      },
+      "description": "Insert note: Content reviewed - meets standards"
+    },
+    "open-channel": {
+      "suggested_key": {
+        "default": "Alt+O"
+      },
+      "description": "Open creator's YouTube channel"
+    }
+  }
+}
