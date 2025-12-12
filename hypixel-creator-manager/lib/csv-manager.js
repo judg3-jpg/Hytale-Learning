@@ -54,10 +54,12 @@ class CSVManager {
       const stored = await chrome.storage.local.get(['creatorData', 'creatorHeaders', 'lastUpdated']);
       
       if (stored.creatorData && stored.creatorData.length > 0) {
-        this.data = stored.creatorData;
-        this.headers = stored.creatorHeaders || this.EXPECTED_HEADERS;
+        // Make a deep copy to avoid reference issues
+        this.data = stored.creatorData.map(row => Array.isArray(row) ? [...row] : []);
+        this.headers = stored.creatorHeaders ? [...stored.creatorHeaders] : [...this.EXPECTED_HEADERS];
         this.lastUpdated = stored.lastUpdated;
         this.isLoaded = true;
+        console.log(`Loaded ${this.data.length} creators from storage`);
       }
       
       return this.isLoaded;
@@ -196,14 +198,29 @@ class CSVManager {
   // Save data to local storage
   async saveToStorage() {
     try {
+      // Validate data before saving
+      if (!Array.isArray(this.data)) {
+        throw new Error('Data is not an array');
+      }
+      
+      // Make a clean copy of the data to avoid reference issues
+      const dataCopy = this.data.map(row => [...row]);
+      
       await chrome.storage.local.set({
-        creatorData: this.data,
-        creatorHeaders: this.headers,
+        creatorData: dataCopy,
+        creatorHeaders: [...this.headers],
         lastUpdated: this.lastUpdated
       });
+      
+      console.log(`Saved ${dataCopy.length} creators to storage`);
       return true;
     } catch (error) {
       console.error('Failed to save to storage:', error);
+      // Try to log storage usage
+      try {
+        const usage = await chrome.storage.local.getBytesInUse();
+        console.log('Storage usage:', usage, 'bytes');
+      } catch (e) {}
       return false;
     }
   }
@@ -281,12 +298,20 @@ class CSVManager {
 
   // Get a specific row
   getRow(index) {
-    if (index < 0 || index >= this.data.length) return null;
-    return this.parseCreatorRow(this.data[index]);
+    if (index < 0 || index >= this.data.length) {
+      console.warn(`getRow: Invalid index ${index}, data length is ${this.data.length}`);
+      return null;
+    }
+    const row = this.data[index];
+    if (!row || !Array.isArray(row)) {
+      console.warn(`getRow: Row at index ${index} is invalid:`, row);
+      return null;
+    }
+    return this.parseCreatorRow(row);
   }
 
   // Update a cell
-  async updateCell(rowIndex, columnIndex, value) {
+  async updateCell(rowIndex, columnIndex, value, skipSave = false) {
     if (rowIndex < 0 || rowIndex >= this.data.length) return false;
     
     // Ensure row has enough columns
@@ -297,6 +322,48 @@ class CSVManager {
     this.data[rowIndex][columnIndex] = value;
     this.lastUpdated = new Date().toISOString();
     
+    if (!skipSave) {
+      await this.saveToStorage();
+    }
+    return true;
+  }
+
+  // Update multiple cells at once (batch update)
+  async updateMultipleCells(rowIndex, updates) {
+    if (rowIndex < 0 || rowIndex >= this.data.length) return false;
+    
+    // Ensure row has enough columns for any update
+    const maxColumn = Math.max(...Object.keys(updates).map(k => parseInt(k)));
+    while (this.data[rowIndex].length <= maxColumn) {
+      this.data[rowIndex].push('');
+    }
+    
+    // Apply all updates
+    for (const [columnIndex, value] of Object.entries(updates)) {
+      this.data[rowIndex][parseInt(columnIndex)] = value;
+    }
+    
+    this.lastUpdated = new Date().toISOString();
+    await this.saveToStorage();
+    return true;
+  }
+
+  // Update entire row at once
+  async updateRow(rowIndex, newRowData) {
+    if (rowIndex < 0 || rowIndex >= this.data.length) return false;
+    
+    // Preserve original row length if new data is shorter
+    const originalLength = this.data[rowIndex].length;
+    
+    // Update the row
+    this.data[rowIndex] = newRowData;
+    
+    // Ensure minimum columns
+    while (this.data[rowIndex].length < originalLength) {
+      this.data[rowIndex].push('');
+    }
+    
+    this.lastUpdated = new Date().toISOString();
     await this.saveToStorage();
     return true;
   }
@@ -545,6 +612,36 @@ class CSVManager {
   // Get last updated timestamp
   getLastUpdated() {
     return this.lastUpdated;
+  }
+
+  // Debug function to check data integrity
+  debugData() {
+    console.log('=== CSV Manager Debug ===');
+    console.log('Is Loaded:', this.isLoaded);
+    console.log('Headers count:', this.headers.length);
+    console.log('Data rows:', this.data.length);
+    console.log('Last Updated:', this.lastUpdated);
+    
+    // Check for invalid rows
+    let invalidRows = 0;
+    for (let i = 0; i < this.data.length; i++) {
+      if (!Array.isArray(this.data[i])) {
+        console.warn(`Row ${i} is not an array:`, this.data[i]);
+        invalidRows++;
+      } else if (this.data[i].length < 2) {
+        console.warn(`Row ${i} has too few columns:`, this.data[i].length);
+        invalidRows++;
+      }
+    }
+    console.log('Invalid rows found:', invalidRows);
+    console.log('=========================');
+    
+    return {
+      isLoaded: this.isLoaded,
+      headerCount: this.headers.length,
+      rowCount: this.data.length,
+      invalidRows: invalidRows
+    };
   }
 }
 

@@ -405,29 +405,39 @@ async function saveCreatorEdits() {
   try {
     const COLUMNS = csvManager.COLUMNS;
     
-    // Update each field
-    await csvManager.updateCell(currentRowIndex, COLUMNS.NAME, document.getElementById('editName').value.trim());
-    await csvManager.updateCell(currentRowIndex, COLUMNS.MAIN_CHANNEL, document.getElementById('editChannel').value.trim());
-    await csvManager.updateCell(currentRowIndex, COLUMNS.UUID, document.getElementById('editUUID').value.trim());
-    await csvManager.updateCell(currentRowIndex, COLUMNS.CREATOR_CODE, document.getElementById('editCreatorCode').value.trim());
-    await csvManager.updateCell(currentRowIndex, COLUMNS.SUBSCRIBERS, document.getElementById('editSubscribers').value.trim());
-    await csvManager.updateCell(currentRowIndex, COLUMNS.RANK_GIVEN, document.getElementById('editRank').value);
-    await csvManager.updateCell(currentRowIndex, COLUMNS.CONTENT_TYPE, document.getElementById('editContentType').value);
-    await csvManager.updateCell(currentRowIndex, COLUMNS.CONTENT_LANGUAGE, document.getElementById('editLanguage').value.trim());
-    await csvManager.updateCell(currentRowIndex, COLUMNS.LAST_UPLOAD_AGO, document.getElementById('editLastUpload').value.trim());
-    await csvManager.updateCell(currentRowIndex, COLUMNS.LOCALE, document.getElementById('editLocale').value.trim());
-    await csvManager.updateCell(currentRowIndex, COLUMNS.LAST_CHECKED, document.getElementById('editLastChecked').value);
-    await csvManager.updateCell(currentRowIndex, COLUMNS.CONTENT_REVIEW_BY, document.getElementById('editReviewedBy').value.trim());
-    await csvManager.updateCell(currentRowIndex, COLUMNS.DATE_ACCEPTED, document.getElementById('editDateAccepted').value);
-    await csvManager.updateCell(currentRowIndex, COLUMNS.ACCEPTED_BY, document.getElementById('editAcceptedBy').value.trim());
-    await csvManager.updateCell(currentRowIndex, COLUMNS.CONTACT_EMAIL, document.getElementById('editEmail').value.trim());
-    await csvManager.updateCell(currentRowIndex, COLUMNS.ZENDESK_ID, document.getElementById('editZendesk').value.trim());
-    await csvManager.updateCell(currentRowIndex, COLUMNS.NOTES, document.getElementById('editNotes').value.trim());
-    await csvManager.updateCell(currentRowIndex, COLUMNS.WARNINGS, document.getElementById('editWarnings').value.trim());
-    await csvManager.updateCell(currentRowIndex, COLUMNS.REQUIRES_CHECKUP, document.getElementById('editRequiresCheckup').checked ? 'Yes' : '');
+    // Collect all updates in a single object
+    const updates = {
+      [COLUMNS.NAME]: document.getElementById('editName').value.trim(),
+      [COLUMNS.MAIN_CHANNEL]: document.getElementById('editChannel').value.trim(),
+      [COLUMNS.UUID]: document.getElementById('editUUID').value.trim(),
+      [COLUMNS.CREATOR_CODE]: document.getElementById('editCreatorCode').value.trim(),
+      [COLUMNS.SUBSCRIBERS]: document.getElementById('editSubscribers').value.trim(),
+      [COLUMNS.RANK_GIVEN]: document.getElementById('editRank').value,
+      [COLUMNS.CONTENT_TYPE]: document.getElementById('editContentType').value,
+      [COLUMNS.CONTENT_LANGUAGE]: document.getElementById('editLanguage').value.trim(),
+      [COLUMNS.LAST_UPLOAD_AGO]: document.getElementById('editLastUpload').value.trim(),
+      [COLUMNS.LOCALE]: document.getElementById('editLocale').value.trim(),
+      [COLUMNS.LAST_CHECKED]: document.getElementById('editLastChecked').value,
+      [COLUMNS.CONTENT_REVIEW_BY]: document.getElementById('editReviewedBy').value.trim(),
+      [COLUMNS.DATE_ACCEPTED]: document.getElementById('editDateAccepted').value,
+      [COLUMNS.ACCEPTED_BY]: document.getElementById('editAcceptedBy').value.trim(),
+      [COLUMNS.CONTACT_EMAIL]: document.getElementById('editEmail').value.trim(),
+      [COLUMNS.ZENDESK_ID]: document.getElementById('editZendesk').value.trim(),
+      [COLUMNS.NOTES]: document.getElementById('editNotes').value.trim(),
+      [COLUMNS.WARNINGS]: document.getElementById('editWarnings').value.trim(),
+      [COLUMNS.REQUIRES_CHECKUP]: document.getElementById('editRequiresCheckup').checked ? 'Yes' : ''
+    };
+    
+    // Apply all updates at once
+    await csvManager.updateMultipleCells(currentRowIndex, updates);
     
     // Reload creator data
     currentCreator = csvManager.getRow(currentRowIndex);
+    
+    if (!currentCreator) {
+      throw new Error('Failed to reload creator after save');
+    }
+    
     populateCreatorData();
     
     closeEditModal();
