@@ -1,10 +1,10 @@
-import db from '../database/db.js'
+import { get, all } from '../database/db.js'
 
 // Get dashboard stats
 export function getDashboardStats(req, res, next) {
   try {
     // Player stats
-    const playerStats = db.prepare(`
+    const playerStats = get(`
       SELECT 
         COUNT(*) as total_players,
         SUM(CASE WHEN status = 'online' THEN 1 ELSE 0 END) as online_now,
@@ -13,10 +13,10 @@ export function getDashboardStats(req, res, next) {
         SUM(CASE WHEN status = 'banned' THEN 1 ELSE 0 END) as banned,
         SUM(CASE WHEN status = 'muted' THEN 1 ELSE 0 END) as muted
       FROM players
-    `).get()
+    `)
 
     // Punishment stats
-    const punishmentStats = db.prepare(`
+    const punishmentStats = get(`
       SELECT 
         COUNT(*) as total,
         SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END) as active,
@@ -25,10 +25,10 @@ export function getDashboardStats(req, res, next) {
         SUM(CASE WHEN issued_at >= datetime('now', '-1 day') THEN 1 ELSE 0 END) as today,
         SUM(CASE WHEN issued_at >= datetime('now', '-1 day') AND type = 'warn' THEN 1 ELSE 0 END) as warned_today
       FROM punishments
-    `).get()
+    `)
 
     // Activity stats (last 24 hours)
-    const activityStats = db.prepare(`
+    const activityStats = get(`
       SELECT 
         COUNT(*) as total,
         SUM(CASE WHEN action_type = 'join' THEN 1 ELSE 0 END) as joins,
@@ -36,7 +36,7 @@ export function getDashboardStats(req, res, next) {
         SUM(CASE WHEN action_type = 'punishment' THEN 1 ELSE 0 END) as punishments
       FROM activity_log
       WHERE timestamp >= datetime('now', '-1 day')
-    `).get()
+    `)
 
     res.json({
       players: playerStats,
@@ -54,7 +54,7 @@ export function getRecentActivity(req, res, next) {
     const { limit = 10 } = req.query
 
     // Recent punishments
-    const recentPunishments = db.prepare(`
+    const recentPunishments = all(`
       SELECT 
         pun.id,
         pun.type,
@@ -66,10 +66,10 @@ export function getRecentActivity(req, res, next) {
       JOIN players p ON pun.player_id = p.id
       ORDER BY pun.issued_at DESC
       LIMIT ?
-    `).all(parseInt(limit))
+    `, [parseInt(limit)])
 
     // Recent activity
-    const recentActivity = db.prepare(`
+    const recentActivity = all(`
       SELECT 
         a.id,
         a.action_type,
@@ -81,10 +81,10 @@ export function getRecentActivity(req, res, next) {
       LEFT JOIN players p ON a.player_id = p.id
       ORDER BY a.timestamp DESC
       LIMIT ?
-    `).all(parseInt(limit))
+    `, [parseInt(limit)])
 
     // Players needing attention (multiple warnings in short time, or approaching thresholds)
-    const playersNeedingAttention = db.prepare(`
+    const playersNeedingAttention = all(`
       SELECT 
         p.id,
         p.player_name,
@@ -98,10 +98,10 @@ export function getRecentActivity(req, res, next) {
       HAVING recent_punishments >= 3
       ORDER BY recent_punishments DESC
       LIMIT 5
-    `).all()
+    `)
 
     // Expiring punishments (within next hour)
-    const expiringPunishments = db.prepare(`
+    const expiringPunishments = all(`
       SELECT 
         pun.id,
         pun.type,
@@ -116,7 +116,7 @@ export function getRecentActivity(req, res, next) {
       AND pun.expires_at > datetime('now')
       ORDER BY pun.expires_at ASC
       LIMIT 5
-    `).all()
+    `)
 
     res.json({
       recentPunishments,

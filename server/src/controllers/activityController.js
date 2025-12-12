@@ -1,4 +1,4 @@
-import db from '../database/db.js'
+import { run, all, get, lastInsertRowId } from '../database/db.js'
 import { NotFoundError, ValidationError } from '../middleware/errorHandler.js'
 
 // Get all activity
@@ -49,7 +49,7 @@ export function getAllActivity(req, res, next) {
     query += ` ORDER BY a.timestamp DESC LIMIT ? OFFSET ?`
     params.push(parseInt(limit), offset)
 
-    const activities = db.prepare(query).all(...params)
+    const activities = all(query, params)
 
     // Get total count
     let countQuery = `SELECT COUNT(*) as total FROM activity_log a WHERE 1=1`
@@ -72,7 +72,8 @@ export function getAllActivity(req, res, next) {
       countParams.push(to)
     }
 
-    const { total } = db.prepare(countQuery).get(...countParams)
+    const countResult = get(countQuery, countParams)
+    const total = countResult ? countResult.total : 0
 
     res.json({
       activities,
@@ -94,21 +95,22 @@ export function getActivityByPlayer(req, res, next) {
     const { id } = req.params
     const { page = 1, limit = 50 } = req.query
 
-    const player = db.prepare('SELECT id FROM players WHERE id = ?').get(id)
+    const player = get('SELECT id FROM players WHERE id = ?', [id])
     if (!player) {
       throw new NotFoundError('Player not found')
     }
 
     const offset = (parseInt(page) - 1) * parseInt(limit)
 
-    const activities = db.prepare(`
+    const activities = all(`
       SELECT * FROM activity_log
       WHERE player_id = ?
       ORDER BY timestamp DESC
       LIMIT ? OFFSET ?
-    `).all(id, parseInt(limit), offset)
+    `, [id, parseInt(limit), offset])
 
-    const { total } = db.prepare('SELECT COUNT(*) as total FROM activity_log WHERE player_id = ?').get(id)
+    const countResult = get('SELECT COUNT(*) as total FROM activity_log WHERE player_id = ?', [id])
+    const total = countResult ? countResult.total : 0
 
     res.json({
       activities,
@@ -140,23 +142,25 @@ export function createActivity(req, res, next) {
 
     // If player_id provided, verify player exists
     if (player_id) {
-      const player = db.prepare('SELECT id FROM players WHERE id = ?').get(player_id)
+      const player = get('SELECT id FROM players WHERE id = ?', [player_id])
       if (!player) {
         throw new NotFoundError('Player not found')
       }
     }
 
-    const result = db.prepare(`
+    run(`
       INSERT INTO activity_log (player_id, action_type, details)
       VALUES (?, ?, ?)
-    `).run(player_id || null, action_type, details || null)
+    `, [player_id || null, action_type, details || null])
 
-    const activity = db.prepare(`
+    const activityId = lastInsertRowId()
+
+    const activity = get(`
       SELECT a.*, p.player_name, p.player_uuid
       FROM activity_log a
       LEFT JOIN players p ON a.player_id = p.id
       WHERE a.id = ?
-    `).get(result.lastInsertRowid)
+    `, [activityId])
 
     res.status(201).json(activity)
   } catch (error) {

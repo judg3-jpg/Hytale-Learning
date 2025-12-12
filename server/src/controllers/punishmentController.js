@@ -1,4 +1,4 @@
-import db from '../database/db.js'
+import { run, all, get, lastInsertRowId } from '../database/db.js'
 import { NotFoundError, ValidationError } from '../middleware/errorHandler.js'
 
 // Get all punishments
@@ -49,7 +49,7 @@ export function getAllPunishments(req, res, next) {
     query += ` ORDER BY pun.${sortColumn} ${order} LIMIT ? OFFSET ?`
     params.push(parseInt(limit), offset)
 
-    const punishments = db.prepare(query).all(...params)
+    const punishments = all(query, params)
 
     // Get total count
     let countQuery = `SELECT COUNT(*) as total FROM punishments pun WHERE 1=1`
@@ -68,7 +68,8 @@ export function getAllPunishments(req, res, next) {
       countParams.push(player_id)
     }
 
-    const { total } = db.prepare(countQuery).get(...countParams)
+    const countResult = get(countQuery, countParams)
+    const total = countResult ? countResult.total : 0
 
     res.json({
       punishments,
@@ -88,15 +89,15 @@ export function getAllPunishments(req, res, next) {
 export function getActivePunishments(req, res, next) {
   try {
     // First, expire any punishments that have passed their expiration
-    db.prepare(`
+    run(`
       UPDATE punishments 
       SET is_active = 0 
       WHERE is_active = 1 
       AND expires_at IS NOT NULL 
       AND expires_at < datetime('now')
-    `).run()
+    `)
 
-    const punishments = db.prepare(`
+    const punishments = all(`
       SELECT 
         pun.*,
         p.player_name,
@@ -105,7 +106,7 @@ export function getActivePunishments(req, res, next) {
       JOIN players p ON pun.player_id = p.id
       WHERE pun.is_active = 1
       ORDER BY pun.issued_at DESC
-    `).all()
+    `)
 
     res.json(punishments)
   } catch (error) {
@@ -118,16 +119,16 @@ export function getPunishmentsByPlayer(req, res, next) {
   try {
     const { id } = req.params
 
-    const player = db.prepare('SELECT id FROM players WHERE id = ?').get(id)
+    const player = get('SELECT id FROM players WHERE id = ?', [id])
     if (!player) {
       throw new NotFoundError('Player not found')
     }
 
-    const punishments = db.prepare(`
+    const punishments = all(`
       SELECT * FROM punishments
       WHERE player_id = ?
       ORDER BY issued_at DESC
-    `).all(id)
+    `, [id])
 
     res.json(punishments)
   } catch (error) {
@@ -150,7 +151,7 @@ export function createPunishment(req, res, next) {
     }
 
     // Check if player exists
-    const player = db.prepare('SELECT id, player_name FROM players WHERE id = ?').get(player_id)
+    const player = get('SELECT id, player_name FROM players WHERE id = ?', [player_id])
     if (!player) {
       throw new NotFoundError('Player not found')
     }
@@ -164,37 +165,39 @@ export function createPunishment(req, res, next) {
 
     // For mutes and bans, deactivate previous active ones of same type
     if (type === 'mute' || type === 'ban') {
-      db.prepare(`
+      run(`
         UPDATE punishments 
         SET is_active = 0 
         WHERE player_id = ? AND type = ? AND is_active = 1
-      `).run(player_id, type)
+      `, [player_id, type])
     }
 
-    const result = db.prepare(`
+    run(`
       INSERT INTO punishments (player_id, type, reason, duration, expires_at, is_active)
       VALUES (?, ?, ?, ?, ?, 1)
-    `).run(player_id, type, reason, duration, expires_at)
+    `, [player_id, type, reason, duration, expires_at])
+
+    const punishmentId = lastInsertRowId()
 
     // Update player status if needed
     if (type === 'ban') {
-      db.prepare('UPDATE players SET status = ? WHERE id = ?').run('banned', player_id)
+      run('UPDATE players SET status = ? WHERE id = ?', ['banned', player_id])
     } else if (type === 'mute') {
-      db.prepare('UPDATE players SET status = ? WHERE id = ?').run('muted', player_id)
+      run('UPDATE players SET status = ? WHERE id = ?', ['muted', player_id])
     }
 
     // Log activity
-    db.prepare(`
+    run(`
       INSERT INTO activity_log (player_id, action_type, details)
       VALUES (?, 'punishment', ?)
-    `).run(player_id, `${type.charAt(0).toUpperCase() + type.slice(1)}ed for: ${reason}`)
+    `, [player_id, `${type.charAt(0).toUpperCase() + type.slice(1)}ed for: ${reason}`])
 
-    const punishment = db.prepare(`
+    const punishment = get(`
       SELECT pun.*, p.player_name, p.player_uuid
       FROM punishments pun
       JOIN players p ON pun.player_id = p.id
       WHERE pun.id = ?
-    `).get(result.lastInsertRowid)
+    `, [punishmentId])
 
     res.status(201).json(punishment)
   } catch (error) {
@@ -208,12 +211,12 @@ export function revokePunishment(req, res, next) {
     const { id } = req.params
     const { reason } = req.body
 
-    const punishment = db.prepare(`
+    const punishment = get(`
       SELECT pun.*, p.player_name 
       FROM punishments pun
       JOIN players p ON pun.player_id = p.id
       WHERE pun.id = ?
-    `).get(id)
+    `, [id])
 
     if (!punishment) {
       throw new NotFoundError('Punishment not found')
@@ -223,30 +226,30 @@ export function revokePunishment(req, res, next) {
       throw new ValidationError('Punishment is already inactive')
     }
 
-    db.prepare(`
+    run(`
       UPDATE punishments 
       SET is_active = 0, revoked_at = datetime('now'), revoke_reason = ?
       WHERE id = ?
-    `).run(reason || 'No reason provided', id)
+    `, [reason || 'No reason provided', id])
 
     // Update player status if needed
     if (punishment.type === 'ban' || punishment.type === 'mute') {
       // Check if there are other active punishments of the same type
-      const otherActive = db.prepare(`
+      const otherActive = get(`
         SELECT id FROM punishments 
         WHERE player_id = ? AND type = ? AND is_active = 1 AND id != ?
-      `).get(punishment.player_id, punishment.type, id)
+      `, [punishment.player_id, punishment.type, id])
 
       if (!otherActive) {
-        db.prepare('UPDATE players SET status = ? WHERE id = ?').run('offline', punishment.player_id)
+        run('UPDATE players SET status = ? WHERE id = ?', ['offline', punishment.player_id])
       }
     }
 
     // Log activity
-    db.prepare(`
+    run(`
       INSERT INTO activity_log (player_id, action_type, details)
       VALUES (?, 'punishment', ?)
-    `).run(punishment.player_id, `${punishment.type} revoked: ${reason || 'No reason'}`)
+    `, [punishment.player_id, `${punishment.type} revoked: ${reason || 'No reason'}`])
 
     res.json({ message: 'Punishment revoked successfully' })
   } catch (error) {
@@ -257,7 +260,7 @@ export function revokePunishment(req, res, next) {
 // Get punishment stats
 export function getPunishmentStats(req, res, next) {
   try {
-    const stats = db.prepare(`
+    const stats = get(`
       SELECT 
         COUNT(*) as total,
         SUM(CASE WHEN type = 'warn' THEN 1 ELSE 0 END) as total_warns,
@@ -271,7 +274,7 @@ export function getPunishmentStats(req, res, next) {
         SUM(CASE WHEN issued_at >= datetime('now', '-1 day') THEN 1 ELSE 0 END) as last_24h,
         SUM(CASE WHEN issued_at >= datetime('now', '-7 days') THEN 1 ELSE 0 END) as last_7d
       FROM punishments
-    `).get()
+    `)
 
     res.json(stats)
   } catch (error) {
