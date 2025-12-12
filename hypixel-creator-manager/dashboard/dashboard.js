@@ -133,6 +133,15 @@ function setupEventListeners() {
   document.getElementById('modalCancel').addEventListener('click', closeModal);
   document.querySelector('.modal-backdrop').addEventListener('click', closeModal);
   
+  // Add Creator Modal
+  document.getElementById('btnAddCreator')?.addEventListener('click', openAddCreatorModal);
+  document.getElementById('btnAddCreatorEmpty')?.addEventListener('click', startFreshWithAddCreator);
+  document.getElementById('addCreatorClose')?.addEventListener('click', closeAddCreatorModal);
+  document.getElementById('addCreatorCancel')?.addEventListener('click', closeAddCreatorModal);
+  document.getElementById('addCreatorBackdrop')?.addEventListener('click', closeAddCreatorModal);
+  document.getElementById('addCreatorSubmit')?.addEventListener('click', handleAddCreator);
+  document.getElementById('btnLookupUUID')?.addEventListener('click', lookupMinecraftUUID);
+  
   // API Settings
   document.getElementById('btnSaveApiKeys')?.addEventListener('click', saveApiKeys);
   
@@ -747,5 +756,196 @@ function formatNumber(num) {
 // Make functions available globally
 window.quickReview = quickReview;
 window.openCreatorModal = openCreatorModal;
+
+// ==================== ADD CREATOR FUNCTIONS ====================
+
+// Start fresh - initialize empty data and open add creator modal
+async function startFreshWithAddCreator() {
+  // Initialize with expected headers but no data
+  csvManager.headers = csvManager.EXPECTED_HEADERS;
+  csvManager.data = [];
+  csvManager.isLoaded = true;
+  csvManager.lastUpdated = new Date().toISOString();
+  
+  await csvManager.saveToStorage();
+  
+  // Update UI to show stats section
+  showStatsSection();
+  updateDataIndicator(true);
+  await loadStatistics();
+  
+  // Open add creator modal
+  openAddCreatorModal();
+  
+  showNotification('Started fresh! Add your first creator.', 'info');
+}
+
+// Open Add Creator Modal
+function openAddCreatorModal() {
+  // Initialize CSV manager if no data yet (allows adding first creator)
+  if (!csvManager.hasData()) {
+    csvManager.headers = csvManager.EXPECTED_HEADERS;
+    csvManager.data = [];
+    csvManager.isLoaded = true;
+  }
+  
+  // Set default date to today
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('newCreatorDateAccepted').value = today;
+  
+  // Get reviewer name for accepted by default
+  const reviewerName = document.getElementById('settingReviewerName')?.value || 'Judge';
+  document.getElementById('newCreatorAcceptedBy').value = reviewerName;
+  
+  document.getElementById('addCreatorModal').classList.add('active');
+}
+
+// Close Add Creator Modal
+function closeAddCreatorModal() {
+  document.getElementById('addCreatorModal').classList.remove('active');
+  document.getElementById('addCreatorForm').reset();
+}
+
+// Handle Add Creator Form Submission
+async function handleAddCreator(e) {
+  e.preventDefault();
+  
+  const name = document.getElementById('newCreatorName').value.trim();
+  const channel = document.getElementById('newCreatorChannel').value.trim();
+  
+  if (!name || !channel) {
+    showNotification('Name and Channel URL are required', 'error');
+    return;
+  }
+  
+  // Build the new creator row based on COLUMNS mapping
+  const newRow = new Array(24).fill(''); // 24 columns in the sheet
+  
+  // Map form values to column indices
+  newRow[0] = document.getElementById('newCreatorUUID').value.trim() || ''; // Leave empty if no UUID
+  newRow[1] = name;
+  newRow[2] = channel;
+  newRow[3] = document.getElementById('newCreatorDateAccepted').value || '';
+  newRow[4] = document.getElementById('newCreatorVerifiedBy').value.trim() || '';
+  newRow[5] = document.getElementById('newCreatorAcceptedBy').value.trim() || '';
+  newRow[6] = ''; // Last Checked - empty for new creator
+  newRow[7] = ''; // Content Review By - empty for new creator
+  newRow[8] = document.getElementById('newCreatorCode').value.trim() || '';
+  newRow[9] = document.getElementById('newCreatorSubs').value.trim() || '';
+  newRow[10] = ''; // Last Upload Date
+  newRow[11] = ''; // Last Upload Ago
+  newRow[12] = document.getElementById('newCreatorRank').value || '';
+  newRow[13] = document.getElementById('newCreatorContentType').value || '';
+  newRow[14] = ''; // Video Category
+  newRow[15] = document.getElementById('newCreatorLocale').value.trim() || '';
+  newRow[16] = document.getElementById('newCreatorLanguage').value.trim() || '';
+  newRow[17] = document.getElementById('newCreatorEmail').value.trim() || '';
+  newRow[18] = document.getElementById('newCreatorZendesk').value.trim() || '';
+  newRow[19] = document.getElementById('newCreatorNotes').value.trim() || '';
+  newRow[20] = ''; // Reference Tags
+  newRow[21] = ''; // Reports
+  newRow[22] = ''; // Warnings
+  newRow[23] = ''; // Requires Checkup
+  
+  try {
+    // Add the new row to CSV data
+    await csvManager.addRow(newRow);
+    
+    showNotification(`✅ Added ${name} to creators!`, 'success');
+    closeAddCreatorModal();
+    
+    // Refresh the data
+    await loadAllData();
+    
+    // Navigate to creators page to see the new entry
+    navigateTo('creators');
+    
+  } catch (error) {
+    console.error('Error adding creator:', error);
+    showNotification('Failed to add creator: ' + error.message, 'error');
+  }
+}
+
+// Lookup Minecraft UUID from IGN using Mojang API
+async function lookupMinecraftUUID() {
+  const ignInput = document.getElementById('newCreatorIGN');
+  const uuidInput = document.getElementById('newCreatorUUID');
+  const uuidHint = document.getElementById('uuidHint');
+  const lookupBtn = document.getElementById('btnLookupUUID');
+  
+  const ign = ignInput.value.trim();
+  
+  if (!ign) {
+    uuidHint.textContent = '⚠️ Enter a Minecraft username first';
+    uuidHint.className = 'field-hint error';
+    return;
+  }
+  
+  // Show loading state
+  lookupBtn.disabled = true;
+  lookupBtn.textContent = '⏳ Looking up...';
+  uuidHint.textContent = 'Fetching from Mojang API...';
+  uuidHint.className = 'field-hint';
+  
+  try {
+    // Use a CORS proxy or the Mojang API directly
+    // Note: Mojang API may have CORS issues, so we'll try multiple approaches
+    const response = await fetch(`https://api.mojang.com/users/profiles/minecraft/${encodeURIComponent(ign)}`);
+    
+    if (response.status === 404) {
+      throw new Error('Player not found');
+    }
+    
+    if (!response.ok) {
+      throw new Error('API error');
+    }
+    
+    const data = await response.json();
+    
+    // Format UUID with dashes (Mojang returns it without dashes)
+    const uuid = formatMinecraftUUID(data.id);
+    
+    uuidInput.value = uuid;
+    uuidHint.textContent = `✅ Found: ${data.name}`;
+    uuidHint.className = 'field-hint success';
+    
+    // Also update the name field if it's empty
+    const nameInput = document.getElementById('newCreatorName');
+    if (!nameInput.value.trim()) {
+      nameInput.value = data.name;
+    }
+    
+  } catch (error) {
+    console.error('UUID lookup error:', error);
+    
+    if (error.message === 'Player not found') {
+      uuidHint.textContent = '❌ Player not found - check the username';
+    } else {
+      uuidHint.textContent = '❌ Lookup failed - you can enter UUID manually';
+    }
+    uuidHint.className = 'field-hint error';
+    uuidInput.value = '';
+    
+    // Make UUID field editable as fallback
+    uuidInput.readOnly = false;
+    uuidInput.placeholder = 'Enter UUID manually';
+    
+  } finally {
+    lookupBtn.disabled = false;
+    lookupBtn.textContent = '🔍 Lookup';
+  }
+}
+
+// Format Minecraft UUID with dashes
+function formatMinecraftUUID(uuid) {
+  // Mojang returns UUID without dashes, we need to add them
+  // Format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+  if (uuid.includes('-')) return uuid; // Already formatted
+  
+  return uuid.replace(
+    /^(.{8})(.{4})(.{4})(.{4})(.{12})$/,
+    '$1-$2-$3-$4-$5'
+  );
+}
 
 // Notification styles are now in CSS file

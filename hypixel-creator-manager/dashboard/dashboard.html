@@ -99,6 +99,14 @@
                 <li>Upload the downloaded file here</li>
               </ol>
             </div>
+            
+            <div class="upload-divider">
+              <span>OR</span>
+            </div>
+            
+            <button id="btnAddCreatorEmpty" class="btn btn-outline btn-full">
+              <span>➕</span> Start Fresh - Add Creators Manually
+            </button>
           </div>
         </div>
 
@@ -176,6 +184,9 @@
       <!-- Page: All Creators -->
       <div class="page" id="page-creators">
         <div class="page-actions">
+          <button id="btnAddCreator" class="btn btn-primary">
+            <span>➕</span> Add Creator
+          </button>
           <button id="btnRefreshCreators" class="btn btn-outline">
             <span>🔄</span> Refresh
           </button>
@@ -369,6 +380,138 @@
       <div class="modal-footer" id="modalFooter">
         <button class="btn btn-outline" id="modalCancel">Cancel</button>
         <button class="btn btn-primary" id="modalConfirm">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Creator Modal -->
+  <div class="modal" id="addCreatorModal">
+    <div class="modal-backdrop" id="addCreatorBackdrop"></div>
+    <div class="modal-content modal-large">
+      <div class="modal-header">
+        <h3>➕ Add New Creator</h3>
+        <button class="modal-close" id="addCreatorClose">×</button>
+      </div>
+      <div class="modal-body">
+        <form id="addCreatorForm" class="add-creator-form">
+          <!-- Basic Info -->
+          <div class="form-section">
+            <h4>📋 Basic Information</h4>
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="newCreatorName">Name *</label>
+                <input type="text" id="newCreatorName" required placeholder="Creator's display name">
+              </div>
+              <div class="form-group">
+                <label for="newCreatorChannel">Main Channel URL *</label>
+                <input type="url" id="newCreatorChannel" required placeholder="https://youtube.com/...">
+              </div>
+              <div class="form-group">
+                <label for="newCreatorIGN">Minecraft IGN</label>
+                <div class="input-with-button">
+                  <input type="text" id="newCreatorIGN" placeholder="Minecraft username">
+                  <button type="button" id="btnLookupUUID" class="btn btn-small btn-outline">🔍 Lookup</button>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="newCreatorUUID">Minecraft UUID</label>
+                <input type="text" id="newCreatorUUID" placeholder="Will auto-fill from IGN lookup" readonly>
+                <span class="field-hint" id="uuidHint">Enter IGN above and click Lookup</span>
+              </div>
+              <div class="form-group">
+                <label for="newCreatorCode">Creator Code</label>
+                <input type="text" id="newCreatorCode" placeholder="Creator code (if any)">
+              </div>
+            </div>
+          </div>
+
+          <!-- Channel Stats -->
+          <div class="form-section">
+            <h4>📊 Channel Stats</h4>
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="newCreatorSubs">Subscribers</label>
+                <input type="text" id="newCreatorSubs" placeholder="e.g., 150000">
+              </div>
+              <div class="form-group">
+                <label for="newCreatorRank">Rank Given</label>
+                <select id="newCreatorRank">
+                  <option value="">Select rank...</option>
+                  <option value="YOUTUBER">YOUTUBER</option>
+                  <option value="STREAMER">STREAMER</option>
+                  <option value="CREATOR">CREATOR</option>
+                  <option value="VIP">VIP</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="newCreatorContentType">Content Type</label>
+                <select id="newCreatorContentType">
+                  <option value="">Select type...</option>
+                  <option value="Gaming">Gaming</option>
+                  <option value="Non-Gaming">Non-Gaming</option>
+                  <option value="Mixed">Mixed</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="newCreatorLanguage">Content Language</label>
+                <input type="text" id="newCreatorLanguage" placeholder="e.g., English">
+              </div>
+            </div>
+          </div>
+
+          <!-- Acceptance Info -->
+          <div class="form-section">
+            <h4>✅ Acceptance Info</h4>
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="newCreatorDateAccepted">Date Accepted</label>
+                <input type="date" id="newCreatorDateAccepted">
+              </div>
+              <div class="form-group">
+                <label for="newCreatorAcceptedBy">Accepted By</label>
+                <input type="text" id="newCreatorAcceptedBy" placeholder="Who accepted them">
+              </div>
+              <div class="form-group">
+                <label for="newCreatorVerifiedBy">Verified By</label>
+                <input type="text" id="newCreatorVerifiedBy" placeholder="Who verified them">
+              </div>
+              <div class="form-group">
+                <label for="newCreatorLocale">Locale</label>
+                <input type="text" id="newCreatorLocale" placeholder="e.g., US, UK, DE">
+              </div>
+            </div>
+          </div>
+
+          <!-- Contact Info -->
+          <div class="form-section">
+            <h4>📧 Contact Info</h4>
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="newCreatorEmail">Contact Email</label>
+                <input type="email" id="newCreatorEmail" placeholder="creator@email.com">
+              </div>
+              <div class="form-group">
+                <label for="newCreatorZendesk">Zendesk ID</label>
+                <input type="text" id="newCreatorZendesk" placeholder="Zendesk ticket ID">
+              </div>
+            </div>
+          </div>
+
+          <!-- Notes -->
+          <div class="form-section">
+            <h4>📝 Notes</h4>
+            <div class="form-group full-width">
+              <label for="newCreatorNotes">Initial Notes</label>
+              <textarea id="newCreatorNotes" rows="3" placeholder="Any notes about this creator..."></textarea>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" id="addCreatorCancel">Cancel</button>
+        <button class="btn btn-primary" id="addCreatorSubmit">
+          <span>➕</span> Add Creator
+        </button>
       </div>
     </div>
   </div>
