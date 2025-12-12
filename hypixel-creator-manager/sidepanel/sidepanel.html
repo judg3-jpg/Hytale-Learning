@@ -22,11 +22,22 @@
       </button>
     </header>
 
-    <!-- Connection Status -->
-    <div class="connection-status" id="connectionStatus">
-      <div class="status-indicator disconnected"></div>
-      <span class="status-text">Not connected</span>
-      <button id="btnConnect" class="btn btn-small btn-primary">Connect Sheet</button>
+    <!-- Data Status -->
+    <div class="data-status" id="dataStatus">
+      <div class="status-indicator" id="statusIndicator"></div>
+      <span class="status-text" id="statusText">No data loaded</span>
+      <button id="btnUploadCSV" class="btn btn-small btn-primary">Upload CSV</button>
+    </div>
+
+    <!-- Upload Section (shown when no data) -->
+    <div class="upload-section" id="uploadSection" style="display: none;">
+      <div class="upload-mini">
+        <input type="file" id="csvFileInput" accept=".csv" hidden>
+        <div class="upload-dropzone" id="uploadDropzone">
+          <span>📤</span>
+          <p>Drop CSV or click to upload</p>
+        </div>
+      </div>
     </div>
 
     <!-- Current Creator Card -->
@@ -59,7 +70,7 @@
     </section>
 
     <!-- Quick Actions -->
-    <section class="section">
+    <section class="section" id="actionsSection">
       <h2>⚡ Quick Actions</h2>
       <div class="action-grid">
         <button id="btnQuickReview" class="btn btn-action btn-primary" disabled>
@@ -109,47 +120,33 @@
       <h2>📋 Review Queue <span class="queue-count" id="queueCount">0</span></h2>
       <div class="queue-list" id="queueList">
         <div class="queue-empty">
-          <span>Connect your sheet to see creators needing review</span>
+          <span>Upload a CSV to see the review queue</span>
         </div>
       </div>
-      <button id="btnRefreshQueue" class="btn btn-outline btn-full" disabled>
-        <span>🔄</span> Refresh Queue
-      </button>
     </section>
 
-    <!-- Settings -->
-    <section class="section collapsible">
-      <h2 class="collapsible-header" id="settingsToggle">
-        ⚙️ Settings
-        <span class="collapse-icon">▼</span>
-      </h2>
-      <div class="collapsible-content" id="settingsContent">
-        <div class="setting-item">
-          <label>Sheet ID:</label>
-          <input type="text" id="sheetId" placeholder="From your Google Sheet URL">
-        </div>
-        <div class="setting-item">
-          <label>Your Name:</label>
-          <input type="text" id="reviewerName" value="Judge">
-        </div>
-        <div class="setting-item">
-          <label>Overdue (months):</label>
-          <input type="number" id="overdueMonths" value="3" min="1" max="12">
-        </div>
-        <button id="btnSaveSettings" class="btn btn-primary btn-full">Save Settings</button>
+    <!-- Search -->
+    <section class="section">
+      <h2>🔍 Search</h2>
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Search creators...">
       </div>
+      <div class="search-results" id="searchResults"></div>
     </section>
 
     <!-- Footer -->
     <footer>
+      <button id="btnExportCSV" class="btn btn-outline btn-full" disabled>
+        <span>📥</span> Export CSV
+      </button>
       <button id="btnFullDashboard" class="btn btn-outline btn-full">
         <span>📊</span> Open Full Dashboard
       </button>
-      <p class="version">v2.0.0 • Made for Hypixel 💜</p>
+      <p class="version">v2.1.0 • Made for Hypixel 💜</p>
     </footer>
   </div>
 
-  <script src="../lib/sheets-api.js"></script>
+  <script src="../lib/csv-manager.js"></script>
   <script src="sidepanel.js"></script>
 </body>
 </html>

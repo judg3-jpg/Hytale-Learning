@@ -72,8 +72,8 @@ header {
   transform: scale(1.05);
 }
 
-/* Connection Status */
-.connection-status {
+/* Data Status */
+.data-status {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -90,29 +90,54 @@ header {
   background: #f44336;
 }
 
-.status-indicator.connected {
+.status-indicator.loaded {
   background: #4caf50;
   animation: pulse 2s infinite;
 }
 
-.status-indicator.connecting {
-  background: #ff9800;
-  animation: pulse 0.5s infinite;
-}
-
-.status-indicator.disconnected {
-  background: #f44336;
-}
-
 @keyframes pulse {
-  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 currentColor; }
-  50% { opacity: 0.7; box-shadow: 0 0 0 4px transparent; }
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 
 .status-text {
   flex: 1;
   font-size: 12px;
   color: #aaa;
+}
+
+/* Upload Section */
+.upload-section {
+  margin-bottom: 16px;
+}
+
+.upload-mini {
+  width: 100%;
+}
+
+.upload-dropzone {
+  border: 2px dashed rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.upload-dropzone:hover, .upload-dropzone.dragover {
+  border-color: #667eea;
+  background: rgba(102, 126, 234, 0.05);
+}
+
+.upload-dropzone span {
+  font-size: 32px;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.upload-dropzone p {
+  font-size: 12px;
+  color: #888;
 }
 
 /* Creator Card */
@@ -341,7 +366,6 @@ header {
 .queue-list {
   max-height: 200px;
   overflow-y: auto;
-  margin-bottom: 10px;
 }
 
 .queue-empty {
@@ -376,6 +400,7 @@ header {
   align-items: center;
   justify-content: center;
   font-size: 14px;
+  color: white;
 }
 
 .queue-item-info {
@@ -403,56 +428,28 @@ header {
   cursor: pointer;
 }
 
-/* Collapsible */
-.collapsible-header {
-  cursor: pointer;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+/* Search */
+.search-box {
+  margin-bottom: 8px;
 }
 
-.collapse-icon {
-  font-size: 10px;
-  transition: transform 0.2s;
-}
-
-.collapsible.open .collapse-icon {
-  transform: rotate(180deg);
-}
-
-.collapsible-content {
-  display: none;
-  padding-top: 12px;
-}
-
-.collapsible.open .collapsible-content {
-  display: block;
-}
-
-.setting-item {
-  margin-bottom: 12px;
-}
-
-.setting-item label {
-  display: block;
-  font-size: 11px;
-  color: #888;
-  margin-bottom: 4px;
-}
-
-.setting-item input {
+.search-box input {
   width: 100%;
-  padding: 8px 10px;
+  padding: 10px 12px;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 6px;
+  border-radius: 8px;
   background: rgba(255, 255, 255, 0.05);
   color: #e0e0e0;
   font-size: 12px;
 }
 
-.setting-item input:focus {
+.search-box input:focus {
   outline: none;
   border-color: #667eea;
+}
+
+.search-box input::placeholder {
+  color: #666;
 }
 
 /* Footer */
@@ -460,13 +457,16 @@ footer {
   margin-top: 20px;
   padding-top: 16px;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .version {
   text-align: center;
   font-size: 10px;
   color: #555;
-  margin-top: 12px;
+  margin-top: 8px;
 }
 
 /* Scrollbar */

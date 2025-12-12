@@ -63,71 +63,111 @@
             <span class="search-icon">🔍</span>
             <input type="text" id="searchInput" placeholder="Search creators...">
           </div>
-          <div class="connection-indicator" id="connectionIndicator">
-            <span class="status-dot disconnected"></span>
-            <span>Not connected</span>
+          <div class="data-indicator" id="dataIndicator">
+            <span class="status-dot" id="statusDot"></span>
+            <span id="dataStatus">No data loaded</span>
           </div>
-          <button id="btnConnect" class="btn btn-primary">Connect</button>
+          <button id="btnExportCSV" class="btn btn-outline" style="display: none;">
+            <span>📥</span> Export CSV
+          </button>
         </div>
       </header>
 
       <!-- Page: Overview -->
       <div class="page active" id="page-overview">
-        <!-- Stats Cards -->
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-icon">👥</div>
-            <div class="stat-info">
-              <span class="stat-value" id="statTotalCreators">-</span>
-              <span class="stat-label">Total Creators</span>
+        <!-- Upload Section (shown when no data) -->
+        <div class="upload-section" id="uploadSection">
+          <div class="upload-card">
+            <div class="upload-icon">📤</div>
+            <h3>Upload Your Creator Sheet</h3>
+            <p>Export your Google Sheet as CSV and upload it here to get started</p>
+            
+            <div class="upload-area" id="uploadArea">
+              <input type="file" id="csvFileInput" accept=".csv" hidden>
+              <div class="upload-content">
+                <span class="upload-cloud">☁️</span>
+                <p><strong>Drop CSV file here</strong></p>
+                <p class="upload-hint">or click to browse</p>
+              </div>
             </div>
-          </div>
-          <div class="stat-card stat-warning">
-            <div class="stat-icon">📋</div>
-            <div class="stat-info">
-              <span class="stat-value" id="statNeedsReview">-</span>
-              <span class="stat-label">Need Review</span>
-            </div>
-          </div>
-          <div class="stat-card stat-danger">
-            <div class="stat-icon">⚠️</div>
-            <div class="stat-info">
-              <span class="stat-value" id="statWarnings">-</span>
-              <span class="stat-label">Have Warnings</span>
-            </div>
-          </div>
-          <div class="stat-card stat-info">
-            <div class="stat-icon">💤</div>
-            <div class="stat-info">
-              <span class="stat-value" id="statInactive">-</span>
-              <span class="stat-label">Inactive (6+ mo)</span>
+            
+            <div class="upload-instructions">
+              <h4>How to export from Google Sheets:</h4>
+              <ol>
+                <li>Open your Creator Sheet in Google Sheets</li>
+                <li>Click <strong>File</strong> → <strong>Download</strong> → <strong>Comma-separated values (.csv)</strong></li>
+                <li>Upload the downloaded file here</li>
+              </ol>
             </div>
           </div>
         </div>
 
-        <!-- Charts Row -->
-        <div class="charts-row">
-          <div class="chart-card">
-            <h3>Creators by Rank</h3>
-            <div class="chart-placeholder" id="chartRanks">
-              <div class="chart-bars"></div>
+        <!-- Stats Section (shown when data loaded) -->
+        <div class="stats-section" id="statsSection" style="display: none;">
+          <!-- Stats Cards -->
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon">👥</div>
+              <div class="stat-info">
+                <span class="stat-value" id="statTotalCreators">-</span>
+                <span class="stat-label">Total Creators</span>
+              </div>
+            </div>
+            <div class="stat-card stat-warning">
+              <div class="stat-icon">📋</div>
+              <div class="stat-info">
+                <span class="stat-value" id="statNeedsReview">-</span>
+                <span class="stat-label">Need Review</span>
+              </div>
+            </div>
+            <div class="stat-card stat-danger">
+              <div class="stat-icon">⚠️</div>
+              <div class="stat-info">
+                <span class="stat-value" id="statWarnings">-</span>
+                <span class="stat-label">Have Warnings</span>
+              </div>
+            </div>
+            <div class="stat-card stat-info">
+              <div class="stat-icon">💤</div>
+              <div class="stat-info">
+                <span class="stat-value" id="statInactive">-</span>
+                <span class="stat-label">Inactive (6+ mo)</span>
+              </div>
             </div>
           </div>
-          <div class="chart-card">
-            <h3>Creators by Language</h3>
-            <div class="chart-placeholder" id="chartLanguages">
-              <div class="chart-bars"></div>
-            </div>
-          </div>
-        </div>
 
-        <!-- Recent Activity -->
-        <div class="activity-section">
-          <h3>Review Queue Preview</h3>
-          <div class="activity-list" id="recentQueue">
-            <div class="empty-state">
-              <span class="empty-icon">📊</span>
-              <p>Connect your sheet to see the review queue</p>
+          <!-- Last Updated -->
+          <div class="last-updated" id="lastUpdated">
+            <span>📅 Data loaded: <strong id="lastUpdatedTime">-</strong></span>
+            <button id="btnReloadCSV" class="btn btn-outline btn-small">
+              <span>🔄</span> Upload New CSV
+            </button>
+          </div>
+
+          <!-- Charts Row -->
+          <div class="charts-row">
+            <div class="chart-card">
+              <h3>Creators by Rank</h3>
+              <div class="chart-placeholder" id="chartRanks">
+                <div class="chart-bars"></div>
+              </div>
+            </div>
+            <div class="chart-card">
+              <h3>Creators by Language</h3>
+              <div class="chart-placeholder" id="chartLanguages">
+                <div class="chart-bars"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Activity -->
+          <div class="activity-section">
+            <h3>Review Queue Preview</h3>
+            <div class="activity-list" id="recentQueue">
+              <div class="empty-state">
+                <span class="empty-icon">🎉</span>
+                <p>All caught up! No creators need review.</p>
+              </div>
             </div>
           </div>
         </div>
@@ -140,7 +180,7 @@
             <span>🔄</span> Refresh
           </button>
           <button id="btnExportCreators" class="btn btn-outline">
-            <span>📥</span> Export
+            <span>📥</span> Export CSV
           </button>
         </div>
         
@@ -159,7 +199,7 @@
             </thead>
             <tbody id="creatorsTableBody">
               <tr>
-                <td colspan="7" class="empty-cell">Connect to load creators</td>
+                <td colspan="7" class="empty-cell">Upload a CSV to see creators</td>
               </tr>
             </tbody>
           </table>
@@ -180,7 +220,7 @@
         <div class="review-list" id="reviewList">
           <div class="empty-state">
             <span class="empty-icon">📋</span>
-            <p>Connect your sheet to see creators needing review</p>
+            <p>Upload a CSV to see creators needing review</p>
           </div>
         </div>
       </div>
@@ -190,7 +230,7 @@
         <div class="warnings-list" id="warningsList">
           <div class="empty-state">
             <span class="empty-icon">⚠️</span>
-            <p>Connect your sheet to see creators with warnings</p>
+            <p>Upload a CSV to see creators with warnings</p>
           </div>
         </div>
       </div>
@@ -200,7 +240,7 @@
         <div class="inactive-list" id="inactiveList">
           <div class="empty-state">
             <span class="empty-icon">💤</span>
-            <p>Connect your sheet to see inactive creators</p>
+            <p>Upload a CSV to see inactive creators</p>
           </div>
         </div>
       </div>
@@ -208,17 +248,35 @@
       <!-- Page: Settings -->
       <div class="page" id="page-settings">
         <div class="settings-section">
-          <h3>Google Sheets Connection</h3>
+          <h3>📤 Data Management</h3>
           <div class="setting-group">
-            <label>Spreadsheet ID or URL</label>
-            <input type="text" id="settingSheetId" placeholder="Paste your Google Sheet URL or ID">
-            <p class="setting-help">You can paste the full URL from your browser, we'll extract the ID automatically.</p>
+            <label>Upload New CSV</label>
+            <p class="setting-help">Replace current data with a new CSV export from Google Sheets</p>
+            <div class="upload-mini" id="uploadMini">
+              <input type="file" id="csvFileInputSettings" accept=".csv" hidden>
+              <button class="btn btn-outline" id="btnUploadSettings">
+                <span>📤</span> Choose CSV File
+              </button>
+            </div>
           </div>
-          <button id="btnConnectSheet" class="btn btn-primary">Connect to Sheet</button>
+          <div class="setting-group">
+            <label>Export Current Data</label>
+            <p class="setting-help">Download your data with all changes as a CSV file</p>
+            <button id="btnExportSettings" class="btn btn-primary">
+              <span>📥</span> Export to CSV
+            </button>
+          </div>
+          <div class="setting-group">
+            <label>Clear All Data</label>
+            <p class="setting-help">Remove all creator data from the extension</p>
+            <button id="btnClearData" class="btn btn-danger">
+              <span>🗑️</span> Clear Data
+            </button>
+          </div>
         </div>
         
         <div class="settings-section">
-          <h3>Review Settings</h3>
+          <h3>⚙️ Review Settings</h3>
           <div class="setting-group">
             <label>Your Name (for reviews)</label>
             <input type="text" id="settingReviewerName" value="Judge">
@@ -235,31 +293,17 @@
         </div>
         
         <div class="settings-section">
-          <h3>Setup Guide</h3>
-          <div class="setup-guide">
-            <h4>First Time Setup</h4>
+          <h3>ℹ️ How It Works</h3>
+          <div class="info-box">
+            <h4>CSV Workflow</h4>
             <ol>
-              <li>
-                <strong>Create a Google Cloud Project:</strong>
-                <a href="https://console.cloud.google.com/projectcreate" target="_blank">Go to Google Cloud Console</a>
-              </li>
-              <li>
-                <strong>Enable the Google Sheets API:</strong>
-                <a href="https://console.cloud.google.com/apis/library/sheets.googleapis.com" target="_blank">Enable Sheets API</a>
-              </li>
-              <li>
-                <strong>Create OAuth Credentials:</strong>
-                Go to APIs & Services → Credentials → Create Credentials → OAuth Client ID
-              </li>
-              <li>
-                <strong>Configure the Extension:</strong>
-                Copy your Client ID and update the manifest.json file
-              </li>
-              <li>
-                <strong>Reload the Extension:</strong>
-                Go to edge://extensions/ and reload this extension
-              </li>
+              <li><strong>Export</strong> your Google Sheet as CSV</li>
+              <li><strong>Upload</strong> the CSV to this extension</li>
+              <li><strong>Review</strong> creators, add notes, track progress</li>
+              <li><strong>Export</strong> your changes back to CSV</li>
+              <li><strong>Import</strong> the CSV back to Google Sheets (File → Import)</li>
             </ol>
+            <p class="info-note">💡 Your data is stored locally in your browser - no cloud, no accounts needed!</p>
           </div>
         </div>
       </div>
@@ -284,7 +328,7 @@
     </div>
   </div>
 
-  <script src="../lib/sheets-api.js"></script>
+  <script src="../lib/csv-manager.js"></script>
   <script src="dashboard.js"></script>
 </body>
 </html>

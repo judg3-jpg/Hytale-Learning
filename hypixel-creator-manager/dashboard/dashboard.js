@@ -1,4 +1,4 @@
-// Dashboard JavaScript
+// Dashboard JavaScript - CSV Version
 
 let allCreators = [];
 let reviewQueue = [];
@@ -9,7 +9,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadSettings();
   setupNavigation();
   setupEventListeners();
-  await initializeConnection();
+  setupFileUpload();
+  await initializeData();
 });
 
 // Load settings
@@ -18,14 +19,12 @@ async function loadSettings() {
     const settings = await chrome.storage.sync.get({
       reviewerName: 'Judge',
       overdueMonths: 3,
-      inactiveMonths: 6,
-      sheetId: ''
+      inactiveMonths: 6
     });
     
     document.getElementById('settingReviewerName').value = settings.reviewerName;
     document.getElementById('settingOverdueMonths').value = settings.overdueMonths;
     document.getElementById('settingInactiveMonths').value = settings.inactiveMonths;
-    document.getElementById('settingSheetId').value = settings.sheetId;
   } catch (error) {
     console.error('Error loading settings:', error);
   }
@@ -71,16 +70,18 @@ function navigateTo(pageName) {
 
 // Setup event listeners
 function setupEventListeners() {
-  // Connect button
-  document.getElementById('btnConnect').addEventListener('click', handleConnect);
-  document.getElementById('btnConnectSheet').addEventListener('click', handleConnect);
-  
   // Save settings
   document.getElementById('btnSaveSettings').addEventListener('click', saveSettings);
   
+  // Export buttons
+  document.getElementById('btnExportCSV').addEventListener('click', exportCSV);
+  document.getElementById('btnExportCreators')?.addEventListener('click', exportCSV);
+  document.getElementById('btnExportSettings')?.addEventListener('click', exportCSV);
+  
   // Refresh buttons
-  document.getElementById('btnRefreshCreators')?.addEventListener('click', loadAllCreators);
-  document.getElementById('btnRefreshQueue')?.addEventListener('click', loadReviewQueue);
+  document.getElementById('btnRefreshCreators')?.addEventListener('click', refreshData);
+  document.getElementById('btnRefreshQueue')?.addEventListener('click', refreshData);
+  document.getElementById('btnReloadCSV')?.addEventListener('click', showUploadSection);
   
   // Bulk review
   document.getElementById('btnBulkReview')?.addEventListener('click', handleBulkReview);
@@ -88,114 +89,160 @@ function setupEventListeners() {
   // Search
   document.getElementById('searchInput').addEventListener('input', handleSearch);
   
+  // Clear data
+  document.getElementById('btnClearData')?.addEventListener('click', handleClearData);
+  
+  // Settings upload
+  document.getElementById('btnUploadSettings')?.addEventListener('click', () => {
+    document.getElementById('csvFileInputSettings').click();
+  });
+  document.getElementById('csvFileInputSettings')?.addEventListener('change', handleFileSelect);
+  
   // Modal
   document.getElementById('modalClose').addEventListener('click', closeModal);
   document.getElementById('modalCancel').addEventListener('click', closeModal);
   document.querySelector('.modal-backdrop').addEventListener('click', closeModal);
 }
 
-// Initialize connection
-async function initializeConnection() {
-  try {
-    const connected = await sheetsAPI.init();
-    updateConnectionUI(connected);
+// Setup file upload
+function setupFileUpload() {
+  const uploadArea = document.getElementById('uploadArea');
+  const fileInput = document.getElementById('csvFileInput');
+  
+  // Click to upload
+  uploadArea.addEventListener('click', () => fileInput.click());
+  
+  // File selected
+  fileInput.addEventListener('change', handleFileSelect);
+  
+  // Drag and drop
+  uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadArea.classList.add('dragover');
+  });
+  
+  uploadArea.addEventListener('dragleave', () => {
+    uploadArea.classList.remove('dragover');
+  });
+  
+  uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadArea.classList.remove('dragover');
     
-    if (connected) {
-      await loadAllData();
+    const files = e.dataTransfer.files;
+    if (files.length > 0 && files[0].name.endsWith('.csv')) {
+      handleFile(files[0]);
+    } else {
+      showNotification('Please upload a CSV file', 'error');
     }
-  } catch (error) {
-    console.error('Connection error:', error);
-    updateConnectionUI(false);
+  });
+}
+
+// Handle file selection
+function handleFileSelect(e) {
+  const file = e.target.files[0];
+  if (file) {
+    handleFile(file);
   }
 }
 
-// Handle connect
-async function handleConnect() {
-  const sheetId = document.getElementById('settingSheetId').value.trim();
-  
-  if (!sheetId) {
-    showNotification('Please enter a Sheet ID or URL', 'error');
-    navigateTo('settings');
-    return;
-  }
-  
-  updateConnectionUI('connecting');
-  
+// Handle file upload
+async function handleFile(file) {
   try {
-    await sheetsAPI.setSheetId(sheetId);
-    await sheetsAPI.authenticate();
+    showNotification('Importing CSV...', 'info');
     
-    updateConnectionUI(true);
-    showNotification('Connected successfully!', 'success');
+    const result = await csvManager.importCSV(file);
     
-    await loadAllData();
+    showNotification(`Imported ${result.rowCount} creators!`, 'success');
+    
+    await initializeData();
   } catch (error) {
-    console.error('Connection failed:', error);
-    updateConnectionUI(false);
-    showNotification('Failed to connect: ' + error.message, 'error');
+    console.error('Import error:', error);
+    showNotification('Failed to import: ' + error.message, 'error');
   }
 }
 
-// Update connection UI
-function updateConnectionUI(status) {
-  const indicator = document.getElementById('connectionIndicator');
-  const dot = indicator.querySelector('.status-dot');
-  const text = indicator.querySelector('span:last-child');
-  const btn = document.getElementById('btnConnect');
+// Initialize data
+async function initializeData() {
+  const hasData = await csvManager.init();
   
-  if (status === 'connecting') {
-    dot.className = 'status-dot';
-    dot.style.background = '#f7931e';
-    text.textContent = 'Connecting...';
-    btn.disabled = true;
-  } else if (status === true) {
-    dot.className = 'status-dot connected';
-    text.textContent = 'Connected';
-    btn.textContent = 'Refresh';
-    btn.disabled = false;
+  updateDataIndicator(hasData);
+  
+  if (hasData) {
+    showStatsSection();
+    await loadAllData();
   } else {
-    dot.className = 'status-dot disconnected';
-    text.textContent = 'Not connected';
-    btn.textContent = 'Connect';
-    btn.disabled = false;
+    showUploadSection();
+  }
+}
+
+// Update data indicator
+function updateDataIndicator(hasData) {
+  const statusDot = document.getElementById('statusDot');
+  const dataStatus = document.getElementById('dataStatus');
+  const exportBtn = document.getElementById('btnExportCSV');
+  
+  if (hasData) {
+    statusDot.classList.add('loaded');
+    dataStatus.textContent = `${csvManager.data.length} creators loaded`;
+    exportBtn.style.display = 'inline-flex';
+  } else {
+    statusDot.classList.remove('loaded');
+    dataStatus.textContent = 'No data loaded';
+    exportBtn.style.display = 'none';
+  }
+}
+
+// Show upload section
+function showUploadSection() {
+  document.getElementById('uploadSection').style.display = 'flex';
+  document.getElementById('statsSection').style.display = 'none';
+}
+
+// Show stats section
+function showStatsSection() {
+  document.getElementById('uploadSection').style.display = 'none';
+  document.getElementById('statsSection').style.display = 'block';
+  
+  // Update last updated time
+  const lastUpdated = csvManager.getLastUpdated();
+  if (lastUpdated) {
+    const date = new Date(lastUpdated);
+    document.getElementById('lastUpdatedTime').textContent = date.toLocaleString();
   }
 }
 
 // Load all data
 async function loadAllData() {
-  try {
-    await sheetsAPI.fetchAllData();
-    await Promise.all([
-      loadStatistics(),
-      loadAllCreators(),
-      loadReviewQueue(),
-      loadWarnings(),
-      loadInactive()
-    ]);
-  } catch (error) {
-    console.error('Failed to load data:', error);
-    showNotification('Failed to load data', 'error');
-  }
+  await Promise.all([
+    loadStatistics(),
+    loadAllCreators(),
+    loadReviewQueue(),
+    loadWarnings(),
+    loadInactive()
+  ]);
+}
+
+// Refresh data
+async function refreshData() {
+  await loadAllData();
+  showNotification('Data refreshed!', 'success');
 }
 
 // Load statistics
 async function loadStatistics() {
-  try {
-    const stats = await sheetsAPI.getStatistics();
-    
-    document.getElementById('statTotalCreators').textContent = stats.totalCreators;
-    document.getElementById('statNeedsReview').textContent = stats.needsReview;
-    document.getElementById('statWarnings').textContent = stats.hasWarnings;
-    document.getElementById('statInactive').textContent = stats.inactive;
-    
-    document.getElementById('navReviewCount').textContent = stats.needsReview;
-    
-    // Render charts
-    renderBarChart('chartRanks', stats.byRank);
-    renderBarChart('chartLanguages', stats.byLanguage);
-  } catch (error) {
-    console.error('Failed to load statistics:', error);
-  }
+  const stats = csvManager.getStatistics();
+  
+  document.getElementById('statTotalCreators').textContent = stats.totalCreators;
+  document.getElementById('statNeedsReview').textContent = stats.needsReview;
+  document.getElementById('statWarnings').textContent = stats.hasWarnings;
+  document.getElementById('statInactive').textContent = stats.inactive;
+  
+  document.getElementById('navReviewCount').textContent = stats.needsReview;
+  
+  // Render charts
+  renderBarChart('chartRanks', stats.byRank);
+  renderBarChart('chartLanguages', stats.byLanguage);
 }
 
 // Render bar chart
@@ -204,11 +251,17 @@ function renderBarChart(containerId, data) {
   if (!container) return;
   
   const entries = Object.entries(data).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  
+  if (entries.length === 0) {
+    container.innerHTML = '<div class="empty-state" style="padding: 20px;"><p>No data</p></div>';
+    return;
+  }
+  
   const max = Math.max(...entries.map(e => e[1]));
   
   container.innerHTML = entries.map(([label, value]) => `
     <div class="chart-bar">
-      <span class="chart-bar-label">${escapeHtml(label || 'Unknown')}</span>
+      <span class="chart-bar-label" title="${escapeHtml(label)}">${escapeHtml(label || 'Unknown')}</span>
       <div class="chart-bar-track">
         <div class="chart-bar-fill" style="width: ${(value / max) * 100}%">${value}</div>
       </div>
@@ -218,22 +271,8 @@ function renderBarChart(containerId, data) {
 
 // Load all creators
 async function loadAllCreators() {
-  try {
-    const data = sheetsAPI.sheetData;
-    if (!data || data.length <= 1) return;
-    
-    allCreators = [];
-    for (let i = 1; i < data.length; i++) {
-      allCreators.push({
-        rowIndex: i + 1,
-        creator: sheetsAPI.parseCreatorRow(data[i])
-      });
-    }
-    
-    renderCreatorsTable(allCreators);
-  } catch (error) {
-    console.error('Failed to load creators:', error);
-  }
+  allCreators = csvManager.getAllCreators();
+  renderCreatorsTable(allCreators);
 }
 
 // Render creators table
@@ -251,11 +290,11 @@ function renderCreatorsTable(creators) {
       <td>
         <div style="display: flex; align-items: center; gap: 10px;">
           <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; font-size: 14px; color: white;">
-            ${creator.name.charAt(0).toUpperCase()}
+            ${(creator.name || '?').charAt(0).toUpperCase()}
           </div>
           <div>
-            <div style="font-weight: 500;">${escapeHtml(creator.name)}</div>
-            <div style="font-size: 11px; color: #888;">${escapeHtml(creator.uuid.substring(0, 8))}...</div>
+            <div style="font-weight: 500;">${escapeHtml(creator.name || 'Unknown')}</div>
+            <div style="font-size: 11px; color: #888;">${escapeHtml((creator.uuid || '').substring(0, 8))}...</div>
           </div>
         </div>
       </td>
@@ -287,39 +326,35 @@ function getStatusBadge(creator) {
 
 // Load review queue
 async function loadReviewQueue() {
-  try {
-    const overdueMonths = parseInt(document.getElementById('settingOverdueMonths')?.value) || 3;
-    reviewQueue = await sheetsAPI.getReviewQueue(overdueMonths);
-    
-    renderReviewQueue(reviewQueue);
-    
-    // Update nav badge
-    document.getElementById('navReviewCount').textContent = reviewQueue.length;
-    
-    // Update overview preview
-    const recentQueue = document.getElementById('recentQueue');
-    if (recentQueue) {
-      if (reviewQueue.length === 0) {
-        recentQueue.innerHTML = `
-          <div class="empty-state">
-            <span class="empty-icon">🎉</span>
-            <p>All caught up! No creators need review.</p>
+  const overdueMonths = parseInt(document.getElementById('settingOverdueMonths')?.value) || 3;
+  reviewQueue = csvManager.getReviewQueue(overdueMonths);
+  
+  renderReviewQueue(reviewQueue);
+  
+  // Update nav badge
+  document.getElementById('navReviewCount').textContent = reviewQueue.length;
+  
+  // Update overview preview
+  const recentQueue = document.getElementById('recentQueue');
+  if (recentQueue) {
+    if (reviewQueue.length === 0) {
+      recentQueue.innerHTML = `
+        <div class="empty-state" style="padding: 20px;">
+          <span class="empty-icon">🎉</span>
+          <p>All caught up! No creators need review.</p>
+        </div>
+      `;
+    } else {
+      recentQueue.innerHTML = reviewQueue.slice(0, 5).map(item => `
+        <div class="review-item" style="margin-bottom: 8px; padding: 12px;">
+          <div class="review-item-avatar" style="width: 36px; height: 36px; font-size: 14px;">${(item.creator.name || '?').charAt(0).toUpperCase()}</div>
+          <div class="review-item-info">
+            <div class="review-item-name" style="font-size: 14px;">${escapeHtml(item.creator.name || 'Unknown')}</div>
+            <div class="review-item-meta">${escapeHtml(item.reason)}</div>
           </div>
-        `;
-      } else {
-        recentQueue.innerHTML = reviewQueue.slice(0, 5).map(item => `
-          <div class="review-item" style="margin-bottom: 8px;">
-            <div class="review-item-avatar">${item.creator.name.charAt(0).toUpperCase()}</div>
-            <div class="review-item-info">
-              <div class="review-item-name">${escapeHtml(item.creator.name)}</div>
-              <div class="review-item-meta">${escapeHtml(item.reason)}</div>
-            </div>
-          </div>
-        `).join('');
-      }
+        </div>
+      `).join('');
     }
-  } catch (error) {
-    console.error('Failed to load review queue:', error);
   }
 }
 
@@ -341,9 +376,9 @@ function renderReviewQueue(queue) {
   container.innerHTML = queue.map(item => `
     <div class="review-item" data-row="${item.rowIndex}">
       <input type="checkbox" class="review-item-checkbox" data-row="${item.rowIndex}">
-      <div class="review-item-avatar">${item.creator.name.charAt(0).toUpperCase()}</div>
+      <div class="review-item-avatar">${(item.creator.name || '?').charAt(0).toUpperCase()}</div>
       <div class="review-item-info">
-        <div class="review-item-name">${escapeHtml(item.creator.name)}</div>
+        <div class="review-item-name">${escapeHtml(item.creator.name || 'Unknown')}</div>
         <div class="review-item-meta">${escapeHtml(item.creator.rankGiven || 'Creator')} • ${escapeHtml(item.creator.subscribers || '?')} subs</div>
       </div>
       <span class="review-item-reason">${escapeHtml(item.reason)}</span>
@@ -391,10 +426,10 @@ async function loadWarnings() {
   
   container.innerHTML = withWarnings.map(({ rowIndex, creator }) => `
     <div class="review-item" data-row="${rowIndex}">
-      <div class="review-item-avatar">${creator.name.charAt(0).toUpperCase()}</div>
+      <div class="review-item-avatar">${(creator.name || '?').charAt(0).toUpperCase()}</div>
       <div class="review-item-info">
-        <div class="review-item-name">${escapeHtml(creator.name)}</div>
-        <div class="review-item-meta" style="color: #f5576c;">${escapeHtml(creator.warnings.split('\n')[0])}</div>
+        <div class="review-item-name">${escapeHtml(creator.name || 'Unknown')}</div>
+        <div class="review-item-meta" style="color: #f5576c;">${escapeHtml((creator.warnings || '').split('\n')[0])}</div>
       </div>
       <button class="btn btn-outline" style="padding: 8px 16px;" onclick="openCreatorModal(${rowIndex})">View</button>
     </div>
@@ -424,10 +459,10 @@ async function loadInactive() {
   
   container.innerHTML = inactive.map(({ rowIndex, creator }) => `
     <div class="review-item" data-row="${rowIndex}">
-      <div class="review-item-avatar">${creator.name.charAt(0).toUpperCase()}</div>
+      <div class="review-item-avatar">${(creator.name || '?').charAt(0).toUpperCase()}</div>
       <div class="review-item-info">
-        <div class="review-item-name">${escapeHtml(creator.name)}</div>
-        <div class="review-item-meta">Last upload: ${escapeHtml(creator.lastUploadAgo)}</div>
+        <div class="review-item-name">${escapeHtml(creator.name || 'Unknown')}</div>
+        <div class="review-item-meta">Last upload: ${escapeHtml(creator.lastUploadAgo || 'Unknown')}</div>
       </div>
       <button class="btn btn-outline" style="padding: 8px 16px;" onclick="openCreatorModal(${rowIndex})">View</button>
     </div>
@@ -439,7 +474,7 @@ async function quickReview(rowIndex) {
   const reviewerName = document.getElementById('settingReviewerName')?.value || 'Judge';
   
   try {
-    await sheetsAPI.quickReview(rowIndex, reviewerName);
+    await csvManager.quickReview(rowIndex, reviewerName);
     showNotification('Review saved!', 'success');
     await loadAllData();
   } catch (error) {
@@ -456,7 +491,7 @@ async function handleBulkReview() {
   
   try {
     for (const row of rows) {
-      await sheetsAPI.quickReview(row, reviewerName);
+      await csvManager.quickReview(row, reviewerName);
     }
     
     showNotification(`Reviewed ${rows.length} creators!`, 'success');
@@ -469,36 +504,57 @@ async function handleBulkReview() {
 
 // Handle search
 function handleSearch(e) {
-  const query = e.target.value.toLowerCase().trim();
+  const query = e.target.value.trim();
   
   if (!query) {
     renderCreatorsTable(allCreators);
     return;
   }
   
-  const filtered = allCreators.filter(({ creator }) =>
-    creator.name.toLowerCase().includes(query) ||
-    creator.uuid.toLowerCase().includes(query) ||
-    creator.channel.toLowerCase().includes(query)
-  );
-  
+  const filtered = csvManager.searchCreators(query);
   renderCreatorsTable(filtered);
+}
+
+// Export CSV
+function exportCSV() {
+  if (!csvManager.hasData()) {
+    showNotification('No data to export', 'error');
+    return;
+  }
+  
+  const filename = `hypixel-creators-${new Date().toISOString().split('T')[0]}.csv`;
+  csvManager.downloadCSV(filename);
+  showNotification('CSV exported!', 'success');
+}
+
+// Handle clear data
+async function handleClearData() {
+  if (!confirm('Are you sure you want to clear all data? This cannot be undone.')) {
+    return;
+  }
+  
+  await csvManager.clearData();
+  showNotification('Data cleared', 'success');
+  showUploadSection();
+  updateDataIndicator(false);
+  
+  // Clear UI
+  document.getElementById('creatorsTableBody').innerHTML = '<tr><td colspan="7" class="empty-cell">Upload a CSV to see creators</td></tr>';
+  document.getElementById('navReviewCount').textContent = '0';
 }
 
 // Open creator modal
 function openCreatorModal(rowIndex) {
-  const item = allCreators.find(c => c.rowIndex === rowIndex);
-  if (!item) return;
+  const creator = csvManager.getRow(rowIndex);
+  if (!creator) return;
   
-  const { creator } = item;
-  
-  document.getElementById('modalTitle').textContent = creator.name;
+  document.getElementById('modalTitle').textContent = creator.name || 'Unknown Creator';
   document.getElementById('modalBody').innerHTML = `
     <div style="display: grid; gap: 16px;">
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
         <div>
           <label style="font-size: 11px; color: #888; display: block;">UUID</label>
-          <span style="font-size: 13px;">${escapeHtml(creator.uuid)}</span>
+          <span style="font-size: 13px;">${escapeHtml(creator.uuid || '-')}</span>
         </div>
         <div>
           <label style="font-size: 11px; color: #888; display: block;">Rank</label>
@@ -524,7 +580,7 @@ function openCreatorModal(rowIndex) {
       
       <div>
         <label style="font-size: 11px; color: #888; display: block;">Channel</label>
-        <a href="${escapeHtml(creator.channel)}" target="_blank" style="color: #4facfe; font-size: 13px;">${escapeHtml(creator.channel || '-')}</a>
+        <a href="${escapeHtml(creator.channel || '#')}" target="_blank" style="color: #4facfe; font-size: 13px; word-break: break-all;">${escapeHtml(creator.channel || '-')}</a>
       </div>
       
       <div>
@@ -564,8 +620,7 @@ async function saveSettings() {
   const settings = {
     reviewerName: document.getElementById('settingReviewerName').value || 'Judge',
     overdueMonths: parseInt(document.getElementById('settingOverdueMonths').value) || 3,
-    inactiveMonths: parseInt(document.getElementById('settingInactiveMonths').value) || 6,
-    sheetId: document.getElementById('settingSheetId').value
+    inactiveMonths: parseInt(document.getElementById('settingInactiveMonths').value) || 6
   };
   
   try {
@@ -641,6 +696,7 @@ notificationStyles.textContent = `
   }
   .notification-success { background: linear-gradient(135deg, #11998e, #38ef7d); color: #1a1a2e; }
   .notification-error { background: linear-gradient(135deg, #f5576c, #f093fb); }
+  .notification-info { background: linear-gradient(135deg, #667eea, #764ba2); }
   .notification button { background: none; border: none; color: inherit; font-size: 20px; cursor: pointer; }
   @keyframes notificationIn { from { transform: translateX(100%); opacity: 0; } }
 `;
