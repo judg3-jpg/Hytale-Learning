@@ -71,7 +71,10 @@
 
       <!-- Quick Actions -->
       <section class="quick-actions">
-        <button id="btnQuickReview" class="btn btn-gold btn-large">
+        <button id="btnEditCreator" class="btn btn-gold btn-large">
+          <span>✏️</span> Edit Creator
+        </button>
+        <button id="btnQuickReview" class="btn btn-dark btn-large">
           <span>✓</span> Mark as Reviewed
         </button>
         <button id="btnAddNote" class="btn btn-dark btn-large">
@@ -229,6 +232,147 @@
       <h3>Creator Not Found</h3>
       <p id="errorMessage">Could not load creator data.</p>
       <a href="../dashboard/dashboard.html" class="btn btn-gold">Back to Dashboard</a>
+    </div>
+  </div>
+
+  <!-- Edit Creator Modal -->
+  <div class="modal" id="editModal">
+    <div class="modal-backdrop" id="editModalBackdrop"></div>
+    <div class="modal-content modal-large">
+      <div class="modal-header">
+        <h3>✏️ Edit Creator</h3>
+        <button class="modal-close" id="editModalClose">×</button>
+      </div>
+      <div class="modal-body">
+        <form id="editCreatorForm" class="edit-form">
+          <!-- Basic Info -->
+          <div class="form-section">
+            <h4>📋 Basic Information</h4>
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="editName">Name</label>
+                <input type="text" id="editName" placeholder="Creator's name">
+              </div>
+              <div class="form-group">
+                <label for="editChannel">Main Channel URL</label>
+                <input type="url" id="editChannel" placeholder="https://youtube.com/...">
+              </div>
+              <div class="form-group">
+                <label for="editUUID">UUID</label>
+                <input type="text" id="editUUID" placeholder="Minecraft UUID">
+              </div>
+              <div class="form-group">
+                <label for="editCreatorCode">Creator Code</label>
+                <input type="text" id="editCreatorCode" placeholder="Creator code">
+              </div>
+            </div>
+          </div>
+
+          <!-- Channel Stats -->
+          <div class="form-section">
+            <h4>📊 Channel Stats</h4>
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="editSubscribers">Subscribers</label>
+                <input type="text" id="editSubscribers" placeholder="e.g., 150000">
+              </div>
+              <div class="form-group">
+                <label for="editRank">Rank Given</label>
+                <select id="editRank">
+                  <option value="">Select rank...</option>
+                  <option value="YOUTUBER">YOUTUBER</option>
+                  <option value="STREAMER">STREAMER</option>
+                  <option value="CREATOR">CREATOR</option>
+                  <option value="VIP">VIP</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="editContentType">Content Type</label>
+                <select id="editContentType">
+                  <option value="">Select type...</option>
+                  <option value="Gaming">Gaming</option>
+                  <option value="Non-Gaming">Non-Gaming</option>
+                  <option value="Mixed">Mixed</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="editLanguage">Content Language</label>
+                <input type="text" id="editLanguage" placeholder="e.g., English">
+              </div>
+              <div class="form-group">
+                <label for="editLastUpload">Last Upload</label>
+                <input type="text" id="editLastUpload" placeholder="e.g., 3 Months">
+              </div>
+              <div class="form-group">
+                <label for="editLocale">Locale</label>
+                <input type="text" id="editLocale" placeholder="e.g., US, UK, DE">
+              </div>
+            </div>
+          </div>
+
+          <!-- Review Info -->
+          <div class="form-section">
+            <h4>📋 Review Info</h4>
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="editLastChecked">Last Checked</label>
+                <input type="date" id="editLastChecked">
+              </div>
+              <div class="form-group">
+                <label for="editReviewedBy">Content Review By</label>
+                <input type="text" id="editReviewedBy" placeholder="Reviewer name">
+              </div>
+              <div class="form-group">
+                <label for="editDateAccepted">Date Accepted</label>
+                <input type="date" id="editDateAccepted">
+              </div>
+              <div class="form-group">
+                <label for="editAcceptedBy">Accepted By</label>
+                <input type="text" id="editAcceptedBy" placeholder="Who accepted them">
+              </div>
+            </div>
+          </div>
+
+          <!-- Contact Info -->
+          <div class="form-section">
+            <h4>📧 Contact Info</h4>
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="editEmail">Contact Email</label>
+                <input type="email" id="editEmail" placeholder="creator@email.com">
+              </div>
+              <div class="form-group">
+                <label for="editZendesk">Zendesk ID</label>
+                <input type="text" id="editZendesk" placeholder="Zendesk ticket ID">
+              </div>
+            </div>
+          </div>
+
+          <!-- Notes & Warnings -->
+          <div class="form-section">
+            <h4>📝 Notes & Warnings</h4>
+            <div class="form-group full-width">
+              <label for="editNotes">Notes</label>
+              <textarea id="editNotes" rows="3" placeholder="Notes about this creator..."></textarea>
+            </div>
+            <div class="form-group full-width">
+              <label for="editWarnings">Warnings</label>
+              <textarea id="editWarnings" rows="2" placeholder="Warnings (if any)..."></textarea>
+            </div>
+            <div class="form-group">
+              <label for="editRequiresCheckup">
+                <input type="checkbox" id="editRequiresCheckup"> Requires Checkup
+              </label>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" id="editModalCancel">Cancel</button>
+        <button class="btn btn-gold" id="editModalSave">
+          <span>💾</span> Save Changes
+        </button>
+      </div>
     </div>
   </div>
 
