@@ -1,112 +1,103 @@
 # Hytale Moderation Tool
 
-A complete, modern moderation dashboard for Hytale servers. Built with React, Node.js, and SQLite.
+An in-game style moderation tool for Hytale servers. Built with Electron for a native desktop experience with a game-like UI.
 
 ![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
-![License](https://img.shields.io/badge/license-MIT-green.svg)
+![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Mac%20%7C%20Linux-lightgrey.svg)
 
 ## Features
 
-- **Player Management** - View and manage all players with detailed profiles
-- **Moderation Actions** - Warn, Mute, Kick, and Ban players with ease
-- **Punishment History** - Track all punishments with full history
-- **Notes System** - Add notes to player profiles
-- **Activity Logging** - Monitor all player and moderation activity
-- **Fast Navigation** - Keyboard shortcuts for power users
-- **Dark/Light Theme** - Toggle between themes (dark mode default)
-- **Clean UI** - Modern, responsive design
+- 🎮 **Game-Style UI** - Dark themed interface that looks like an in-game overlay
+- 🎯 **Player Targeting** - Select and view detailed player information
+- ⌨️ **Keyboard Shortcuts** - Quick actions with single key presses
+- ⚖️ **Moderation Actions** - Warn, Mute, Kick, Ban players
+- 📝 **Notes System** - Add notes to player profiles
+- 📜 **Activity Logging** - Track all moderation activity
+- 🔍 **Player Search** - Quickly find players by name
 
-## Tech Stack
+## Keyboard Shortcuts
 
-- **Frontend**: React + Vite + Tailwind CSS
-- **Backend**: Node.js + Express.js
-- **Database**: SQLite (production-ready, easy to migrate to PostgreSQL)
-- **Icons**: Lucide React
+| Key | Action |
+|-----|--------|
+| `/` | Focus search |
+| `X` | Teleport to player |
+| `W` | Warn player |
+| `M` | Mute player |
+| `K` | Kick player |
+| `B` | Ban player |
+| `I` | View inventory |
+| `N` | View/add notes |
+| `H` | View history |
+| `C` | Untarget player |
+| `Esc` | Close modal |
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js 18+ 
-- npm or yarn
+- Node.js 18 or higher
+- npm
 
 ### Installation
 
-1. Clone the repository:
+1. **Install dependencies:**
    ```bash
-   git clone <repository-url>
-   cd hytale-moderation-tool
+   npm install
    ```
 
-2. Install all dependencies:
+2. **Seed the database with sample data:**
    ```bash
-   npm run install:all
+   npm run seed
    ```
 
-3. Start the development servers:
+3. **Start the application:**
    ```bash
-   npm run dev
+   npm start
    ```
 
-4. Open your browser:
-   - Frontend: http://localhost:5173
-   - Backend API: http://localhost:3001
+## Usage
+
+1. **Search for a player** using the search box or press `/`
+2. **Click on a player** to target them
+3. **Use keyboard shortcuts** or click action buttons to moderate
+4. **View player info** in the middle panel
+5. **Check history, notes, and activity** using the bottom buttons
 
 ## Project Structure
 
 ```
 hytale-moderation-tool/
-├── client/                 # React frontend
-│   ├── src/
-│   │   ├── components/     # React components
-│   │   ├── pages/          # Page components
-│   │   ├── hooks/          # Custom React hooks
-│   │   ├── services/       # API service layer
-│   │   ├── utils/          # Utility functions
-│   │   └── context/        # React context providers
-│   └── ...
-├── server/                 # Node.js backend
-│   ├── src/
-│   │   ├── controllers/    # Route controllers
-│   │   ├── routes/         # API routes
-│   │   ├── models/         # Database models
-│   │   ├── database/       # Database setup
-│   │   └── middleware/     # Express middleware
-│   └── ...
-└── ...
+├── main.js           # Electron main process
+├── preload.js        # Preload script (database & API)
+├── package.json
+├── src/
+│   ├── index.html    # Main window
+│   ├── styles/
+│   │   └── main.css  # Game-style UI
+│   ├── js/
+│   │   └── app.js    # Application logic
+│   └── database/
+│       └── seed.js   # Database seeder
+└── data/
+    └── moderation.db # SQLite database
 ```
 
-## Keyboard Shortcuts
+## Tech Stack
 
-| Shortcut | Action |
-|----------|--------|
-| `/` or `Ctrl+K` | Focus search |
-| `Esc` | Close modal |
-| `↑` / `↓` | Navigate list |
-| `W` | Warn player |
-| `M` | Mute player |
-| `B` | Ban player |
-| `N` | Add note |
-| `Ctrl+D` | Toggle theme |
+- **Electron** - Desktop application framework
+- **SQL.js** - SQLite in JavaScript (no native compilation needed)
+- **Pure CSS** - Game-style dark theme UI
 
-## API Endpoints
+## Future Plans
 
-### Players
-- `GET /api/players` - List all players
-- `GET /api/players/:id` - Get player details
-- `POST /api/players` - Create player
-- `PUT /api/players/:id` - Update player
-- `DELETE /api/players/:id` - Delete player
+This tool is designed to be ready for integration with Hytale when the game releases with modding support. Features that will be added:
 
-### Punishments
-- `GET /api/punishments` - List punishments
-- `POST /api/punishments` - Create punishment
-- `POST /api/punishments/:id/revoke` - Revoke punishment
-
-### Notes
-- `GET /api/players/:id/notes` - Get player notes
-- `POST /api/players/:id/notes` - Add note
+- Real-time player data from game server
+- Actual teleportation and spectating
+- Inventory viewing
+- Chat monitoring
+- Anti-cheat integration
 
 ## License
 
-MIT License - feel free to use this for your own projects!
+MIT License - Feel free to use and modify!
