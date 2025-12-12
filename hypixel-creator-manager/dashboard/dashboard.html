@@ -400,15 +400,23 @@
             <div class="form-grid">
               <div class="form-group">
                 <label for="newCreatorName">Name *</label>
-                <input type="text" id="newCreatorName" required placeholder="Creator's name">
+                <input type="text" id="newCreatorName" required placeholder="Creator's display name">
               </div>
               <div class="form-group">
                 <label for="newCreatorChannel">Main Channel URL *</label>
                 <input type="url" id="newCreatorChannel" required placeholder="https://youtube.com/...">
               </div>
               <div class="form-group">
-                <label for="newCreatorUUID">UUID</label>
-                <input type="text" id="newCreatorUUID" placeholder="Minecraft UUID (optional)">
+                <label for="newCreatorIGN">Minecraft IGN</label>
+                <div class="input-with-button">
+                  <input type="text" id="newCreatorIGN" placeholder="Minecraft username">
+                  <button type="button" id="btnLookupUUID" class="btn btn-small btn-outline">🔍 Lookup</button>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="newCreatorUUID">Minecraft UUID</label>
+                <input type="text" id="newCreatorUUID" placeholder="Will auto-fill from IGN lookup" readonly>
+                <span class="field-hint" id="uuidHint">Enter IGN above and click Lookup</span>
               </div>
               <div class="form-group">
                 <label for="newCreatorCode">Creator Code</label>

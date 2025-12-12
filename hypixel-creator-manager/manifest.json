@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Hypixel Creator Manager",
-  "version": "3.1.0",
+  "version": "3.1.1",
   "description": "Hypixel-branded creator management with metrics dashboard, YouTube/Twitch API integration, and full CSV workflow",
   "author": "Judge",
   "icons": {
@@ -14,6 +14,12 @@
     "storage",
     "contextMenus",
     "sidePanel"
+  ],
+  "host_permissions": [
+    "https://api.mojang.com/*",
+    "https://www.googleapis.com/*",
+    "https://api.twitch.tv/*",
+    "https://id.twitch.tv/*"
   ],
   "action": {
     "default_popup": "popup/popup.html",

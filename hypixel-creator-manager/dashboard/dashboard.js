@@ -140,6 +140,7 @@ function setupEventListeners() {
   document.getElementById('addCreatorCancel')?.addEventListener('click', closeAddCreatorModal);
   document.getElementById('addCreatorBackdrop')?.addEventListener('click', closeAddCreatorModal);
   document.getElementById('addCreatorSubmit')?.addEventListener('click', handleAddCreator);
+  document.getElementById('btnLookupUUID')?.addEventListener('click', lookupMinecraftUUID);
   
   // API Settings
   document.getElementById('btnSaveApiKeys')?.addEventListener('click', saveApiKeys);
@@ -821,7 +822,7 @@ async function handleAddCreator(e) {
   const newRow = new Array(24).fill(''); // 24 columns in the sheet
   
   // Map form values to column indices
-  newRow[0] = document.getElementById('newCreatorUUID').value.trim() || generateUUID();
+  newRow[0] = document.getElementById('newCreatorUUID').value.trim() || ''; // Leave empty if no UUID
   newRow[1] = name;
   newRow[2] = channel;
   newRow[3] = document.getElementById('newCreatorDateAccepted').value || '';
@@ -865,13 +866,86 @@ async function handleAddCreator(e) {
   }
 }
 
-// Generate a random UUID (for creators without one)
-function generateUUID() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    const r = Math.random() * 16 | 0;
-    const v = c === 'x' ? r : (r & 0x3 | 0x8);
-    return v.toString(16);
-  });
+// Lookup Minecraft UUID from IGN using Mojang API
+async function lookupMinecraftUUID() {
+  const ignInput = document.getElementById('newCreatorIGN');
+  const uuidInput = document.getElementById('newCreatorUUID');
+  const uuidHint = document.getElementById('uuidHint');
+  const lookupBtn = document.getElementById('btnLookupUUID');
+  
+  const ign = ignInput.value.trim();
+  
+  if (!ign) {
+    uuidHint.textContent = '⚠️ Enter a Minecraft username first';
+    uuidHint.className = 'field-hint error';
+    return;
+  }
+  
+  // Show loading state
+  lookupBtn.disabled = true;
+  lookupBtn.textContent = '⏳ Looking up...';
+  uuidHint.textContent = 'Fetching from Mojang API...';
+  uuidHint.className = 'field-hint';
+  
+  try {
+    // Use a CORS proxy or the Mojang API directly
+    // Note: Mojang API may have CORS issues, so we'll try multiple approaches
+    const response = await fetch(`https://api.mojang.com/users/profiles/minecraft/${encodeURIComponent(ign)}`);
+    
+    if (response.status === 404) {
+      throw new Error('Player not found');
+    }
+    
+    if (!response.ok) {
+      throw new Error('API error');
+    }
+    
+    const data = await response.json();
+    
+    // Format UUID with dashes (Mojang returns it without dashes)
+    const uuid = formatMinecraftUUID(data.id);
+    
+    uuidInput.value = uuid;
+    uuidHint.textContent = `✅ Found: ${data.name}`;
+    uuidHint.className = 'field-hint success';
+    
+    // Also update the name field if it's empty
+    const nameInput = document.getElementById('newCreatorName');
+    if (!nameInput.value.trim()) {
+      nameInput.value = data.name;
+    }
+    
+  } catch (error) {
+    console.error('UUID lookup error:', error);
+    
+    if (error.message === 'Player not found') {
+      uuidHint.textContent = '❌ Player not found - check the username';
+    } else {
+      uuidHint.textContent = '❌ Lookup failed - you can enter UUID manually';
+    }
+    uuidHint.className = 'field-hint error';
+    uuidInput.value = '';
+    
+    // Make UUID field editable as fallback
+    uuidInput.readOnly = false;
+    uuidInput.placeholder = 'Enter UUID manually';
+    
+  } finally {
+    lookupBtn.disabled = false;
+    lookupBtn.textContent = '🔍 Lookup';
+  }
+}
+
+// Format Minecraft UUID with dashes
+function formatMinecraftUUID(uuid) {
+  // Mojang returns UUID without dashes, we need to add them
+  // Format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+  if (uuid.includes('-')) return uuid; // Already formatted
+  
+  return uuid.replace(
+    /^(.{8})(.{4})(.{4})(.{4})(.{12})$/,
+    '$1-$2-$3-$4-$5'
+  );
 }
 
 // Notification styles are now in CSS file

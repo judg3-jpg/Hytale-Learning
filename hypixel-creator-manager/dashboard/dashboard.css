@@ -1183,6 +1183,34 @@ body {
   min-height: 80px;
 }
 
+.input-with-button {
+  display: flex;
+  gap: 8px;
+}
+
+.input-with-button input {
+  flex: 1;
+}
+
+.input-with-button .btn {
+  flex-shrink: 0;
+  padding: 10px 14px;
+}
+
+.field-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.field-hint.success {
+  color: var(--accent-green);
+}
+
+.field-hint.error {
+  color: var(--accent-red);
+}
+
 /* Required field indicator */
 .form-group label::after {
   content: '';
