@@ -61,12 +61,6 @@
         "default": "Alt+3"
       },
       "description": "Insert note: Content reviewed - meets standards"
-    },
-    "open-channel": {
-      "suggested_key": {
-        "default": "Alt+O"
-      },
-      "description": "Open creator's YouTube channel"
     }
   }
 }
