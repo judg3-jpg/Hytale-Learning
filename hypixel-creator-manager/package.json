@@ -1,0 +1,16 @@
+{
+  "name": "hypixel-creator-manager",
+  "version": "1.0.0",
+  "description": "A Microsoft Edge extension to streamline your Hypixel creator sheet management with quick reviews, auto-fill, hotkeys, and bulk actions.",
+  "main": "background.js",
+  "scripts": {
+    "generate-icons": "node scripts/generate-icons.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "canvas": "^3.2.0"
+  }
+}
