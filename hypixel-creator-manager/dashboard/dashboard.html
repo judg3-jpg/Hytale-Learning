@@ -404,7 +404,11 @@
               </div>
               <div class="form-group">
                 <label for="newCreatorChannel">Main Channel URL *</label>
-                <input type="url" id="newCreatorChannel" required placeholder="https://youtube.com/...">
+                <div class="input-with-button">
+                  <input type="url" id="newCreatorChannel" required placeholder="https://youtube.com/... or twitch.tv/...">
+                  <button type="button" id="btnFetchChannelStats" class="btn btn-small btn-outline">📊 Fetch Stats</button>
+                </div>
+                <span class="field-hint" id="channelHint">Enter YouTube/Twitch URL and click Fetch Stats</span>
               </div>
               <div class="form-group">
                 <label for="newCreatorIGN">Minecraft IGN</label>
@@ -427,11 +431,11 @@
 
           <!-- Channel Stats -->
           <div class="form-section">
-            <h4>📊 Channel Stats</h4>
+            <h4>📊 Channel Stats <span class="section-hint" id="statsAutoFillHint">(Click "Fetch Stats" above to auto-fill)</span></h4>
             <div class="form-grid">
               <div class="form-group">
                 <label for="newCreatorSubs">Subscribers</label>
-                <input type="text" id="newCreatorSubs" placeholder="e.g., 150000">
+                <input type="text" id="newCreatorSubs" placeholder="Auto-fills from API or enter manually">
               </div>
               <div class="form-group">
                 <label for="newCreatorRank">Rank Given</label>
