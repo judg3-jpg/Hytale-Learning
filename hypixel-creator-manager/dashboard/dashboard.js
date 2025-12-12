@@ -1,8 +1,13 @@
 // Dashboard JavaScript - CSV Version
 
 let allCreators = [];
+let filteredCreators = [];
 let reviewQueue = [];
 let selectedForReview = new Set();
+
+// Pagination settings
+let currentPage = 1;
+const creatorsPerPage = 50;
 
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
@@ -317,10 +322,12 @@ async function refreshData() {
 async function loadStatistics() {
   const stats = csvManager.getStatistics();
   
-  document.getElementById('statTotalCreators').textContent = stats.totalCreators;
-  document.getElementById('statNeedsReview').textContent = stats.needsReview;
-  document.getElementById('statWarnings').textContent = stats.hasWarnings;
-  document.getElementById('statInactive').textContent = stats.inactive;
+  document.getElementById('statTotalCreators').textContent = stats.totalCreators.toLocaleString();
+  document.getElementById('statActive').textContent = stats.active.toLocaleString();
+  document.getElementById('statSemiInactive').textContent = stats.semiInactive.toLocaleString();
+  document.getElementById('statInactive').textContent = stats.inactive.toLocaleString();
+  document.getElementById('statNeedsReview').textContent = stats.needsReview.toLocaleString();
+  document.getElementById('statWarnings').textContent = stats.hasWarnings.toLocaleString();
   
   document.getElementById('navReviewCount').textContent = stats.needsReview;
   
@@ -359,17 +366,28 @@ async function loadAllCreators() {
   renderCreatorsTable(allCreators);
 }
 
-// Render creators table
+// Render creators table with pagination
 function renderCreatorsTable(creators) {
+  filteredCreators = creators;
   const tbody = document.getElementById('creatorsTableBody');
   if (!tbody) return;
   
   if (creators.length === 0) {
     tbody.innerHTML = '<tr><td colspan="7" class="empty-cell">No creators found</td></tr>';
+    renderPagination(0);
     return;
   }
   
-  tbody.innerHTML = creators.slice(0, 100).map(({ rowIndex, creator }) => `
+  // Calculate pagination
+  const totalPages = Math.ceil(creators.length / creatorsPerPage);
+  if (currentPage > totalPages) currentPage = totalPages;
+  if (currentPage < 1) currentPage = 1;
+  
+  const startIndex = (currentPage - 1) * creatorsPerPage;
+  const endIndex = startIndex + creatorsPerPage;
+  const pageCreators = creators.slice(startIndex, endIndex);
+  
+  tbody.innerHTML = pageCreators.map(({ rowIndex, creator }) => `
     <tr data-row="${rowIndex}">
       <td>
         <div style="display: flex; align-items: center; gap: 12px;">
@@ -384,7 +402,7 @@ function renderCreatorsTable(creators) {
       </td>
       <td><span style="padding: 5px 12px; background: linear-gradient(135deg, rgba(255, 170, 0, 0.15), rgba(255, 85, 0, 0.1)); border: 1px solid rgba(255, 170, 0, 0.3); border-radius: 6px; font-size: 11px; font-weight: 600; color: #FFAA00;">${escapeHtml(creator.rankGiven || 'CREATOR')}</span></td>
       <td style="font-weight: 600; color: #55FFFF;">${formatNumber(creator.subscribers) || '-'}</td>
-      <td>${escapeHtml(creator.lastUploadAgo || '-')}</td>
+      <td>${getActivityBadge(creator.lastUploadAgo)}</td>
       <td>${escapeHtml(creator.lastChecked || 'Never')}</td>
       <td>${getStatusBadge(creator)}</td>
       <td>
@@ -401,6 +419,182 @@ function renderCreatorsTable(creators) {
       openCreatorModal(rowIndex);
     });
   });
+  
+  // Render pagination controls
+  renderPagination(creators.length);
+}
+
+// Get activity badge based on last upload
+function getActivityBadge(lastUploadAgo) {
+  if (!lastUploadAgo || lastUploadAgo === '-') {
+    return '<span style="padding: 5px 12px; background: rgba(102, 102, 102, 0.2); border: 1px solid rgba(102, 102, 102, 0.3); color: #888; border-radius: 6px; font-size: 11px; font-weight: 600;">Unknown</span>';
+  }
+  
+  const months = parseMonthsFromUpload(lastUploadAgo);
+  
+  if (months === null) {
+    return `<span style="color: #AAA;">${escapeHtml(lastUploadAgo)}</span>`;
+  }
+  
+  if (months >= 24) {
+    // INACTIVE - Red (24+ months)
+    return `<span style="padding: 5px 12px; background: rgba(255, 85, 85, 0.15); border: 1px solid rgba(255, 85, 85, 0.3); color: #FF5555; border-radius: 6px; font-size: 11px; font-weight: 600;">🔴 ${escapeHtml(lastUploadAgo)}</span>`;
+  } else if (months >= 12) {
+    // SEMI-INACTIVE - Orange (12-24 months)
+    return `<span style="padding: 5px 12px; background: rgba(255, 170, 0, 0.15); border: 1px solid rgba(255, 170, 0, 0.3); color: #FFAA00; border-radius: 6px; font-size: 11px; font-weight: 600;">🟠 ${escapeHtml(lastUploadAgo)}</span>`;
+  } else {
+    // ACTIVE - Green (under 12 months)
+    return `<span style="padding: 5px 12px; background: rgba(85, 255, 85, 0.15); border: 1px solid rgba(85, 255, 85, 0.3); color: #55FF55; border-radius: 6px; font-size: 11px; font-weight: 600;">🟢 ${escapeHtml(lastUploadAgo)}</span>`;
+  }
+}
+
+// Parse months from last upload string
+function parseMonthsFromUpload(lastUploadAgo) {
+  if (!lastUploadAgo) return null;
+  
+  const str = lastUploadAgo.toLowerCase();
+  
+  // Try to match "X months" pattern
+  const monthMatch = str.match(/(\d+)\s*month/i);
+  if (monthMatch) {
+    return parseInt(monthMatch[1]);
+  }
+  
+  // Try to match "X years" pattern and convert to months
+  const yearMatch = str.match(/(\d+)\s*year/i);
+  if (yearMatch) {
+    return parseInt(yearMatch[1]) * 12;
+  }
+  
+  // Try to match "X weeks" or "X days" - these are active
+  if (str.includes('week') || str.includes('day') || str.includes('hour')) {
+    return 0;
+  }
+  
+  return null;
+}
+
+// Render pagination controls
+function renderPagination(totalItems) {
+  let paginationContainer = document.getElementById('paginationContainer');
+  
+  // Create pagination container if it doesn't exist
+  if (!paginationContainer) {
+    paginationContainer = document.createElement('div');
+    paginationContainer.id = 'paginationContainer';
+    paginationContainer.className = 'pagination-container';
+    
+    const tableContainer = document.querySelector('#page-creators .table-container');
+    if (tableContainer) {
+      tableContainer.after(paginationContainer);
+    }
+  }
+  
+  const totalPages = Math.ceil(totalItems / creatorsPerPage);
+  
+  if (totalPages <= 1) {
+    paginationContainer.innerHTML = `<div class="pagination-info">Showing all ${totalItems} creators</div>`;
+    return;
+  }
+  
+  const startItem = (currentPage - 1) * creatorsPerPage + 1;
+  const endItem = Math.min(currentPage * creatorsPerPage, totalItems);
+  
+  // Generate page numbers to show
+  let pageNumbers = [];
+  const maxVisiblePages = 7;
+  
+  if (totalPages <= maxVisiblePages) {
+    pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
+  } else {
+    // Always show first page
+    pageNumbers.push(1);
+    
+    // Calculate range around current page
+    let startPage = Math.max(2, currentPage - 2);
+    let endPage = Math.min(totalPages - 1, currentPage + 2);
+    
+    // Add ellipsis after first page if needed
+    if (startPage > 2) {
+      pageNumbers.push('...');
+    }
+    
+    // Add pages around current
+    for (let i = startPage; i <= endPage; i++) {
+      pageNumbers.push(i);
+    }
+    
+    // Add ellipsis before last page if needed
+    if (endPage < totalPages - 1) {
+      pageNumbers.push('...');
+    }
+    
+    // Always show last page
+    pageNumbers.push(totalPages);
+  }
+  
+  paginationContainer.innerHTML = `
+    <div class="pagination-info">
+      Showing ${startItem}-${endItem} of ${totalItems} creators
+    </div>
+    <div class="pagination-controls">
+      <button class="pagination-btn" id="paginationFirst" ${currentPage === 1 ? 'disabled' : ''}>« First</button>
+      <button class="pagination-btn" id="paginationPrev" ${currentPage === 1 ? 'disabled' : ''}>‹ Prev</button>
+      
+      <div class="pagination-pages">
+        ${pageNumbers.map(page => {
+          if (page === '...') {
+            return '<span class="pagination-ellipsis">...</span>';
+          }
+          return `<button class="pagination-page ${page === currentPage ? 'active' : ''}" data-page="${page}">${page}</button>`;
+        }).join('')}
+      </div>
+      
+      <button class="pagination-btn" id="paginationNext" ${currentPage === totalPages ? 'disabled' : ''}>Next ›</button>
+      <button class="pagination-btn" id="paginationLast" ${currentPage === totalPages ? 'disabled' : ''}>Last »</button>
+    </div>
+    <div class="pagination-jump">
+      <span>Go to page:</span>
+      <input type="number" id="paginationJumpInput" min="1" max="${totalPages}" value="${currentPage}">
+      <button class="pagination-btn" id="paginationJumpBtn">Go</button>
+    </div>
+  `;
+  
+  // Add event listeners
+  document.getElementById('paginationFirst')?.addEventListener('click', () => goToPage(1));
+  document.getElementById('paginationPrev')?.addEventListener('click', () => goToPage(currentPage - 1));
+  document.getElementById('paginationNext')?.addEventListener('click', () => goToPage(currentPage + 1));
+  document.getElementById('paginationLast')?.addEventListener('click', () => goToPage(totalPages));
+  
+  document.querySelectorAll('.pagination-page').forEach(btn => {
+    btn.addEventListener('click', () => goToPage(parseInt(btn.dataset.page)));
+  });
+  
+  document.getElementById('paginationJumpBtn')?.addEventListener('click', () => {
+    const jumpInput = document.getElementById('paginationJumpInput');
+    const page = parseInt(jumpInput.value);
+    if (page >= 1 && page <= totalPages) {
+      goToPage(page);
+    }
+  });
+  
+  document.getElementById('paginationJumpInput')?.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      const page = parseInt(e.target.value);
+      if (page >= 1 && page <= totalPages) {
+        goToPage(page);
+      }
+    }
+  });
+}
+
+// Go to specific page
+function goToPage(page) {
+  currentPage = page;
+  renderCreatorsTable(filteredCreators);
+  
+  // Scroll to top of table
+  document.querySelector('#page-creators .table-container')?.scrollIntoView({ behavior: 'smooth' });
 }
 
 // Get status badge
@@ -630,6 +824,9 @@ async function handleBulkReview() {
 // Handle search
 function handleSearch(e) {
   const query = e.target.value.trim();
+  
+  // Reset to page 1 when searching
+  currentPage = 1;
   
   if (!query) {
     renderCreatorsTable(allCreators);
