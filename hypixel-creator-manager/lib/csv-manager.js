@@ -427,7 +427,9 @@ class CSVManager {
       totalCreators: this.data.length,
       needsReview: 0,
       hasWarnings: 0,
-      inactive: 0,
+      inactive: 0,        // 24+ months
+      semiInactive: 0,    // 12-24 months
+      active: 0,          // under 12 months
       byRank: {},
       byLanguage: {}
     };
@@ -449,11 +451,15 @@ class CSVManager {
         stats.hasWarnings++;
       }
 
-      // Check activity
-      if (creator.lastUploadAgo) {
-        const match = creator.lastUploadAgo.match(/(\d+)\s*Month/i);
-        if (match && parseInt(match[1]) >= 6) {
+      // Check activity based on last upload
+      const months = this.parseMonthsFromUpload(creator.lastUploadAgo);
+      if (months !== null) {
+        if (months >= 24) {
           stats.inactive++;
+        } else if (months >= 12) {
+          stats.semiInactive++;
+        } else {
+          stats.active++;
         }
       }
 
@@ -469,6 +475,32 @@ class CSVManager {
     }
 
     return stats;
+  }
+
+  // Parse months from last upload string
+  parseMonthsFromUpload(lastUploadAgo) {
+    if (!lastUploadAgo) return null;
+    
+    const str = lastUploadAgo.toLowerCase();
+    
+    // Try to match "X months" pattern
+    const monthMatch = str.match(/(\d+)\s*month/i);
+    if (monthMatch) {
+      return parseInt(monthMatch[1]);
+    }
+    
+    // Try to match "X years" pattern and convert to months
+    const yearMatch = str.match(/(\d+)\s*year/i);
+    if (yearMatch) {
+      return parseInt(yearMatch[1]) * 12;
+    }
+    
+    // Try to match "X weeks" or "X days" - these are active
+    if (str.includes('week') || str.includes('day') || str.includes('hour')) {
+      return 0;
+    }
+    
+    return null;
   }
 
   // Search creators

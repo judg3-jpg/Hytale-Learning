@@ -509,9 +509,22 @@ body {
   box-shadow: var(--shadow-gold);
 }
 
+.stat-card.stat-success {
+  border-color: rgba(85, 255, 85, 0.3);
+  background: linear-gradient(135deg, rgba(85, 255, 85, 0.05) 0%, transparent 100%);
+}
+
+.stat-card.stat-success .stat-value {
+  color: var(--accent-green);
+}
+
 .stat-card.stat-warning {
-  border-color: rgba(255, 85, 0, 0.3);
-  background: linear-gradient(135deg, rgba(255, 85, 0, 0.05) 0%, transparent 100%);
+  border-color: rgba(255, 170, 0, 0.3);
+  background: linear-gradient(135deg, rgba(255, 170, 0, 0.05) 0%, transparent 100%);
+}
+
+.stat-card.stat-warning .stat-value {
+  color: var(--hypixel-gold);
 }
 
 .stat-card.stat-danger {
@@ -519,9 +532,30 @@ body {
   background: linear-gradient(135deg, rgba(255, 85, 85, 0.05) 0%, transparent 100%);
 }
 
-.stat-card.stat-info {
+.stat-card.stat-danger .stat-value {
+  color: var(--accent-red);
+}
+
+.stat-card.stat-review {
   border-color: rgba(85, 255, 255, 0.3);
   background: linear-gradient(135deg, rgba(85, 255, 255, 0.05) 0%, transparent 100%);
+}
+
+.stat-card.stat-review .stat-value {
+  color: var(--accent-aqua);
+}
+
+.stat-card.stat-alert {
+  border-color: rgba(255, 85, 85, 0.3);
+  background: linear-gradient(135deg, rgba(255, 85, 85, 0.05) 0%, transparent 100%);
+}
+
+.stat-card.stat-alert .stat-value {
+  color: var(--accent-red);
+}
+
+.stats-grid-secondary {
+  grid-template-columns: repeat(2, 1fr);
 }
 
 .stat-icon {
@@ -690,6 +724,129 @@ body {
   text-align: center;
   color: var(--text-muted);
   padding: 56px;
+}
+
+/* ==================== PAGINATION ==================== */
+.pagination-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 24px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-top: none;
+  border-radius: 0 0 16px 16px;
+  margin-top: -1px;
+}
+
+.pagination-info {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pagination-btn {
+  padding: 8px 14px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: var(--bg-hover);
+  border-color: var(--hypixel-gold);
+  color: var(--hypixel-gold);
+}
+
+.pagination-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pagination-pages {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pagination-page {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pagination-page:hover:not(.active) {
+  background: var(--bg-hover);
+  border-color: var(--hypixel-gold);
+}
+
+.pagination-page.active {
+  background: linear-gradient(180deg, var(--hypixel-gold-light) 0%, var(--hypixel-gold) 100%);
+  border-color: var(--hypixel-gold);
+  color: var(--bg-primary);
+  font-weight: 700;
+}
+
+.pagination-ellipsis {
+  padding: 0 8px;
+  color: var(--text-muted);
+}
+
+.pagination-jump {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.pagination-jump input {
+  width: 70px;
+  padding: 8px 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 13px;
+  text-align: center;
+}
+
+.pagination-jump input:focus {
+  outline: none;
+  border-color: var(--hypixel-gold);
+}
+
+@media (max-width: 900px) {
+  .pagination-container {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .pagination-pages {
+    display: none;
+  }
 }
 
 /* ==================== REVIEW LIST ==================== */
