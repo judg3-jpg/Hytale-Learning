@@ -161,6 +161,13 @@ function getStatusBadge(creator) {
 
 // Setup event listeners
 function setupEventListeners() {
+  // Edit Creator
+  document.getElementById('btnEditCreator').addEventListener('click', openEditModal);
+  document.getElementById('editModalClose').addEventListener('click', closeEditModal);
+  document.getElementById('editModalCancel').addEventListener('click', closeEditModal);
+  document.getElementById('editModalBackdrop').addEventListener('click', closeEditModal);
+  document.getElementById('editModalSave').addEventListener('click', saveCreatorEdits);
+  
   // Quick Review
   document.getElementById('btnQuickReview').addEventListener('click', handleQuickReview);
   
@@ -356,6 +363,80 @@ async function handleRefreshStats() {
   }
   
   await fetchLiveStats();
+}
+
+// ==================== EDIT MODAL FUNCTIONS ====================
+
+// Open Edit Modal
+function openEditModal() {
+  const c = currentCreator;
+  
+  // Populate form fields with current data
+  document.getElementById('editName').value = c.name || '';
+  document.getElementById('editChannel').value = c.channel || '';
+  document.getElementById('editUUID').value = c.uuid || '';
+  document.getElementById('editCreatorCode').value = c.creatorCode || '';
+  document.getElementById('editSubscribers').value = c.subscribers || '';
+  document.getElementById('editRank').value = c.rankGiven || '';
+  document.getElementById('editContentType').value = c.contentType || '';
+  document.getElementById('editLanguage').value = c.contentLanguage || '';
+  document.getElementById('editLastUpload').value = c.lastUploadAgo || '';
+  document.getElementById('editLocale').value = c.locale || '';
+  document.getElementById('editLastChecked').value = c.lastChecked || '';
+  document.getElementById('editReviewedBy').value = c.contentReviewBy || '';
+  document.getElementById('editDateAccepted').value = c.dateAccepted || '';
+  document.getElementById('editAcceptedBy').value = c.acceptedBy || '';
+  document.getElementById('editEmail').value = c.contactEmail || '';
+  document.getElementById('editZendesk').value = c.zendeskId || '';
+  document.getElementById('editNotes').value = c.notes || '';
+  document.getElementById('editWarnings').value = c.warnings || '';
+  document.getElementById('editRequiresCheckup').checked = !!(c.requiresCheckup && c.requiresCheckup.trim());
+  
+  document.getElementById('editModal').classList.add('active');
+}
+
+// Close Edit Modal
+function closeEditModal() {
+  document.getElementById('editModal').classList.remove('active');
+}
+
+// Save Creator Edits
+async function saveCreatorEdits() {
+  try {
+    const COLUMNS = csvManager.COLUMNS;
+    
+    // Update each field
+    await csvManager.updateCell(currentRowIndex, COLUMNS.NAME, document.getElementById('editName').value.trim());
+    await csvManager.updateCell(currentRowIndex, COLUMNS.MAIN_CHANNEL, document.getElementById('editChannel').value.trim());
+    await csvManager.updateCell(currentRowIndex, COLUMNS.UUID, document.getElementById('editUUID').value.trim());
+    await csvManager.updateCell(currentRowIndex, COLUMNS.CREATOR_CODE, document.getElementById('editCreatorCode').value.trim());
+    await csvManager.updateCell(currentRowIndex, COLUMNS.SUBSCRIBERS, document.getElementById('editSubscribers').value.trim());
+    await csvManager.updateCell(currentRowIndex, COLUMNS.RANK_GIVEN, document.getElementById('editRank').value);
+    await csvManager.updateCell(currentRowIndex, COLUMNS.CONTENT_TYPE, document.getElementById('editContentType').value);
+    await csvManager.updateCell(currentRowIndex, COLUMNS.CONTENT_LANGUAGE, document.getElementById('editLanguage').value.trim());
+    await csvManager.updateCell(currentRowIndex, COLUMNS.LAST_UPLOAD_AGO, document.getElementById('editLastUpload').value.trim());
+    await csvManager.updateCell(currentRowIndex, COLUMNS.LOCALE, document.getElementById('editLocale').value.trim());
+    await csvManager.updateCell(currentRowIndex, COLUMNS.LAST_CHECKED, document.getElementById('editLastChecked').value);
+    await csvManager.updateCell(currentRowIndex, COLUMNS.CONTENT_REVIEW_BY, document.getElementById('editReviewedBy').value.trim());
+    await csvManager.updateCell(currentRowIndex, COLUMNS.DATE_ACCEPTED, document.getElementById('editDateAccepted').value);
+    await csvManager.updateCell(currentRowIndex, COLUMNS.ACCEPTED_BY, document.getElementById('editAcceptedBy').value.trim());
+    await csvManager.updateCell(currentRowIndex, COLUMNS.CONTACT_EMAIL, document.getElementById('editEmail').value.trim());
+    await csvManager.updateCell(currentRowIndex, COLUMNS.ZENDESK_ID, document.getElementById('editZendesk').value.trim());
+    await csvManager.updateCell(currentRowIndex, COLUMNS.NOTES, document.getElementById('editNotes').value.trim());
+    await csvManager.updateCell(currentRowIndex, COLUMNS.WARNINGS, document.getElementById('editWarnings').value.trim());
+    await csvManager.updateCell(currentRowIndex, COLUMNS.REQUIRES_CHECKUP, document.getElementById('editRequiresCheckup').checked ? 'Yes' : '');
+    
+    // Reload creator data
+    currentCreator = csvManager.getRow(currentRowIndex);
+    populateCreatorData();
+    
+    closeEditModal();
+    showNotification('Changes saved!', 'success');
+    
+  } catch (error) {
+    console.error('Error saving edits:', error);
+    showNotification('Failed to save: ' + error.message, 'error');
+  }
 }
 
 // Show error state

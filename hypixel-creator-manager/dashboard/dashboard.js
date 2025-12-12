@@ -141,6 +141,7 @@ function setupEventListeners() {
   document.getElementById('addCreatorBackdrop')?.addEventListener('click', closeAddCreatorModal);
   document.getElementById('addCreatorSubmit')?.addEventListener('click', handleAddCreator);
   document.getElementById('btnLookupUUID')?.addEventListener('click', lookupMinecraftUUID);
+  document.getElementById('btnFetchChannelStats')?.addEventListener('click', fetchChannelStats);
   
   // API Settings
   document.getElementById('btnSaveApiKeys')?.addEventListener('click', saveApiKeys);
@@ -946,6 +947,234 @@ function formatMinecraftUUID(uuid) {
     /^(.{8})(.{4})(.{4})(.{4})(.{12})$/,
     '$1-$2-$3-$4-$5'
   );
+}
+
+// Fetch channel stats from YouTube/Twitch API
+async function fetchChannelStats() {
+  const channelInput = document.getElementById('newCreatorChannel');
+  const channelHint = document.getElementById('channelHint');
+  const statsHint = document.getElementById('statsAutoFillHint');
+  const fetchBtn = document.getElementById('btnFetchChannelStats');
+  
+  const channelUrl = channelInput.value.trim();
+  
+  if (!channelUrl) {
+    channelHint.textContent = '⚠️ Enter a channel URL first';
+    channelHint.className = 'field-hint error';
+    return;
+  }
+  
+  // Detect platform
+  const isYouTube = channelUrl.includes('youtube.com') || channelUrl.includes('youtu.be');
+  const isTwitch = channelUrl.includes('twitch.tv');
+  
+  if (!isYouTube && !isTwitch) {
+    channelHint.textContent = '⚠️ URL must be YouTube or Twitch';
+    channelHint.className = 'field-hint error';
+    return;
+  }
+  
+  // Check if API is configured
+  const settings = await chrome.storage.sync.get(['youtubeApiKey', 'twitchClientId', 'twitchClientSecret']);
+  
+  if (isYouTube && !settings.youtubeApiKey) {
+    channelHint.textContent = '⚠️ YouTube API key not configured - go to Settings';
+    channelHint.className = 'field-hint error';
+    return;
+  }
+  
+  if (isTwitch && (!settings.twitchClientId || !settings.twitchClientSecret)) {
+    channelHint.textContent = '⚠️ Twitch API not configured - go to Settings';
+    channelHint.className = 'field-hint error';
+    return;
+  }
+  
+  // Show loading state
+  fetchBtn.disabled = true;
+  fetchBtn.textContent = '⏳ Fetching...';
+  channelHint.textContent = `Fetching stats from ${isYouTube ? 'YouTube' : 'Twitch'}...`;
+  channelHint.className = 'field-hint';
+  
+  try {
+    let stats;
+    
+    if (isYouTube) {
+      stats = await fetchYouTubeStats(channelUrl, settings.youtubeApiKey);
+    } else {
+      stats = await fetchTwitchStats(channelUrl, settings.twitchClientId, settings.twitchClientSecret);
+    }
+    
+    // Auto-fill form fields
+    document.getElementById('newCreatorSubs').value = stats.subscribers || stats.followers || '';
+    
+    // Auto-fill name if empty
+    const nameInput = document.getElementById('newCreatorName');
+    if (!nameInput.value.trim() && stats.name) {
+      nameInput.value = stats.name;
+    }
+    
+    // Auto-fill content type
+    const contentTypeSelect = document.getElementById('newCreatorContentType');
+    if (!contentTypeSelect.value) {
+      contentTypeSelect.value = 'Gaming'; // Default assumption for Hypixel creators
+    }
+    
+    // Auto-fill rank based on subscriber count
+    const rankSelect = document.getElementById('newCreatorRank');
+    if (!rankSelect.value && stats.subscribers) {
+      const subs = parseInt(stats.subscribers);
+      if (subs >= 1000000) {
+        rankSelect.value = 'YOUTUBER';
+      } else if (subs >= 100000) {
+        rankSelect.value = 'YOUTUBER';
+      } else if (isTwitch) {
+        rankSelect.value = 'STREAMER';
+      } else {
+        rankSelect.value = 'CREATOR';
+      }
+    }
+    
+    // Update hints
+    channelHint.textContent = `✅ Found: ${stats.name} (${formatNumber(stats.subscribers || stats.followers)} ${isYouTube ? 'subscribers' : 'followers'})`;
+    channelHint.className = 'field-hint success';
+    statsHint.textContent = '✅ Auto-filled from API!';
+    statsHint.className = 'section-hint success';
+    
+    showNotification(`Fetched stats for ${stats.name}!`, 'success');
+    
+  } catch (error) {
+    console.error('Channel stats fetch error:', error);
+    channelHint.textContent = `❌ ${error.message || 'Failed to fetch stats'}`;
+    channelHint.className = 'field-hint error';
+    statsHint.textContent = '(Enter manually or check API settings)';
+    statsHint.className = 'section-hint';
+    
+  } finally {
+    fetchBtn.disabled = false;
+    fetchBtn.textContent = '📊 Fetch Stats';
+  }
+}
+
+// Fetch YouTube channel stats
+async function fetchYouTubeStats(channelUrl, apiKey) {
+  // Extract channel identifier from URL
+  let channelId = null;
+  let searchQuery = null;
+  
+  const patterns = [
+    { regex: /youtube\.com\/channel\/([a-zA-Z0-9_-]+)/, type: 'id' },
+    { regex: /youtube\.com\/c\/([a-zA-Z0-9_-]+)/, type: 'custom' },
+    { regex: /youtube\.com\/@([a-zA-Z0-9_-]+)/, type: 'handle' },
+    { regex: /youtube\.com\/user\/([a-zA-Z0-9_-]+)/, type: 'user' }
+  ];
+  
+  for (const pattern of patterns) {
+    const match = channelUrl.match(pattern.regex);
+    if (match) {
+      if (pattern.type === 'id') {
+        channelId = match[1];
+      } else {
+        searchQuery = match[1];
+      }
+      break;
+    }
+  }
+  
+  // If we have a handle/username, search for the channel first
+  if (!channelId && searchQuery) {
+    const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&q=${encodeURIComponent(searchQuery)}&key=${apiKey}`;
+    const searchResponse = await fetch(searchUrl);
+    const searchData = await searchResponse.json();
+    
+    if (searchData.error) {
+      throw new Error(searchData.error.message || 'YouTube API error');
+    }
+    
+    if (searchData.items && searchData.items.length > 0) {
+      channelId = searchData.items[0].snippet.channelId;
+    } else {
+      throw new Error('Channel not found');
+    }
+  }
+  
+  if (!channelId) {
+    throw new Error('Could not parse channel URL');
+  }
+  
+  // Get channel statistics
+  const statsUrl = `https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&id=${channelId}&key=${apiKey}`;
+  const statsResponse = await fetch(statsUrl);
+  const statsData = await statsResponse.json();
+  
+  if (statsData.error) {
+    throw new Error(statsData.error.message || 'YouTube API error');
+  }
+  
+  if (!statsData.items || statsData.items.length === 0) {
+    throw new Error('Channel not found');
+  }
+  
+  const channel = statsData.items[0];
+  
+  return {
+    name: channel.snippet.title,
+    subscribers: channel.statistics.subscriberCount,
+    totalViews: channel.statistics.viewCount,
+    videoCount: channel.statistics.videoCount,
+    thumbnail: channel.snippet.thumbnails?.default?.url
+  };
+}
+
+// Fetch Twitch channel stats
+async function fetchTwitchStats(channelUrl, clientId, clientSecret) {
+  // Extract username from URL
+  const match = channelUrl.match(/twitch\.tv\/([a-zA-Z0-9_]+)/);
+  if (!match) {
+    throw new Error('Could not parse Twitch URL');
+  }
+  const username = match[1];
+  
+  // Get access token
+  const tokenResponse = await fetch('https://id.twitch.tv/oauth2/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: `client_id=${clientId}&client_secret=${clientSecret}&grant_type=client_credentials`
+  });
+  const tokenData = await tokenResponse.json();
+  
+  if (!tokenData.access_token) {
+    throw new Error('Failed to authenticate with Twitch');
+  }
+  
+  // Get user info
+  const userResponse = await fetch(`https://api.twitch.tv/helix/users?login=${username}`, {
+    headers: {
+      'Client-ID': clientId,
+      'Authorization': `Bearer ${tokenData.access_token}`
+    }
+  });
+  const userData = await userResponse.json();
+  
+  if (!userData.data || userData.data.length === 0) {
+    throw new Error('Twitch user not found');
+  }
+  
+  const user = userData.data[0];
+  
+  // Get follower count
+  const followersResponse = await fetch(`https://api.twitch.tv/helix/channels/followers?broadcaster_id=${user.id}`, {
+    headers: {
+      'Client-ID': clientId,
+      'Authorization': `Bearer ${tokenData.access_token}`
+    }
+  });
+  const followersData = await followersResponse.json();
+  
+  return {
+    name: user.display_name,
+    followers: followersData.total || 0,
+    thumbnail: user.profile_image_url
+  };
 }
 
 // Notification styles are now in CSS file
