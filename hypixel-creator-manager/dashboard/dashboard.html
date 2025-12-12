@@ -165,9 +165,16 @@
           <!-- Last Updated -->
           <div class="last-updated" id="lastUpdated">
             <span>📅 Data loaded: <strong id="lastUpdatedTime">-</strong></span>
-            <button id="btnReloadCSV" class="btn btn-outline btn-small">
-              <span>🔄</span> Upload New CSV
-            </button>
+            <span class="last-updated-divider">|</span>
+            <span>🎮 Names checked: <strong id="lastNameCheckTime">Never</strong></span>
+            <div class="last-updated-actions">
+              <button id="btnRefreshNames" class="btn btn-outline btn-small" title="Check Mojang API for name changes">
+                <span>🔄</span> Refresh Names
+              </button>
+              <button id="btnReloadCSV" class="btn btn-outline btn-small">
+                <span>📤</span> Upload New CSV
+              </button>
+            </div>
           </div>
 
           <!-- Charts Row -->

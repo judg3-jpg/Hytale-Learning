@@ -117,6 +117,7 @@ function setupEventListeners() {
   document.getElementById('btnRefreshCreators')?.addEventListener('click', refreshData);
   document.getElementById('btnRefreshQueue')?.addEventListener('click', refreshData);
   document.getElementById('btnReloadCSV')?.addEventListener('click', showUploadSection);
+  document.getElementById('btnRefreshNames')?.addEventListener('click', refreshCreatorNames);
   
   // Bulk review
   document.getElementById('btnBulkReview')?.addEventListener('click', handleBulkReview);
@@ -299,6 +300,55 @@ function showStatsSection() {
     const date = new Date(lastUpdated);
     document.getElementById('lastUpdatedTime').textContent = date.toLocaleString();
   }
+  
+  // Update last name check time and check if refresh is needed
+  updateNameCheckStatus();
+}
+
+// Update name check status display
+async function updateNameCheckStatus() {
+  try {
+    const settings = await chrome.storage.local.get(['lastNameCheck']);
+    const lastCheck = settings.lastNameCheck;
+    const lastCheckEl = document.getElementById('lastNameCheckTime');
+    
+    if (lastCheck) {
+      const date = new Date(lastCheck);
+      const daysSince = Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24));
+      
+      if (daysSince >= 7) {
+        lastCheckEl.innerHTML = `${date.toLocaleDateString()} <span style="color: var(--hypixel-gold);">(${daysSince} days ago - refresh recommended)</span>`;
+        // Auto-prompt for refresh
+        promptNameRefresh(daysSince);
+      } else {
+        lastCheckEl.textContent = `${date.toLocaleDateString()} (${daysSince} days ago)`;
+      }
+    } else {
+      lastCheckEl.innerHTML = `<span style="color: var(--text-muted);">Never</span>`;
+    }
+  } catch (error) {
+    console.error('Error checking name status:', error);
+  }
+}
+
+// Prompt user to refresh names if it's been 7+ days
+async function promptNameRefresh(daysSince) {
+  // Only prompt once per session
+  if (window.nameRefreshPrompted) return;
+  window.nameRefreshPrompted = true;
+  
+  // Wait a moment for the page to load
+  setTimeout(() => {
+    const shouldRefresh = confirm(
+      `🎮 It's been ${daysSince} days since you last checked for Minecraft name changes.\n\n` +
+      `Would you like to refresh creator names now?\n\n` +
+      `This will check all UUIDs against the Mojang API to detect any IGN changes.`
+    );
+    
+    if (shouldRefresh) {
+      refreshCreatorNames();
+    }
+  }, 1500);
 }
 
 // Load all data
@@ -1372,6 +1422,183 @@ async function fetchTwitchStats(channelUrl, clientId, clientSecret) {
     followers: followersData.total || 0,
     thumbnail: user.profile_image_url
   };
+}
+
+// ==================== NAME REFRESH FUNCTIONS ====================
+
+// Refresh creator names from Mojang API
+async function refreshCreatorNames() {
+  const btn = document.getElementById('btnRefreshNames');
+  const originalText = btn.innerHTML;
+  
+  try {
+    btn.disabled = true;
+    btn.innerHTML = '<span>⏳</span> Checking...';
+    
+    showNotification('Starting name check... This may take a while for large lists.', 'info');
+    
+    const creators = csvManager.getAllCreators();
+    const creatorsWithUUID = creators.filter(c => 
+      c.creator.uuid && 
+      c.creator.uuid.trim() !== '' && 
+      isValidMinecraftUUID(c.creator.uuid)
+    );
+    
+    if (creatorsWithUUID.length === 0) {
+      showNotification('No creators with valid UUIDs found', 'error');
+      return;
+    }
+    
+    console.log(`Checking ${creatorsWithUUID.length} creators with UUIDs...`);
+    
+    const results = {
+      checked: 0,
+      updated: 0,
+      failed: 0,
+      changes: []
+    };
+    
+    // Process in batches to avoid rate limiting
+    const batchSize = 10;
+    const delayBetweenBatches = 2000; // 2 seconds between batches
+    const delayBetweenRequests = 200; // 200ms between individual requests
+    
+    for (let i = 0; i < creatorsWithUUID.length; i += batchSize) {
+      const batch = creatorsWithUUID.slice(i, i + batchSize);
+      
+      // Update progress
+      const progress = Math.round((i / creatorsWithUUID.length) * 100);
+      btn.innerHTML = `<span>⏳</span> ${progress}% (${results.updated} updated)`;
+      
+      // Process batch
+      for (const { rowIndex, creator } of batch) {
+        try {
+          const newName = await lookupNameFromUUID(creator.uuid);
+          results.checked++;
+          
+          if (newName && newName !== creator.name) {
+            // Name has changed!
+            await csvManager.updateCell(rowIndex, csvManager.COLUMNS.NAME, newName);
+            results.updated++;
+            results.changes.push({
+              oldName: creator.name,
+              newName: newName,
+              uuid: creator.uuid
+            });
+            console.log(`Name changed: ${creator.name} → ${newName}`);
+          }
+          
+          // Small delay between requests
+          await sleep(delayBetweenRequests);
+          
+        } catch (error) {
+          results.failed++;
+          console.warn(`Failed to check UUID ${creator.uuid}:`, error.message);
+        }
+      }
+      
+      // Delay between batches (if not last batch)
+      if (i + batchSize < creatorsWithUUID.length) {
+        await sleep(delayBetweenBatches);
+      }
+    }
+    
+    // Save the last check time
+    await chrome.storage.local.set({ lastNameCheck: new Date().toISOString() });
+    
+    // Show results
+    if (results.updated > 0) {
+      showNameChangeResults(results);
+      showNotification(`✅ Updated ${results.updated} name(s)!`, 'success');
+      await loadAllData(); // Refresh the display
+    } else {
+      showNotification(`✅ Checked ${results.checked} creators - all names are current!`, 'success');
+    }
+    
+    // Update the status display
+    updateNameCheckStatus();
+    
+  } catch (error) {
+    console.error('Name refresh error:', error);
+    showNotification('Failed to refresh names: ' + error.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalText;
+  }
+}
+
+// Look up current name from UUID using Mojang API
+async function lookupNameFromUUID(uuid) {
+  // Remove dashes from UUID for API call
+  const cleanUUID = uuid.replace(/-/g, '');
+  
+  const response = await fetch(`https://api.mojang.com/user/profile/${cleanUUID}`);
+  
+  if (response.status === 404) {
+    throw new Error('UUID not found');
+  }
+  
+  if (response.status === 429) {
+    throw new Error('Rate limited');
+  }
+  
+  if (!response.ok) {
+    throw new Error(`API error: ${response.status}`);
+  }
+  
+  const data = await response.json();
+  return data.name;
+}
+
+// Check if a string is a valid Minecraft UUID
+function isValidMinecraftUUID(uuid) {
+  if (!uuid) return false;
+  // UUID with dashes: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+  // UUID without dashes: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+  const withDashes = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const withoutDashes = /^[0-9a-f]{32}$/i;
+  return withDashes.test(uuid) || withoutDashes.test(uuid);
+}
+
+// Show name change results in a modal
+function showNameChangeResults(results) {
+  const changesHtml = results.changes.map(c => `
+    <div style="padding: 10px; background: rgba(85, 255, 85, 0.1); border-radius: 8px; margin-bottom: 8px;">
+      <strong style="color: var(--accent-red);">${escapeHtml(c.oldName)}</strong>
+      <span style="color: var(--text-muted);"> → </span>
+      <strong style="color: var(--accent-green);">${escapeHtml(c.newName)}</strong>
+      <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">UUID: ${escapeHtml(c.uuid)}</div>
+    </div>
+  `).join('');
+  
+  document.getElementById('modalTitle').textContent = '🎮 Name Changes Detected';
+  document.getElementById('modalBody').innerHTML = `
+    <div style="margin-bottom: 16px;">
+      <p style="color: var(--text-secondary); margin-bottom: 12px;">
+        The following creators have changed their Minecraft IGN:
+      </p>
+      <div style="max-height: 300px; overflow-y: auto;">
+        ${changesHtml}
+      </div>
+    </div>
+    <div style="padding: 12px; background: var(--bg-tertiary); border-radius: 8px; font-size: 13px;">
+      <strong>Summary:</strong><br>
+      ✅ Checked: ${results.checked} creators<br>
+      🔄 Updated: ${results.updated} names<br>
+      ${results.failed > 0 ? `⚠️ Failed: ${results.failed} lookups` : ''}
+    </div>
+  `;
+  
+  document.getElementById('modalFooter').innerHTML = `
+    <button class="btn btn-primary" onclick="closeModal()">Got it!</button>
+  `;
+  
+  document.getElementById('modal').classList.add('active');
+}
+
+// Sleep utility
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 // Notification styles are now in CSS file

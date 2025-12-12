@@ -473,8 +473,9 @@ body {
 /* ==================== LAST UPDATED ==================== */
 .last-updated {
   display: flex;
-  justify-content: space-between;
+  flex-wrap: wrap;
   align-items: center;
+  gap: 16px;
   padding: 16px 24px;
   background: var(--bg-card);
   border: 1px solid var(--border-color);
@@ -482,6 +483,16 @@ body {
   margin-bottom: 28px;
   font-size: 14px;
   color: var(--text-secondary);
+}
+
+.last-updated-divider {
+  color: var(--border-color);
+}
+
+.last-updated-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 10px;
 }
 
 /* ==================== STATS GRID ==================== */
