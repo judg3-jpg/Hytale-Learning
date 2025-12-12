@@ -339,6 +339,45 @@ class CSVManager {
     return true;
   }
 
+  // Add a new row (creator)
+  async addRow(rowData) {
+    // Ensure we have headers
+    if (this.headers.length === 0) {
+      this.headers = this.EXPECTED_HEADERS;
+    }
+    
+    // Ensure row has correct number of columns
+    while (rowData.length < this.headers.length) {
+      rowData.push('');
+    }
+    
+    // Add to data array
+    this.data.push(rowData);
+    this.isLoaded = true;
+    this.lastUpdated = new Date().toISOString();
+    
+    // Save to storage
+    await this.saveToStorage();
+    
+    return {
+      success: true,
+      rowIndex: this.data.length - 1
+    };
+  }
+
+  // Delete a row
+  async deleteRow(rowIndex) {
+    if (rowIndex < 0 || rowIndex >= this.data.length) {
+      throw new Error('Invalid row index');
+    }
+    
+    this.data.splice(rowIndex, 1);
+    this.lastUpdated = new Date().toISOString();
+    
+    await this.saveToStorage();
+    return true;
+  }
+
   // Get creators that need review
   getReviewQueue(overdueMonths = 3) {
     const queue = [];

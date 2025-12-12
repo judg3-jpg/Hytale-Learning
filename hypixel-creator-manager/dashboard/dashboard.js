@@ -133,6 +133,14 @@ function setupEventListeners() {
   document.getElementById('modalCancel').addEventListener('click', closeModal);
   document.querySelector('.modal-backdrop').addEventListener('click', closeModal);
   
+  // Add Creator Modal
+  document.getElementById('btnAddCreator')?.addEventListener('click', openAddCreatorModal);
+  document.getElementById('btnAddCreatorEmpty')?.addEventListener('click', startFreshWithAddCreator);
+  document.getElementById('addCreatorClose')?.addEventListener('click', closeAddCreatorModal);
+  document.getElementById('addCreatorCancel')?.addEventListener('click', closeAddCreatorModal);
+  document.getElementById('addCreatorBackdrop')?.addEventListener('click', closeAddCreatorModal);
+  document.getElementById('addCreatorSubmit')?.addEventListener('click', handleAddCreator);
+  
   // API Settings
   document.getElementById('btnSaveApiKeys')?.addEventListener('click', saveApiKeys);
   
@@ -747,5 +755,123 @@ function formatNumber(num) {
 // Make functions available globally
 window.quickReview = quickReview;
 window.openCreatorModal = openCreatorModal;
+
+// ==================== ADD CREATOR FUNCTIONS ====================
+
+// Start fresh - initialize empty data and open add creator modal
+async function startFreshWithAddCreator() {
+  // Initialize with expected headers but no data
+  csvManager.headers = csvManager.EXPECTED_HEADERS;
+  csvManager.data = [];
+  csvManager.isLoaded = true;
+  csvManager.lastUpdated = new Date().toISOString();
+  
+  await csvManager.saveToStorage();
+  
+  // Update UI to show stats section
+  showStatsSection();
+  updateDataIndicator(true);
+  await loadStatistics();
+  
+  // Open add creator modal
+  openAddCreatorModal();
+  
+  showNotification('Started fresh! Add your first creator.', 'info');
+}
+
+// Open Add Creator Modal
+function openAddCreatorModal() {
+  // Initialize CSV manager if no data yet (allows adding first creator)
+  if (!csvManager.hasData()) {
+    csvManager.headers = csvManager.EXPECTED_HEADERS;
+    csvManager.data = [];
+    csvManager.isLoaded = true;
+  }
+  
+  // Set default date to today
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('newCreatorDateAccepted').value = today;
+  
+  // Get reviewer name for accepted by default
+  const reviewerName = document.getElementById('settingReviewerName')?.value || 'Judge';
+  document.getElementById('newCreatorAcceptedBy').value = reviewerName;
+  
+  document.getElementById('addCreatorModal').classList.add('active');
+}
+
+// Close Add Creator Modal
+function closeAddCreatorModal() {
+  document.getElementById('addCreatorModal').classList.remove('active');
+  document.getElementById('addCreatorForm').reset();
+}
+
+// Handle Add Creator Form Submission
+async function handleAddCreator(e) {
+  e.preventDefault();
+  
+  const name = document.getElementById('newCreatorName').value.trim();
+  const channel = document.getElementById('newCreatorChannel').value.trim();
+  
+  if (!name || !channel) {
+    showNotification('Name and Channel URL are required', 'error');
+    return;
+  }
+  
+  // Build the new creator row based on COLUMNS mapping
+  const newRow = new Array(24).fill(''); // 24 columns in the sheet
+  
+  // Map form values to column indices
+  newRow[0] = document.getElementById('newCreatorUUID').value.trim() || generateUUID();
+  newRow[1] = name;
+  newRow[2] = channel;
+  newRow[3] = document.getElementById('newCreatorDateAccepted').value || '';
+  newRow[4] = document.getElementById('newCreatorVerifiedBy').value.trim() || '';
+  newRow[5] = document.getElementById('newCreatorAcceptedBy').value.trim() || '';
+  newRow[6] = ''; // Last Checked - empty for new creator
+  newRow[7] = ''; // Content Review By - empty for new creator
+  newRow[8] = document.getElementById('newCreatorCode').value.trim() || '';
+  newRow[9] = document.getElementById('newCreatorSubs').value.trim() || '';
+  newRow[10] = ''; // Last Upload Date
+  newRow[11] = ''; // Last Upload Ago
+  newRow[12] = document.getElementById('newCreatorRank').value || '';
+  newRow[13] = document.getElementById('newCreatorContentType').value || '';
+  newRow[14] = ''; // Video Category
+  newRow[15] = document.getElementById('newCreatorLocale').value.trim() || '';
+  newRow[16] = document.getElementById('newCreatorLanguage').value.trim() || '';
+  newRow[17] = document.getElementById('newCreatorEmail').value.trim() || '';
+  newRow[18] = document.getElementById('newCreatorZendesk').value.trim() || '';
+  newRow[19] = document.getElementById('newCreatorNotes').value.trim() || '';
+  newRow[20] = ''; // Reference Tags
+  newRow[21] = ''; // Reports
+  newRow[22] = ''; // Warnings
+  newRow[23] = ''; // Requires Checkup
+  
+  try {
+    // Add the new row to CSV data
+    await csvManager.addRow(newRow);
+    
+    showNotification(`✅ Added ${name} to creators!`, 'success');
+    closeAddCreatorModal();
+    
+    // Refresh the data
+    await loadAllData();
+    
+    // Navigate to creators page to see the new entry
+    navigateTo('creators');
+    
+  } catch (error) {
+    console.error('Error adding creator:', error);
+    showNotification('Failed to add creator: ' + error.message, 'error');
+  }
+}
+
+// Generate a random UUID (for creators without one)
+function generateUUID() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
 
 // Notification styles are now in CSS file
