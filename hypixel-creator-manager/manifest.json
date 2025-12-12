@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Hypixel Creator Manager",
-  "version": "2.1.0",
-  "description": "Streamline your Hypixel creator sheet management with CSV import/export, full dashboard, and side panel - no API needed!",
+  "version": "3.0.0",
+  "description": "Hypixel-branded creator management with metrics dashboard, YouTube/Twitch API integration, and full CSV workflow",
   "author": "Judge",
   "icons": {
     "16": "icons/icon16.png",

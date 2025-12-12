@@ -13,8 +13,8 @@
       <div class="sidebar-header">
         <span class="logo-icon">🎮</span>
         <div class="logo-text">
-          <h1>Creator Manager</h1>
-          <span class="badge">Hypixel</span>
+          <h1>HYPIXEL</h1>
+          <span class="badge">Creator Manager</span>
         </div>
       </div>
       
@@ -293,6 +293,41 @@
         </div>
         
         <div class="settings-section">
+          <h3>🔑 API Integration (Optional)</h3>
+          <p class="setting-help">Connect to YouTube and Twitch APIs to fetch live channel statistics on creator profile pages.</p>
+          
+          <div class="setting-group">
+            <label>YouTube Data API Key</label>
+            <p class="setting-help">Get a free API key from <a href="https://console.cloud.google.com/apis/library/youtube.googleapis.com" target="_blank" style="color: var(--hypixel-gold);">Google Cloud Console</a></p>
+            <div class="api-key-input">
+              <input type="password" id="settingYoutubeApiKey" placeholder="Enter your YouTube API key">
+              <button class="btn btn-outline btn-small" id="btnToggleYoutubeKey">Show</button>
+            </div>
+            <span class="api-status-badge" id="youtubeApiStatusBadge">Not Configured</span>
+          </div>
+          
+          <div class="setting-group">
+            <label>Twitch Client ID</label>
+            <p class="setting-help">Get credentials from <a href="https://dev.twitch.tv/console/apps" target="_blank" style="color: var(--hypixel-gold);">Twitch Developer Console</a></p>
+            <div class="api-key-input">
+              <input type="password" id="settingTwitchClientId" placeholder="Enter your Twitch Client ID">
+              <button class="btn btn-outline btn-small" id="btnToggleTwitchId">Show</button>
+            </div>
+          </div>
+          
+          <div class="setting-group">
+            <label>Twitch Client Secret</label>
+            <div class="api-key-input">
+              <input type="password" id="settingTwitchClientSecret" placeholder="Enter your Twitch Client Secret">
+              <button class="btn btn-outline btn-small" id="btnToggleTwitchSecret">Show</button>
+            </div>
+            <span class="api-status-badge" id="twitchApiStatusBadge">Not Configured</span>
+          </div>
+          
+          <button id="btnSaveApiKeys" class="btn btn-primary">Save API Keys</button>
+        </div>
+
+        <div class="settings-section">
           <h3>ℹ️ How It Works</h3>
           <div class="info-box">
             <h4>CSV Workflow</h4>
@@ -304,6 +339,16 @@
               <li><strong>Import</strong> the CSV back to Google Sheets (File → Import)</li>
             </ol>
             <p class="info-note">💡 Your data is stored locally in your browser - no cloud, no accounts needed!</p>
+          </div>
+          <div class="info-box" style="margin-top: 16px;">
+            <h4>API Integration (Optional)</h4>
+            <ol>
+              <li><strong>YouTube API</strong> - Fetches subscriber count, view count, recent videos</li>
+              <li><strong>Twitch API</strong> - Fetches follower count, recent streams</li>
+              <li>API keys are stored locally and never shared</li>
+              <li>Free tier limits are generous (YouTube: 10,000/day, Twitch: unlimited)</li>
+            </ol>
+            <p class="info-note">🔒 Your API keys are stored securely in your browser's sync storage.</p>
           </div>
         </div>
       </div>

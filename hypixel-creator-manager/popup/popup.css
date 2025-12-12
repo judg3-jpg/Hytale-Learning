@@ -1,4 +1,32 @@
-/* Popup Styles */
+/* ==================== HYPIXEL POPUP STYLES ==================== */
+
+/* ==================== HYPIXEL COLOR PALETTE ==================== */
+:root {
+  --hypixel-gold: #FFAA00;
+  --hypixel-gold-light: #FFD700;
+  --hypixel-gold-dark: #CC8800;
+  --hypixel-orange: #FF5500;
+  
+  --bg-primary: #0D0D0D;
+  --bg-secondary: #1A1A1A;
+  --bg-card: #1E1E1E;
+  --bg-hover: #2A2A2A;
+  
+  --accent-red: #FF5555;
+  --accent-green: #55FF55;
+  --accent-aqua: #55FFFF;
+  
+  --text-primary: #FFFFFF;
+  --text-secondary: #AAAAAA;
+  --text-muted: #666666;
+  
+  --border-color: #333333;
+  --border-gold: rgba(255, 170, 0, 0.3);
+  
+  --shadow-gold: 0 0 15px rgba(255, 170, 0, 0.2);
+}
+
+/* ==================== BASE ==================== */
 * {
   margin: 0;
   padding: 0;
@@ -7,93 +35,101 @@
 
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  color: #e0e0e0;
-  min-width: 320px;
-  max-width: 350px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-width: 340px;
+  max-width: 360px;
+  background-image: 
+    radial-gradient(ellipse at top, rgba(255, 170, 0, 0.05) 0%, transparent 50%);
 }
 
 .container {
-  padding: 16px;
+  padding: 18px;
 }
 
-/* Header */
+/* ==================== HEADER ==================== */
 header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 2px solid var(--border-gold);
 }
 
 .logo {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .logo-icon {
-  font-size: 24px;
+  font-size: 26px;
+  filter: drop-shadow(0 0 8px rgba(255, 170, 0, 0.5));
 }
 
 h1 {
-  font-size: 16px;
-  font-weight: 600;
-  background: linear-gradient(90deg, #ffd700, #ffaa00);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  background: linear-gradient(180deg, var(--hypixel-gold-light) 0%, var(--hypixel-gold) 50%, var(--hypixel-gold-dark) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .badge {
-  background: linear-gradient(135deg, #ff6b35, #f7931e);
-  color: white;
-  padding: 4px 10px;
-  border-radius: 10px;
+  background: linear-gradient(135deg, var(--hypixel-gold) 0%, var(--hypixel-orange) 100%);
+  color: var(--bg-primary);
+  padding: 5px 12px;
+  border-radius: 8px;
   font-size: 10px;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 0 2px 10px rgba(255, 170, 0, 0.3);
 }
 
-/* Status Bar */
+/* ==================== STATUS BAR ==================== */
 .status-bar {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
-  margin-bottom: 16px;
+  gap: 10px;
+  padding: 12px 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  margin-bottom: 18px;
   font-size: 12px;
 }
 
 .status-dot {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  background: #4caf50;
+  background: var(--accent-green);
+  box-shadow: 0 0 10px rgba(85, 255, 85, 0.5);
 }
 
-/* Sections */
+/* ==================== SECTIONS ==================== */
 .section {
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 
 .section h2 {
   font-size: 11px;
-  font-weight: 600;
-  color: #888;
+  font-weight: 700;
+  color: var(--hypixel-gold);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 10px;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
 }
 
-/* Main Buttons */
+/* ==================== MAIN BUTTONS ==================== */
 .main-buttons {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .btn {
@@ -101,67 +137,67 @@ h1 {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  padding: 12px 8px;
+  gap: 6px;
+  padding: 14px 10px;
   border: none;
-  border-radius: 10px;
-  font-size: 11px;
-  font-weight: 500;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-gold);
 }
 
 .btn-large {
   align-items: flex-start;
-  padding: 16px;
+  padding: 18px;
   text-align: left;
 }
 
 .btn-large .btn-icon {
-  font-size: 24px;
+  font-size: 28px;
   margin-bottom: 8px;
 }
 
 .btn-large .btn-label {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 700;
 }
 
 .btn-large .btn-desc {
   font-size: 11px;
-  opacity: 0.7;
-  margin-top: 2px;
+  opacity: 0.8;
+  margin-top: 4px;
 }
 
-/* Button Variants */
+/* ==================== BUTTON VARIANTS ==================== */
 .btn-primary {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
+  background: linear-gradient(180deg, var(--hypixel-gold-light) 0%, var(--hypixel-gold) 50%, var(--hypixel-gold-dark) 100%);
+  color: var(--bg-primary);
 }
 
 .btn-secondary {
-  background: linear-gradient(135deg, #4facfe, #00f2fe);
-  color: #1a1a2e;
+  background: linear-gradient(180deg, var(--accent-aqua), #00aaaa);
+  color: var(--bg-primary);
 }
 
-/* Data Status */
+/* ==================== DATA STATUS ==================== */
 .data-status {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  gap: 14px;
+  padding: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
 }
 
 .data-icon {
-  font-size: 24px;
+  font-size: 28px;
 }
 
 .data-info {
@@ -170,26 +206,36 @@ h1 {
 }
 
 .data-label {
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 600;
 }
 
 .data-hint {
   font-size: 11px;
-  color: #888;
+  color: var(--text-muted);
+  margin-top: 2px;
 }
 
-/* Collapsible */
+/* ==================== COLLAPSIBLE ==================== */
 .collapsible-header {
   cursor: pointer;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 10px 14px;
+  background: var(--bg-card);
+  border-radius: 10px;
+  transition: all 0.2s;
+}
+
+.collapsible-header:hover {
+  background: var(--bg-hover);
 }
 
 .collapse-icon {
   font-size: 10px;
   transition: transform 0.2s;
+  color: var(--hypixel-gold);
 }
 
 .collapsible.open .collapse-icon {
@@ -198,84 +244,97 @@ h1 {
 
 .collapsible-content {
   display: none;
-  padding-top: 10px;
+  padding: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 0 0 10px 10px;
+  margin-top: -5px;
+}
+
+.collapsible.open .collapsible-header {
+  border-radius: 10px 10px 0 0;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .collapsible.open .collapsible-content {
   display: block;
 }
 
-/* Shortcuts List */
+/* ==================== SHORTCUTS LIST ==================== */
 .shortcut-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .shortcut-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 10px;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 6px;
-  font-size: 11px;
+  padding: 10px 12px;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  font-size: 12px;
 }
 
 .shortcut-key {
-  background: rgba(102, 126, 234, 0.2);
-  color: #667eea;
-  padding: 3px 8px;
-  border-radius: 4px;
+  background: rgba(255, 170, 0, 0.15);
+  border: 1px solid var(--border-gold);
+  color: var(--hypixel-gold);
+  padding: 4px 10px;
+  border-radius: 6px;
   font-family: monospace;
-  font-size: 10px;
+  font-size: 11px;
+  font-weight: 600;
 }
 
 .shortcut-desc {
-  color: #888;
+  color: var(--text-secondary);
 }
 
-/* Steps */
+/* ==================== STEPS ==================== */
 .steps {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .step {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   font-size: 12px;
-  color: #aaa;
+  color: var(--text-secondary);
 }
 
 .step-num {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
+  background: linear-gradient(135deg, var(--hypixel-gold), var(--hypixel-orange));
+  color: var(--bg-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 10px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
 }
 
-/* Footer */
+/* ==================== FOOTER ==================== */
 footer {
   text-align: center;
-  padding-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  margin-top: 8px;
+  padding-top: 14px;
+  border-top: 2px solid var(--border-gold);
+  margin-top: 10px;
 }
 
 footer p {
   font-size: 10px;
-  color: #555;
+  color: var(--text-muted);
 }
 
 footer .version {
-  margin-top: 4px;
+  margin-top: 6px;
+  color: var(--hypixel-gold);
 }
