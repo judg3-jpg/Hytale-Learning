@@ -31,9 +31,9 @@ async function main() {
     validateConfig();
     logger.success('Configuration valid');
 
-    // Initialize database
+    // Initialize database (async for sql.js)
     logger.info('Initializing database...');
-    db.initDatabase();
+    await db.initDatabase();
 
     // Load event handlers
     logger.info('Loading event handlers...');
