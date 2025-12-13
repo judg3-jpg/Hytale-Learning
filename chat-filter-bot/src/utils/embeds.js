@@ -69,18 +69,30 @@ function filterList(filters) {
         .setTimestamp();
 
     if (filters.length === 0) {
-        embed.setDescription('No filters configured yet.\nUse `/filter add` to create one.');
+        embed.setDescription('No filters configured yet.\nUse `/filter-add` to create one.');
     } else {
-        const description = filters.map(f => {
+        // Compact format to fit more filters
+        const lines = filters.map(f => {
             const status = f.enabled ? '🟢' : '🔴';
-            const actionEmoji = getActionEmoji(f.action);
-            return `${status} **#${f.id}** - ${f.name}\n` +
-                   `   Pattern: \`${truncate(f.pattern, 30)}\`\n` +
-                   `   Action: ${actionEmoji} ${f.action}`;
-        }).join('\n\n');
+            return `${status} **#${f.id}** ${truncate(f.name, 25)} → ${f.action}`;
+        });
+        
+        // Split into chunks if needed (Discord limit is 4096 chars)
+        let description = lines.join('\n');
+        if (description.length > 4000) {
+            // Show first 50 filters in compact mode
+            const compactLines = filters.slice(0, 50).map(f => {
+                const status = f.enabled ? '🟢' : '🔴';
+                return `${status} #${f.id} ${truncate(f.name, 20)}`;
+            });
+            description = compactLines.join('\n');
+            if (filters.length > 50) {
+                description += `\n\n*...and ${filters.length - 50} more filters*`;
+            }
+        }
         
         embed.setDescription(description);
-        embed.setFooter({ text: `${filters.length} filter(s) total` });
+        embed.setFooter({ text: `${filters.length} filter(s) total | Use /filter-info <id> for details` });
     }
 
     return embed;
