@@ -291,6 +291,118 @@ async function deleteSelectedFilters() {
 // ============================================
 // ADD FILTER
 // ============================================
+
+/**
+ * Generate bypass-proof regex from a plain word
+ * Handles common letter substitutions like a->@, e->3, etc.
+ */
+function generateRegex() {
+    const word = document.getElementById('filterWord').value.trim().toLowerCase();
+    
+    if (!word) {
+        toast('Enter a word first', 'warning');
+        return;
+    }
+
+    // Letter substitution map - common bypass characters
+    const substitutions = {
+        'a': '[a@4àáâãäå]',
+        'b': '[b8]',
+        'c': '[cç<(]',
+        'd': '[d]',
+        'e': '[e3èéêë]',
+        'f': '[f]',
+        'g': '[g9]',
+        'h': '[h]',
+        'i': '[i1!|lìíîï]',
+        'j': '[j]',
+        'k': '[k]',
+        'l': '[l1!|i]',
+        'm': '[m]',
+        'n': '[nñ]',
+        'o': '[o0òóôõö]',
+        'p': '[p]',
+        'q': '[q]',
+        'r': '[r]',
+        's': '[s$5]',
+        't': '[t7+]',
+        'u': '[uùúûüv]',
+        'v': '[vu]',
+        'w': '[w]',
+        'x': '[x]',
+        'y': '[yý]',
+        'z': '[z2]'
+    };
+
+    let pattern = '';
+    
+    for (let i = 0; i < word.length; i++) {
+        const char = word[i];
+        
+        if (substitutions[char]) {
+            // Add the substitution pattern
+            pattern += substitutions[char];
+            // Allow repeated characters (e.g., "niggger" -> "nig+er")
+            pattern += '+';
+            // Allow optional separators between letters (spaces, dots, dashes)
+            if (i < word.length - 1) {
+                pattern += '[\\s._-]*';
+            }
+        } else if (/[a-z]/.test(char)) {
+            // Unknown letter, just use it
+            pattern += char + '+';
+            if (i < word.length - 1) {
+                pattern += '[\\s._-]*';
+            }
+        } else {
+            // Non-letter character (space, etc.) - escape it
+            pattern += '\\' + char;
+        }
+    }
+
+    // Set the pattern and auto-generate name
+    document.getElementById('filterPattern').value = pattern;
+    
+    // Auto-fill name if empty
+    const nameInput = document.getElementById('filterName');
+    if (!nameInput.value) {
+        nameInput.value = `Block "${word}"`;
+    }
+
+    toast('Regex generated! This catches common bypasses.', 'success');
+    
+    // Trigger pattern test
+    testPattern();
+}
+
+/**
+ * Generate regex for multiple words (for bulk import)
+ */
+function generateBulkRegex(word) {
+    const substitutions = {
+        'a': '[a@4]', 'b': '[b8]', 'c': '[cç]', 'e': '[e3]',
+        'g': '[g9]', 'i': '[i1!|l]', 'l': '[l1!|i]', 'o': '[o0]',
+        's': '[s$5]', 't': '[t7]', 'u': '[uv]', 'z': '[z2]'
+    };
+
+    let pattern = '';
+    word = word.toLowerCase();
+    
+    for (let i = 0; i < word.length; i++) {
+        const char = word[i];
+        if (substitutions[char]) {
+            pattern += substitutions[char] + '+[\\s._-]*';
+        } else if (/[a-z]/.test(char)) {
+            pattern += char + '+[\\s._-]*';
+        }
+    }
+    
+    // Remove trailing separator pattern
+    pattern = pattern.replace(/\[\\s\._-\]\*$/, '');
+    
+    return pattern;
+}
+
 async function addFilter(e) {
     e.preventDefault();
 
@@ -361,14 +473,30 @@ async function bulkImport(e) {
         return;
     }
 
+    const generateBypassProof = document.getElementById('bulkGenerateRegex').checked;
     const isRegex = document.getElementById('bulkIsRegex').checked;
     const action = document.getElementById('bulkAction').value;
 
-    const filters = words.map(word => ({
-        name: word.substring(0, 50),
-        pattern: isRegex ? word : escapeRegex(word),
-        action: action
-    }));
+    const filters = words.map(word => {
+        let pattern;
+        
+        if (isRegex) {
+            // Use as-is (raw regex)
+            pattern = word;
+        } else if (generateBypassProof) {
+            // Generate bypass-proof pattern
+            pattern = generateBulkRegex(word);
+        } else {
+            // Simple escape
+            pattern = escapeRegex(word);
+        }
+        
+        return {
+            name: `Block "${word.substring(0, 30)}"`,
+            pattern: pattern,
+            action: action
+        };
+    });
 
     const result = await api('/filters/bulk-import', {
         method: 'POST',

@@ -663,6 +663,31 @@ body {
     color: var(--text-primary);
 }
 
+/* Input with button */
+.input-with-button {
+    display: flex;
+    gap: 10px;
+}
+
+.input-with-button input {
+    flex: 1;
+    padding: 12px 15px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+.input-with-button input:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+}
+
+.input-with-button .btn {
+    white-space: nowrap;
+}
+
 /* Modal */
 .modal {
     display: none;
@@ -781,6 +806,18 @@ input[type="checkbox"] {
     height: 18px;
     accent-color: var(--accent-primary);
     cursor: pointer;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.checkbox-label input[type="checkbox"] {
+    margin: 0;
 }
 
 /* Action Badges */

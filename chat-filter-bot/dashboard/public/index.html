@@ -168,9 +168,17 @@
                                     <input type="text" id="filterName" required placeholder="e.g., Block Bad Word">
                                 </div>
                                 <div class="form-group">
+                                    <label for="filterWord">Word to Filter</label>
+                                    <div class="input-with-button">
+                                        <input type="text" id="filterWord" placeholder="e.g., badword">
+                                        <button type="button" class="btn btn-secondary" onclick="generateRegex()">🔮 Generate Regex</button>
+                                    </div>
+                                    <small class="form-help">Enter a word and click Generate to create bypass-proof pattern</small>
+                                </div>
+                                <div class="form-group">
                                     <label for="filterPattern">Regex Pattern</label>
-                                    <input type="text" id="filterPattern" required placeholder="e.g., badword|b4dw0rd">
-                                    <small class="form-help">Use | for alternatives, \b for word boundaries</small>
+                                    <input type="text" id="filterPattern" required placeholder="Generated pattern will appear here...">
+                                    <small class="form-help">Auto-generated or enter custom regex. Use | for alternatives.</small>
                                 </div>
                                 <div class="form-row">
                                     <div class="form-group">
@@ -240,9 +248,16 @@ custom|regex|pattern
                                     </select>
                                 </div>
                                 <div class="form-group">
-                                    <label>
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" id="bulkGenerateRegex" checked> 
+                                        🔮 Generate bypass-proof patterns (recommended)
+                                    </label>
+                                    <small class="form-help">Converts "word" → catches "w0rd", "w.o.r.d", etc.</small>
+                                </div>
+                                <div class="form-group">
+                                    <label class="checkbox-label">
                                         <input type="checkbox" id="bulkIsRegex"> 
-                                        Treat as regex patterns (don't escape)
+                                        Treat as raw regex patterns (advanced)
                                     </label>
                                 </div>
                                 <div class="form-actions">
