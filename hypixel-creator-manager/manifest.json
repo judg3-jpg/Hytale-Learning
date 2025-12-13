@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Hypixel Creator Manager",
-  "version": "3.4.0",
-  "description": "Hypixel-branded creator management with metrics dashboard, YouTube/Twitch API integration, and full CSV workflow",
+  "version": "4.0.0",
+  "description": "Professional enterprise-grade creator management dashboard with YouTube/Twitch API integration",
   "author": "Judge",
   "icons": {
     "16": "icons/icon16.png",

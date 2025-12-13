@@ -3,15 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Creator Dashboard - Hypixel Creator Manager</title>
+  <title>Creator Manager | Hypixel</title>
   <link rel="stylesheet" href="dashboard.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
   <div class="app">
-    <!-- Sidebar -->
+    <!-- Sidebar Navigation -->
     <aside class="sidebar">
       <div class="sidebar-header">
-        <span class="logo-icon">🎮</span>
+        <div class="logo-icon">H</div>
         <div class="logo-text">
           <h1>HYPIXEL</h1>
           <span class="badge">Creator Manager</span>
@@ -21,202 +24,186 @@
       <nav class="sidebar-nav">
         <a href="#" class="nav-item active" data-page="overview">
           <span class="nav-icon">📊</span>
-          <span>Overview</span>
+          <span>Dashboard</span>
         </a>
         <a href="#" class="nav-item" data-page="creators">
           <span class="nav-icon">👥</span>
-          <span>All Creators</span>
+          <span>Creators</span>
         </a>
-        <a href="#" class="nav-item" data-page="reviews">
-          <span class="nav-icon">📋</span>
+        <a href="#" class="nav-item" data-page="review">
+          <span class="nav-icon">✓</span>
           <span>Review Queue</span>
-          <span class="nav-badge" id="navReviewCount">0</span>
+          <span class="nav-badge" id="reviewBadge" style="display:none">0</span>
         </a>
         <a href="#" class="nav-item" data-page="warnings">
-          <span class="nav-icon">⚠️</span>
+          <span class="nav-icon">⚠</span>
           <span>Warnings</span>
+          <span class="nav-badge" id="warningBadge" style="display:none">0</span>
         </a>
-        <a href="#" class="nav-item" data-page="inactive">
-          <span class="nav-icon">💤</span>
-          <span>Inactive</span>
+        <a href="#" class="nav-item" data-page="settings">
+          <span class="nav-icon">⚙</span>
+          <span>Settings</span>
         </a>
       </nav>
       
       <div class="sidebar-footer">
-        <a href="#" class="nav-item" data-page="settings">
-          <span class="nav-icon">⚙️</span>
-          <span>Settings</span>
+        <a href="#" class="nav-item" id="exportLink">
+          <span class="nav-icon">↓</span>
+          <span>Export CSV</span>
         </a>
       </div>
     </aside>
 
-    <!-- Main Content -->
+    <!-- Main Content Area -->
     <main class="main-content">
-      <!-- Header -->
       <header class="main-header">
         <div class="header-left">
-          <h2 id="pageTitle">Overview</h2>
-          <span class="header-subtitle" id="pageSubtitle">Dashboard overview and statistics</span>
+          <h2 id="pageTitle">Dashboard</h2>
+          <p class="header-subtitle" id="pageSubtitle">Overview of all creator statistics</p>
         </div>
         <div class="header-right">
-          <div class="search-box">
+          <div class="search-box" id="globalSearch" style="display:none">
             <span class="search-icon">🔍</span>
             <input type="text" id="searchInput" placeholder="Search creators...">
           </div>
-          <div class="data-indicator" id="dataIndicator">
-            <span class="status-dot" id="statusDot"></span>
-            <span id="dataStatus">No data loaded</span>
+          <div class="data-indicator">
+            <span class="status-dot" id="dataStatusDot"></span>
+            <span id="dataStatusText">No data loaded</span>
           </div>
-          <button id="btnExportCSV" class="btn btn-outline" style="display: none;">
-            <span>📥</span> Export CSV
-          </button>
         </div>
       </header>
 
-      <!-- Page: Overview -->
-      <div class="page active" id="page-overview">
-        <!-- Upload Section (shown when no data) -->
+      <!-- Overview Page -->
+      <section class="page active" id="page-overview">
         <div class="upload-section" id="uploadSection">
           <div class="upload-card">
-            <div class="upload-icon">📤</div>
-            <h3>Upload Your Creator Sheet</h3>
-            <p>Export your Google Sheet as CSV and upload it here to get started</p>
+            <div class="upload-icon">📁</div>
+            <h3>Import Creator Data</h3>
+            <p>Upload your creator spreadsheet to get started with the dashboard.</p>
             
             <div class="upload-area" id="uploadArea">
-              <input type="file" id="csvFileInput" accept=".csv" hidden>
+              <span class="upload-cloud">☁</span>
               <div class="upload-content">
-                <span class="upload-cloud">☁️</span>
-                <p><strong>Drop CSV file here</strong></p>
-                <p class="upload-hint">or click to browse</p>
+                <p><strong>Drop CSV file here</strong> or click to browse</p>
+                <p class="upload-hint">Supports .csv exports from Google Sheets</p>
               </div>
             </div>
+            <input type="file" id="fileInput" accept=".csv" hidden>
             
             <div class="upload-instructions">
-              <h4>How to export from Google Sheets:</h4>
+              <h4>How to export from Google Sheets</h4>
               <ol>
-                <li>Open your Creator Sheet in Google Sheets</li>
-                <li>Click <strong>File</strong> → <strong>Download</strong> → <strong>Comma-separated values (.csv)</strong></li>
+                <li>Open your spreadsheet in Google Sheets</li>
+                <li>Go to <strong>File → Download → Comma Separated Values (.csv)</strong></li>
                 <li>Upload the downloaded file here</li>
               </ol>
             </div>
             
-            <div class="upload-divider">
-              <span>OR</span>
-            </div>
+            <div class="upload-divider">or</div>
             
-            <button id="btnAddCreatorEmpty" class="btn btn-outline btn-full">
-              <span>➕</span> Start Fresh - Add Creators Manually
+            <button class="btn btn-secondary btn-full" id="btnAddCreatorEmpty">
+              Start Fresh
             </button>
           </div>
         </div>
 
-        <!-- Stats Section (shown when data loaded) -->
-        <div class="stats-section" id="statsSection" style="display: none;">
-          <!-- Stats Cards -->
-          <div class="stats-grid">
+        <div id="statsSection" style="display: none;">
+          <div class="last-updated" id="lastUpdated">
+            <span>Last imported: <strong id="lastUpdateDate">Never</strong></span>
+            <span class="last-updated-divider">|</span>
+            <span>Names checked: <strong id="lastNameCheckDate">Never</strong></span>
+            <div class="last-updated-actions">
+              <button class="btn btn-outline btn-small" id="btnRefreshNames">↻ Refresh Names</button>
+              <button class="btn btn-outline btn-small" id="btnReimport">↑ Re-import CSV</button>
+            </div>
+          </div>
+
+          <div class="stats-grid" id="statsGrid">
             <div class="stat-card">
               <div class="stat-icon">👥</div>
               <div class="stat-info">
-                <span class="stat-value" id="statTotalCreators">-</span>
+                <span class="stat-value" id="statTotal">0</span>
                 <span class="stat-label">Total Creators</span>
               </div>
             </div>
             <div class="stat-card stat-success">
-              <div class="stat-icon">🟢</div>
+              <div class="stat-icon">●</div>
               <div class="stat-info">
-                <span class="stat-value" id="statActive">-</span>
-                <span class="stat-label">Active (&lt;12 mo)</span>
+                <span class="stat-value" id="statActive">0</span>
+                <span class="stat-label">Active</span>
               </div>
             </div>
             <div class="stat-card stat-warning">
-              <div class="stat-icon">🟠</div>
+              <div class="stat-icon">●</div>
               <div class="stat-info">
-                <span class="stat-value" id="statSemiInactive">-</span>
-                <span class="stat-label">Semi-Inactive (12-24 mo)</span>
+                <span class="stat-value" id="statSemiInactive">0</span>
+                <span class="stat-label">Semi-Inactive</span>
               </div>
             </div>
             <div class="stat-card stat-danger">
-              <div class="stat-icon">🔴</div>
+              <div class="stat-icon">●</div>
               <div class="stat-info">
-                <span class="stat-value" id="statInactive">-</span>
-                <span class="stat-label">Inactive (24+ mo)</span>
+                <span class="stat-value" id="statInactive">0</span>
+                <span class="stat-label">Inactive</span>
               </div>
             </div>
           </div>
           
-          <!-- Second Row Stats -->
           <div class="stats-grid stats-grid-secondary">
             <div class="stat-card stat-review">
               <div class="stat-icon">📋</div>
               <div class="stat-info">
-                <span class="stat-value" id="statNeedsReview">-</span>
-                <span class="stat-label">Need Review</span>
+                <span class="stat-value" id="statReview">0</span>
+                <span class="stat-label">Pending Review</span>
               </div>
             </div>
             <div class="stat-card stat-alert">
-              <div class="stat-icon">⚠️</div>
+              <div class="stat-icon">⚠</div>
               <div class="stat-info">
-                <span class="stat-value" id="statWarnings">-</span>
+                <span class="stat-value" id="statWarnings">0</span>
                 <span class="stat-label">Have Warnings</span>
               </div>
             </div>
           </div>
 
-          <!-- Last Updated -->
-          <div class="last-updated" id="lastUpdated">
-            <span>📅 Data loaded: <strong id="lastUpdatedTime">-</strong></span>
-            <span class="last-updated-divider">|</span>
-            <span>🎮 Names checked: <strong id="lastNameCheckTime">Never</strong></span>
-            <div class="last-updated-actions">
-              <button id="btnRefreshNames" class="btn btn-outline btn-small" title="Check Mojang API for name changes">
-                <span>🔄</span> Refresh Names
-              </button>
-              <button id="btnReloadCSV" class="btn btn-outline btn-small">
-                <span>📤</span> Upload New CSV
-              </button>
-            </div>
-          </div>
-
-          <!-- Charts Row -->
           <div class="charts-row">
             <div class="chart-card">
               <h3>Creators by Rank</h3>
-              <div class="chart-placeholder" id="chartRanks">
-                <div class="chart-bars"></div>
+              <div class="chart-bars" id="chartRanks">
+                <div class="empty-state">
+                  <span class="empty-icon">📊</span>
+                  <p>No data available</p>
+                </div>
               </div>
             </div>
             <div class="chart-card">
-              <h3>Creators by Language</h3>
-              <div class="chart-placeholder" id="chartLanguages">
-                <div class="chart-bars"></div>
+              <h3>Content Types</h3>
+              <div class="chart-bars" id="chartContent">
+                <div class="empty-state">
+                  <span class="empty-icon">📊</span>
+                  <p>No data available</p>
+                </div>
               </div>
             </div>
           </div>
-
-          <!-- Recent Activity -->
+          
           <div class="activity-section">
-            <h3>Review Queue Preview</h3>
-            <div class="activity-list" id="recentQueue">
+            <h3>Creators Needing Attention</h3>
+            <div class="activity-list" id="activityList">
               <div class="empty-state">
-                <span class="empty-icon">🎉</span>
-                <p>All caught up! No creators need review.</p>
+                <span class="empty-icon">✓</span>
+                <p>All creators are up to date</p>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      <!-- Page: All Creators -->
-      <div class="page" id="page-creators">
+      <!-- Creators Page -->
+      <section class="page" id="page-creators">
         <div class="page-actions">
-          <button id="btnAddCreator" class="btn btn-primary">
-            <span>➕</span> Add Creator
-          </button>
-          <button id="btnRefreshCreators" class="btn btn-outline">
-            <span>🔄</span> Refresh
-          </button>
-          <button id="btnExportCreators" class="btn btn-outline">
-            <span>📥</span> Export CSV
+          <button class="btn btn-primary" id="btnAddCreator">
+            + Add Creator
           </button>
         </div>
         
@@ -224,189 +211,124 @@
           <table class="data-table" id="creatorsTable">
             <thead>
               <tr>
-                <th>Name</th>
-                <th>Rank</th>
+                <th style="width:50px"></th>
+                <th>Creator</th>
+                <th>Platform</th>
                 <th>Subscribers</th>
                 <th>Last Upload</th>
-                <th>Last Checked</th>
                 <th>Status</th>
-                <th>Actions</th>
+                <th>Rank</th>
+                <th style="width:100px">Actions</th>
               </tr>
             </thead>
             <tbody id="creatorsTableBody">
               <tr>
-                <td colspan="7" class="empty-cell">Upload a CSV to see creators</td>
+                <td colspan="8" class="empty-cell">No creators found. Import a CSV or add creators manually.</td>
               </tr>
             </tbody>
           </table>
         </div>
-      </div>
+        <div class="pagination-container" id="paginationContainer"></div>
+      </section>
 
-      <!-- Page: Review Queue -->
-      <div class="page" id="page-reviews">
+      <!-- Review Queue Page -->
+      <section class="page" id="page-review">
         <div class="page-actions">
-          <button id="btnBulkReview" class="btn btn-primary" disabled>
-            <span>✓</span> Review Selected
-          </button>
-          <button id="btnRefreshQueue" class="btn btn-outline">
-            <span>🔄</span> Refresh
+          <button class="btn btn-primary" id="btnBulkReview" disabled>
+            ✓ Mark Selected as Reviewed
           </button>
         </div>
         
         <div class="review-list" id="reviewList">
           <div class="empty-state">
-            <span class="empty-icon">📋</span>
-            <p>Upload a CSV to see creators needing review</p>
+            <span class="empty-icon">✓</span>
+            <p>No creators pending review</p>
           </div>
         </div>
-      </div>
+      </section>
 
-      <!-- Page: Warnings -->
-      <div class="page" id="page-warnings">
+      <!-- Warnings Page -->
+      <section class="page" id="page-warnings">
         <div class="warnings-list" id="warningsList">
           <div class="empty-state">
-            <span class="empty-icon">⚠️</span>
-            <p>Upload a CSV to see creators with warnings</p>
+            <span class="empty-icon">✓</span>
+            <p>No creators with warnings</p>
           </div>
         </div>
-      </div>
+      </section>
 
-      <!-- Page: Inactive -->
-      <div class="page" id="page-inactive">
-        <div class="inactive-list" id="inactiveList">
-          <div class="empty-state">
-            <span class="empty-icon">💤</span>
-            <p>Upload a CSV to see inactive creators</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Page: Settings -->
-      <div class="page" id="page-settings">
+      <!-- Settings Page -->
+      <section class="page" id="page-settings">
         <div class="settings-section">
-          <h3>📤 Data Management</h3>
+          <h3>⚙ General Settings</h3>
           <div class="setting-group">
-            <label>Upload New CSV</label>
-            <p class="setting-help">Replace current data with a new CSV export from Google Sheets</p>
-            <div class="upload-mini" id="uploadMini">
-              <input type="file" id="csvFileInputSettings" accept=".csv" hidden>
-              <button class="btn btn-outline" id="btnUploadSettings">
-                <span>📤</span> Choose CSV File
-              </button>
+            <label for="settingReviewerName">Default Reviewer Name</label>
+            <input type="text" id="settingReviewerName" placeholder="Enter your name">
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <h3>📺 YouTube Data API</h3>
+          <p class="setting-help">
+            Enable automatic subscriber counts and channel stats. 
+            <a href="https://console.cloud.google.com/apis/credentials" target="_blank">Get an API key →</a>
+          </p>
+          <div class="setting-group">
+            <label for="settingYoutubeApiKey">API Key</label>
+            <div class="api-key-input">
+              <input type="password" id="settingYoutubeApiKey" placeholder="Enter your YouTube API key">
+              <button class="btn btn-secondary" id="btnSaveYoutubeKey">Save</button>
             </div>
+            <div class="api-status-badge" id="youtubeApiStatus">Not configured</div>
+          </div>
+          
+          <div class="info-box">
+            <h4>How to get a YouTube API Key</h4>
+            <ol>
+              <li>Go to <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a></li>
+              <li>Create a new project or select an existing one</li>
+              <li>Enable the "YouTube Data API v3" from the API Library</li>
+              <li>Go to Credentials and create an API Key</li>
+              <li>Copy and paste the key above</li>
+            </ol>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <h3>💜 Twitch API</h3>
+          <p class="setting-help">
+            Enable Twitch channel stats.
+            <a href="https://dev.twitch.tv/console/apps" target="_blank">Get credentials →</a>
+          </p>
+          <div class="setting-group">
+            <label for="settingTwitchClientId">Client ID</label>
+            <input type="text" id="settingTwitchClientId" placeholder="Your Twitch Client ID">
           </div>
           <div class="setting-group">
-            <label>Export Current Data</label>
-            <p class="setting-help">Download your data with all changes as a CSV file</p>
-            <button id="btnExportSettings" class="btn btn-primary">
-              <span>📥</span> Export to CSV
-            </button>
+            <label for="settingTwitchClientSecret">Client Secret</label>
+            <div class="api-key-input">
+              <input type="password" id="settingTwitchClientSecret" placeholder="Your Twitch Client Secret">
+              <button class="btn btn-secondary" id="btnSaveTwitchKey">Save</button>
+            </div>
+            <div class="api-status-badge" id="twitchApiStatus">Not configured</div>
+          </div>
+        </div>
+        
+        <div class="settings-section">
+          <h3>📁 Data Management</h3>
+          <div class="setting-group">
+            <label>Export Creator Data</label>
+            <p class="setting-help">Download all creator data as a CSV file for backup or to import into Google Sheets.</p>
+            <button class="btn btn-secondary" id="btnExportCsv">↓ Export to CSV</button>
           </div>
           <div class="setting-group">
             <label>Clear All Data</label>
-            <p class="setting-help">Remove all creator data from the extension</p>
-            <button id="btnClearData" class="btn btn-danger">
-              <span>🗑️</span> Clear Data
-            </button>
+            <p class="setting-help">Remove all locally stored creator data. This cannot be undone.</p>
+            <button class="btn btn-danger" id="btnClearData">Clear Data</button>
           </div>
         </div>
-        
-        <div class="settings-section">
-          <h3>⚙️ Review Settings</h3>
-          <div class="setting-group">
-            <label>Your Name (for reviews)</label>
-            <input type="text" id="settingReviewerName" value="Judge">
-          </div>
-          <div class="setting-group">
-            <label>Overdue Review Threshold (months)</label>
-            <input type="number" id="settingOverdueMonths" value="3" min="1" max="12">
-          </div>
-          <div class="setting-group">
-            <label>Inactive Channel Threshold (months)</label>
-            <input type="number" id="settingInactiveMonths" value="6" min="1" max="24">
-          </div>
-          <button id="btnSaveSettings" class="btn btn-primary">Save Settings</button>
-        </div>
-        
-        <div class="settings-section">
-          <h3>🔑 API Integration (Optional)</h3>
-          <p class="setting-help">Connect to YouTube and Twitch APIs to fetch live channel statistics on creator profile pages.</p>
-          
-          <div class="setting-group">
-            <label>YouTube Data API Key</label>
-            <p class="setting-help">Get a free API key from <a href="https://console.cloud.google.com/apis/library/youtube.googleapis.com" target="_blank" style="color: var(--hypixel-gold);">Google Cloud Console</a></p>
-            <div class="api-key-input">
-              <input type="password" id="settingYoutubeApiKey" placeholder="Enter your YouTube API key">
-              <button class="btn btn-outline btn-small" id="btnToggleYoutubeKey">Show</button>
-            </div>
-            <span class="api-status-badge" id="youtubeApiStatusBadge">Not Configured</span>
-          </div>
-          
-          <div class="setting-group">
-            <label>Twitch Client ID</label>
-            <p class="setting-help">Get credentials from <a href="https://dev.twitch.tv/console/apps" target="_blank" style="color: var(--hypixel-gold);">Twitch Developer Console</a></p>
-            <div class="api-key-input">
-              <input type="password" id="settingTwitchClientId" placeholder="Enter your Twitch Client ID">
-              <button class="btn btn-outline btn-small" id="btnToggleTwitchId">Show</button>
-            </div>
-          </div>
-          
-          <div class="setting-group">
-            <label>Twitch Client Secret</label>
-            <div class="api-key-input">
-              <input type="password" id="settingTwitchClientSecret" placeholder="Enter your Twitch Client Secret">
-              <button class="btn btn-outline btn-small" id="btnToggleTwitchSecret">Show</button>
-            </div>
-            <span class="api-status-badge" id="twitchApiStatusBadge">Not Configured</span>
-          </div>
-          
-          <button id="btnSaveApiKeys" class="btn btn-primary">Save API Keys</button>
-        </div>
-
-        <div class="settings-section">
-          <h3>ℹ️ How It Works</h3>
-          <div class="info-box">
-            <h4>CSV Workflow</h4>
-            <ol>
-              <li><strong>Export</strong> your Google Sheet as CSV</li>
-              <li><strong>Upload</strong> the CSV to this extension</li>
-              <li><strong>Review</strong> creators, add notes, track progress</li>
-              <li><strong>Export</strong> your changes back to CSV</li>
-              <li><strong>Import</strong> the CSV back to Google Sheets (File → Import)</li>
-            </ol>
-            <p class="info-note">💡 Your data is stored locally in your browser - no cloud, no accounts needed!</p>
-          </div>
-          <div class="info-box" style="margin-top: 16px;">
-            <h4>API Integration (Optional)</h4>
-            <ol>
-              <li><strong>YouTube API</strong> - Fetches subscriber count, view count, recent videos</li>
-              <li><strong>Twitch API</strong> - Fetches follower count, recent streams</li>
-              <li>API keys are stored locally and never shared</li>
-              <li>Free tier limits are generous (YouTube: 10,000/day, Twitch: unlimited)</li>
-            </ol>
-            <p class="info-note">🔒 Your API keys are stored securely in your browser's sync storage.</p>
-          </div>
-        </div>
-      </div>
+      </section>
     </main>
-  </div>
-
-  <!-- Modal -->
-  <div class="modal" id="modal">
-    <div class="modal-backdrop"></div>
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3 id="modalTitle">Modal Title</h3>
-        <button class="modal-close" id="modalClose">×</button>
-      </div>
-      <div class="modal-body" id="modalBody">
-        <!-- Dynamic content -->
-      </div>
-      <div class="modal-footer" id="modalFooter">
-        <button class="btn btn-outline" id="modalCancel">Cancel</button>
-        <button class="btn btn-primary" id="modalConfirm">Confirm</button>
-      </div>
-    </div>
   </div>
 
   <!-- Add Creator Modal -->
@@ -414,64 +336,53 @@
     <div class="modal-backdrop" id="addCreatorBackdrop"></div>
     <div class="modal-content modal-large">
       <div class="modal-header">
-        <h3>➕ Add New Creator</h3>
+        <h3>Add New Creator</h3>
         <button class="modal-close" id="addCreatorClose">×</button>
       </div>
       <div class="modal-body">
-        <form id="addCreatorForm" class="add-creator-form">
-          <!-- Basic Info -->
+        <form class="add-creator-form" id="addCreatorForm">
           <div class="form-section">
-            <h4>📋 Basic Information</h4>
+            <h4>Channel Information <span class="section-hint" id="channelAutoFillHint"></span></h4>
+            <div class="form-group full-width">
+              <label for="newCreatorChannel">Main Channel URL *</label>
+              <div class="input-with-button">
+                <input type="url" id="newCreatorChannel" required placeholder="https://youtube.com/... or twitch.tv/...">
+                <button type="button" class="btn btn-secondary btn-small" id="btnFetchChannelStats">Fetch Stats</button>
+              </div>
+              <span class="field-hint" id="channelHint">Enter YouTube or Twitch URL</span>
+            </div>
             <div class="form-grid">
               <div class="form-group">
-                <label for="newCreatorName">Name *</label>
-                <input type="text" id="newCreatorName" required placeholder="Creator's display name">
+                <label for="newCreatorSubscribers">Subscribers</label>
+                <input type="text" id="newCreatorSubscribers" placeholder="e.g. 1500000">
               </div>
               <div class="form-group">
-                <label for="newCreatorChannel">Main Channel URL *</label>
-                <div class="input-with-button">
-                  <input type="url" id="newCreatorChannel" required placeholder="https://youtube.com/... or twitch.tv/...">
-                  <button type="button" id="btnFetchChannelStats" class="btn btn-small btn-outline">📊 Fetch Stats</button>
-                </div>
-                <span class="field-hint" id="channelHint">Enter YouTube/Twitch URL and click Fetch Stats</span>
-              </div>
-              <div class="form-group">
-                <label for="newCreatorIGN">Minecraft IGN</label>
-                <div class="input-with-button">
-                  <input type="text" id="newCreatorIGN" placeholder="Minecraft username">
-                  <button type="button" id="btnLookupUUID" class="btn btn-small btn-outline">🔍 Lookup</button>
-                </div>
-              </div>
-              <div class="form-group">
-                <label for="newCreatorUUID">Minecraft UUID</label>
-                <input type="text" id="newCreatorUUID" placeholder="Will auto-fill from IGN lookup" readonly>
-                <span class="field-hint" id="uuidHint">Enter IGN above and click Lookup</span>
-              </div>
-              <div class="form-group">
-                <label for="newCreatorCode">Creator Code</label>
-                <input type="text" id="newCreatorCode" placeholder="Creator code (if any)">
+                <label for="newCreatorLastUpload">Last Upload</label>
+                <input type="text" id="newCreatorLastUpload" placeholder="e.g. 3 Months">
               </div>
             </div>
           </div>
-
-          <!-- Channel Stats -->
+          
           <div class="form-section">
-            <h4>📊 Channel Stats <span class="section-hint" id="statsAutoFillHint">(Click "Fetch Stats" above to auto-fill)</span></h4>
+            <h4>Creator Details</h4>
             <div class="form-grid">
               <div class="form-group">
-                <label for="newCreatorSubs">Subscribers</label>
-                <input type="text" id="newCreatorSubs" placeholder="Auto-fills from API or enter manually">
+                <label for="newCreatorName">Display Name *</label>
+                <input type="text" id="newCreatorName" required placeholder="Creator name">
               </div>
               <div class="form-group">
-                <label for="newCreatorRank">Rank Given</label>
+                <label for="newCreatorRank">Rank</label>
                 <select id="newCreatorRank">
                   <option value="">Select rank...</option>
                   <option value="YOUTUBER">YOUTUBER</option>
+                  <option value="YT">YT</option>
                   <option value="STREAMER">STREAMER</option>
-                  <option value="CREATOR">CREATOR</option>
-                  <option value="VIP">VIP</option>
+                  <option value="BUILDER">BUILDER</option>
+                  <option value="EVENTS">EVENTS</option>
                 </select>
               </div>
+            </div>
+            <div class="form-grid">
               <div class="form-group">
                 <label for="newCreatorContentType">Content Type</label>
                 <select id="newCreatorContentType">
@@ -482,65 +393,63 @@
                 </select>
               </div>
               <div class="form-group">
-                <label for="newCreatorLanguage">Content Language</label>
-                <input type="text" id="newCreatorLanguage" placeholder="e.g., English">
-              </div>
-            </div>
-          </div>
-
-          <!-- Acceptance Info -->
-          <div class="form-section">
-            <h4>✅ Acceptance Info</h4>
-            <div class="form-grid">
-              <div class="form-group">
-                <label for="newCreatorDateAccepted">Date Accepted</label>
-                <input type="date" id="newCreatorDateAccepted">
-              </div>
-              <div class="form-group">
-                <label for="newCreatorAcceptedBy">Accepted By</label>
-                <input type="text" id="newCreatorAcceptedBy" placeholder="Who accepted them">
-              </div>
-              <div class="form-group">
-                <label for="newCreatorVerifiedBy">Verified By</label>
-                <input type="text" id="newCreatorVerifiedBy" placeholder="Who verified them">
-              </div>
-              <div class="form-group">
                 <label for="newCreatorLocale">Locale</label>
-                <input type="text" id="newCreatorLocale" placeholder="e.g., US, UK, DE">
+                <input type="text" id="newCreatorLocale" placeholder="e.g. English">
               </div>
             </div>
           </div>
-
-          <!-- Contact Info -->
+          
           <div class="form-section">
-            <h4>📧 Contact Info</h4>
+            <h4>Minecraft Account</h4>
             <div class="form-grid">
               <div class="form-group">
-                <label for="newCreatorEmail">Contact Email</label>
-                <input type="email" id="newCreatorEmail" placeholder="creator@email.com">
+                <label for="newCreatorIGN">Minecraft IGN</label>
+                <div class="input-with-button">
+                  <input type="text" id="newCreatorIGN" placeholder="Minecraft username">
+                  <button type="button" class="btn btn-secondary btn-small" id="btnLookupUUID">Lookup</button>
+                </div>
               </div>
               <div class="form-group">
-                <label for="newCreatorZendesk">Zendesk ID</label>
-                <input type="text" id="newCreatorZendesk" placeholder="Zendesk ticket ID">
+                <label for="newCreatorUUID">UUID</label>
+                <input type="text" id="newCreatorUUID" placeholder="Auto-filled from lookup" readonly>
+                <span class="field-hint" id="uuidHint">Enter IGN and click Lookup</span>
               </div>
             </div>
           </div>
-
-          <!-- Notes -->
+          
           <div class="form-section">
-            <h4>📝 Notes</h4>
+            <h4>Contact & Notes</h4>
             <div class="form-group full-width">
-              <label for="newCreatorNotes">Initial Notes</label>
-              <textarea id="newCreatorNotes" rows="3" placeholder="Any notes about this creator..."></textarea>
+              <label for="newCreatorEmail">Contact Email</label>
+              <input type="email" id="newCreatorEmail" placeholder="creator@email.com">
+            </div>
+            <div class="form-group full-width">
+              <label for="newCreatorNotes">Notes</label>
+              <textarea id="newCreatorNotes" placeholder="Any additional notes..."></textarea>
             </div>
           </div>
         </form>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-outline" id="addCreatorCancel">Cancel</button>
-        <button class="btn btn-primary" id="addCreatorSubmit">
-          <span>➕</span> Add Creator
-        </button>
+        <button class="btn btn-secondary" id="addCreatorCancel">Cancel</button>
+        <button class="btn btn-primary" id="addCreatorSubmit">Add Creator</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Name Changes Modal -->
+  <div class="modal" id="nameChangesModal">
+    <div class="modal-backdrop" id="nameChangesBackdrop"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Name Changes Detected</h3>
+        <button class="modal-close" id="nameChangesClose">×</button>
+      </div>
+      <div class="modal-body" id="nameChangesBody">
+        <!-- Content populated dynamically -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" id="nameChangesOk">Got It</button>
       </div>
     </div>
   </div>
