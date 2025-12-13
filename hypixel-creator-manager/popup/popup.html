@@ -7,107 +7,32 @@
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
-  <div class="container">
-    <header>
-      <div class="logo">
-        <span class="logo-icon">🎮</span>
+  <div class="popup">
+    <header class="popup-header">
+      <div class="logo-icon">H</div>
+      <div class="logo-text">
         <h1>HYPIXEL</h1>
+        <p>Creator Manager</p>
       </div>
-      <span class="badge">Creator Manager</span>
     </header>
 
-    <div class="status-bar" id="statusBar">
-      <span class="status-dot"></span>
-      <span id="statusText">Ready</span>
+    <div class="status-card">
+      <span class="status-dot" id="statusDot"></span>
+      <span class="status-text" id="statusText">Checking data...</span>
+      <span class="status-count" id="statusCount"></span>
     </div>
 
-    <!-- Main Actions -->
-    <section class="section">
-      <div class="main-buttons">
-        <button id="btnOpenDashboard" class="btn btn-large btn-primary">
-          <span class="btn-icon">📊</span>
-          <span class="btn-label">Open Dashboard</span>
-          <span class="btn-desc">Full overview, stats & bulk management</span>
-        </button>
-        
-        <button id="btnOpenSidePanel" class="btn btn-large btn-secondary">
-          <span class="btn-icon">📋</span>
-          <span class="btn-label">Open Side Panel</span>
-          <span class="btn-desc">Quick actions alongside your browser</span>
-        </button>
-      </div>
-    </section>
+    <div class="popup-actions">
+      <button class="btn btn-primary" id="btnOpenDashboard">
+        Open Dashboard
+      </button>
+      <button class="btn btn-secondary" id="btnOpenSidePanel">
+        Open Side Panel
+      </button>
+    </div>
 
-    <!-- Data Status -->
-    <section class="section">
-      <div class="data-status">
-        <span class="data-icon" id="dataIcon">📤</span>
-        <div class="data-info">
-          <span class="data-label" id="dataLabel">No data loaded</span>
-          <span class="data-hint" id="dataHint">Upload a CSV to get started</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- Keyboard Shortcuts -->
-    <section class="section collapsible">
-      <h2 class="collapsible-header" id="shortcutsToggle">
-        ⌨️ Keyboard Shortcuts
-        <span class="collapse-icon">▼</span>
-      </h2>
-      <div class="collapsible-content" id="shortcutsContent">
-        <div class="shortcut-list">
-          <div class="shortcut-item">
-            <span class="shortcut-key">Alt + R</span>
-            <span class="shortcut-desc">Quick Review</span>
-          </div>
-          <div class="shortcut-item">
-            <span class="shortcut-key">Alt + 1</span>
-            <span class="shortcut-desc">Note: Inactive</span>
-          </div>
-          <div class="shortcut-item">
-            <span class="shortcut-key">Alt + 2</span>
-            <span class="shortcut-desc">Note: Non-gaming</span>
-          </div>
-          <div class="shortcut-item">
-            <span class="shortcut-key">Alt + 3</span>
-            <span class="shortcut-desc">Note: Reviewed ✓</span>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- How It Works -->
-    <section class="section collapsible">
-      <h2 class="collapsible-header" id="howItWorksToggle">
-        ℹ️ How It Works
-        <span class="collapse-icon">▼</span>
-      </h2>
-      <div class="collapsible-content" id="howItWorksContent">
-        <div class="steps">
-          <div class="step">
-            <span class="step-num">1</span>
-            <span>Export Google Sheet as CSV</span>
-          </div>
-          <div class="step">
-            <span class="step-num">2</span>
-            <span>Upload CSV to Dashboard</span>
-          </div>
-          <div class="step">
-            <span class="step-num">3</span>
-            <span>Review & manage creators</span>
-          </div>
-          <div class="step">
-            <span class="step-num">4</span>
-            <span>Export & import back to Sheets</span>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <footer>
-      <p>CSV + YouTube/Twitch API • 100% Local • Your data stays private 🔒</p>
-      <p class="version">v3.0.0 • Made for Hypixel 🎮</p>
+    <footer class="popup-footer">
+      v4.0.0 • <a href="#" id="btnSettings">Settings</a>
     </footer>
   </div>
 

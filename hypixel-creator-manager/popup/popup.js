@@ -1,83 +1,59 @@
-// Hypixel Creator Manager - Popup Script
+// Popup JavaScript - Professional Version
 
 document.addEventListener('DOMContentLoaded', async () => {
-  // Initialize UI
-  initializeUI();
-  
-  // Check data status
   await checkDataStatus();
+  setupEventListeners();
 });
-
-// Initialize UI
-function initializeUI() {
-  // Main buttons
-  document.getElementById('btnOpenDashboard').addEventListener('click', openDashboard);
-  document.getElementById('btnOpenSidePanel').addEventListener('click', openSidePanel);
-  
-  // Collapsible sections
-  document.getElementById('shortcutsToggle').addEventListener('click', () => {
-    document.getElementById('shortcutsToggle').closest('.collapsible').classList.toggle('open');
-  });
-  
-  document.getElementById('howItWorksToggle').addEventListener('click', () => {
-    document.getElementById('howItWorksToggle').closest('.collapsible').classList.toggle('open');
-  });
-}
-
-// Open dashboard
-function openDashboard() {
-  chrome.tabs.create({ url: chrome.runtime.getURL('dashboard/dashboard.html') });
-  window.close();
-}
-
-// Open side panel
-async function openSidePanel() {
-  try {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (tab) {
-      await chrome.sidePanel.open({ tabId: tab.id });
-      window.close();
-    }
-  } catch (error) {
-    console.error('Failed to open side panel:', error);
-    // Fallback - open dashboard
-    openDashboard();
-  }
-}
 
 // Check data status
 async function checkDataStatus() {
+  const statusDot = document.getElementById('statusDot');
+  const statusText = document.getElementById('statusText');
+  const statusCount = document.getElementById('statusCount');
+  
   try {
-    const stored = await chrome.storage.local.get(['creatorData', 'lastUpdated']);
+    const data = await chrome.storage.local.get(['csvData']);
     
-    const dataIcon = document.getElementById('dataIcon');
-    const dataLabel = document.getElementById('dataLabel');
-    const dataHint = document.getElementById('dataHint');
-    const statusDot = document.querySelector('.status-dot');
-    const statusText = document.getElementById('statusText');
-    
-    if (stored.creatorData && stored.creatorData.length > 0) {
-      dataIcon.textContent = '✅';
-      dataLabel.textContent = `${stored.creatorData.length} creators loaded`;
-      
-      if (stored.lastUpdated) {
-        const date = new Date(stored.lastUpdated);
-        dataHint.textContent = `Last updated: ${date.toLocaleDateString()}`;
-      } else {
-        dataHint.textContent = 'Data ready to use';
-      }
-      
-      statusDot.style.background = '#4caf50';
+    if (data.csvData && data.csvData.data && data.csvData.data.length > 0) {
+      statusDot.classList.add('loaded');
       statusText.textContent = 'Data loaded';
+      statusCount.textContent = `${data.csvData.data.length} creators`;
     } else {
-      dataIcon.textContent = '📤';
-      dataLabel.textContent = 'No data loaded';
-      dataHint.textContent = 'Open Dashboard to upload CSV';
-      
-      statusDot.style.background = '#ff9800';
-      statusText.textContent = 'Upload CSV to start';
+      statusDot.classList.remove('loaded');
+      statusText.textContent = 'No data loaded';
+      statusCount.textContent = '';
     }
   } catch (error) {
-    console.error('Error checking data status:', error);
+    statusText.textContent = 'Error checking data';
+    console.error('Error:', error);
   }
+}
+
+// Setup event listeners
+function setupEventListeners() {
+  // Open Dashboard
+  document.getElementById('btnOpenDashboard')?.addEventListener('click', () => {
+    chrome.tabs.create({ url: chrome.runtime.getURL('dashboard/dashboard.html') });
+    window.close();
+  });
+  
+  // Open Side Panel
+  document.getElementById('btnOpenSidePanel')?.addEventListener('click', async () => {
+    try {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      await chrome.sidePanel.open({ tabId: tab.id });
+      window.close();
+    } catch (error) {
+      // Fallback: open dashboard
+      chrome.tabs.create({ url: chrome.runtime.getURL('dashboard/dashboard.html') });
+      window.close();
+    }
+  });
+  
+  // Settings
+  document.getElementById('btnSettings')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    chrome.tabs.create({ url: chrome.runtime.getURL('dashboard/dashboard.html#settings') });
+    window.close();
+  });
 }

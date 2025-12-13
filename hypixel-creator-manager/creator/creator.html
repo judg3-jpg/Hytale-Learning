@@ -3,289 +3,260 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Creator Profile - Hypixel Creator Manager</title>
+  <title>Creator Profile | Hypixel Creator Manager</title>
   <link rel="stylesheet" href="creator.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div class="app">
-    <!-- Header -->
-    <header class="main-header">
-      <div class="header-left">
-        <a href="../dashboard/dashboard.html" class="back-btn">
-          <span>←</span> Back to Dashboard
-        </a>
-      </div>
-      <div class="header-center">
-        <span class="logo-icon">🎮</span>
-        <h1>HYPIXEL</h1>
-        <span class="logo-sub">Creator Manager</span>
-      </div>
-      <div class="header-right">
-        <button id="btnRefreshStats" class="btn btn-gold">
-          <span>🔄</span> Refresh Stats
-        </button>
-      </div>
-    </header>
+  <!-- Header -->
+  <header class="page-header">
+    <a href="../dashboard/dashboard.html" class="back-btn">
+      ← Back to Dashboard
+    </a>
+    <div class="header-logo">
+      <div class="logo-icon">H</div>
+      <span>HYPIXEL Creator Manager</span>
+    </div>
+  </header>
 
+  <div class="page-container">
     <!-- Loading State -->
-    <div class="loading-state" id="loadingState">
+    <div class="loading" id="loadingState">
       <div class="loading-spinner"></div>
-      <p>Loading creator data...</p>
+      <span>Loading creator data...</span>
     </div>
 
-    <!-- Main Content -->
-    <main class="main-content" id="mainContent" style="display: none;">
-      <!-- Creator Banner -->
-      <section class="creator-banner" id="creatorBanner">
-        <div class="banner-overlay"></div>
-        <div class="banner-content">
-          <div class="creator-avatar" id="creatorAvatar">
-            <span id="avatarInitial">?</span>
+    <!-- Main Content (hidden until loaded) -->
+    <div id="creatorContent" style="display: none;">
+      <!-- Profile Header -->
+      <div class="profile-header">
+        <div class="profile-avatar" id="profileAvatar">
+          <span id="avatarInitial">?</span>
+        </div>
+        <div class="profile-info">
+          <h1 class="profile-name" id="creatorName">Loading...</h1>
+          <div class="profile-badges">
+            <span class="badge badge-rank" id="creatorRank">CREATOR</span>
+            <span class="badge badge-platform" id="creatorPlatform">Unknown</span>
+            <span class="badge badge-status" id="creatorStatus">Active</span>
           </div>
-          <div class="creator-info">
-            <h2 id="creatorName">Loading...</h2>
-            <div class="creator-badges">
-              <span class="badge badge-rank" id="creatorRank">CREATOR</span>
-              <span class="badge badge-platform" id="creatorPlatform">YOUTUBE</span>
+          <div class="profile-meta">
+            <div class="profile-meta-item">
+              <span class="profile-meta-icon">📅</span>
+              <span>Joined <strong id="creatorDateAccepted">Unknown</strong></span>
             </div>
-            <p class="creator-channel" id="creatorChannel">
-              <a href="#" target="_blank" id="channelLink">View Channel →</a>
-            </p>
-          </div>
-          <div class="creator-quick-stats">
-            <div class="quick-stat">
-              <span class="quick-stat-value" id="quickStatSubs">-</span>
-              <span class="quick-stat-label">Subscribers</span>
+            <div class="profile-meta-item">
+              <span class="profile-meta-icon">🔍</span>
+              <span>Last checked <strong id="creatorLastChecked">Never</strong></span>
             </div>
-            <div class="quick-stat">
-              <span class="quick-stat-value" id="quickStatViews">-</span>
-              <span class="quick-stat-label">Total Views</span>
-            </div>
-            <div class="quick-stat">
-              <span class="quick-stat-value" id="quickStatVideos">-</span>
-              <span class="quick-stat-label">Videos</span>
+            <div class="profile-meta-item">
+              <span class="profile-meta-icon">🎮</span>
+              <span id="creatorUUID">No UUID</span>
             </div>
           </div>
         </div>
-      </section>
+        <div class="profile-actions">
+          <button class="btn btn-primary" id="btnMarkReviewed">✓ Mark Reviewed</button>
+          <button class="btn btn-secondary" id="btnEditCreator">Edit Profile</button>
+          <button class="btn btn-secondary" id="btnRefreshStats">↻ Refresh Stats</button>
+        </div>
+      </div>
 
-      <!-- Quick Actions -->
-      <section class="quick-actions">
-        <button id="btnEditCreator" class="btn btn-gold btn-large">
-          <span>✏️</span> Edit Creator
-        </button>
-        <button id="btnQuickReview" class="btn btn-dark btn-large">
-          <span>✓</span> Mark as Reviewed
-        </button>
-        <button id="btnAddNote" class="btn btn-dark btn-large">
-          <span>📝</span> Add Note
-        </button>
-        <button id="btnAddWarning" class="btn btn-red btn-large">
-          <span>⚠️</span> Add Warning
-        </button>
-        <button id="btnClearCheckup" class="btn btn-dark btn-large">
-          <span>🧹</span> Clear Checkup
-        </button>
-      </section>
-
-      <!-- Stats Grid -->
-      <section class="stats-grid">
-        <!-- Channel Stats Card -->
+      <!-- Stats Row -->
+      <div class="stats-row">
         <div class="stat-card">
-          <div class="stat-card-header">
-            <h3>📊 Channel Statistics</h3>
-            <span class="stat-card-badge" id="statsSource">From CSV</span>
-          </div>
-          <div class="stat-card-body">
-            <div class="stat-row">
-              <span class="stat-label">Subscribers</span>
-              <span class="stat-value" id="statSubscribers">-</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">Total Views</span>
-              <span class="stat-value" id="statTotalViews">-</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">Video Count</span>
-              <span class="stat-value" id="statVideoCount">-</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">Last Upload</span>
-              <span class="stat-value" id="statLastUpload">-</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">Channel Created</span>
-              <span class="stat-value" id="statChannelCreated">-</span>
-            </div>
-          </div>
+          <div class="stat-value highlight" id="statSubscribers">-</div>
+          <div class="stat-label">Subscribers</div>
         </div>
-
-        <!-- Review Status Card -->
         <div class="stat-card">
-          <div class="stat-card-header">
-            <h3>📋 Review Status</h3>
-          </div>
-          <div class="stat-card-body">
-            <div class="stat-row">
-              <span class="stat-label">Last Checked</span>
-              <span class="stat-value" id="statLastChecked">-</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">Reviewed By</span>
-              <span class="stat-value" id="statReviewedBy">-</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">Date Accepted</span>
-              <span class="stat-value" id="statDateAccepted">-</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">Accepted By</span>
-              <span class="stat-value" id="statAcceptedBy">-</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">Status</span>
-              <span class="stat-value" id="statStatus">-</span>
-            </div>
-          </div>
+          <div class="stat-value" id="statLastUpload">-</div>
+          <div class="stat-label">Last Upload</div>
         </div>
-
-        <!-- Creator Info Card -->
         <div class="stat-card">
-          <div class="stat-card-header">
-            <h3>👤 Creator Info</h3>
-          </div>
-          <div class="stat-card-body">
-            <div class="stat-row">
-              <span class="stat-label">UUID</span>
-              <span class="stat-value stat-small" id="statUUID">-</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">Creator Code</span>
-              <span class="stat-value" id="statCreatorCode">-</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">Language</span>
-              <span class="stat-value" id="statLanguage">-</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">Locale</span>
-              <span class="stat-value" id="statLocale">-</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">Contact</span>
-              <span class="stat-value stat-small" id="statContact">-</span>
-            </div>
-          </div>
+          <div class="stat-value" id="statContentType">-</div>
+          <div class="stat-label">Content Type</div>
         </div>
-      </section>
+        <div class="stat-card">
+          <div class="stat-value" id="statLocale">-</div>
+          <div class="stat-label">Locale</div>
+        </div>
+      </div>
 
-      <!-- Recent Videos -->
-      <section class="recent-videos" id="recentVideosSection" style="display: none;">
-        <h3>🎬 Recent Videos</h3>
-        <div class="videos-grid" id="videosGrid">
-          <!-- Videos will be inserted here -->
-        </div>
-      </section>
-
-      <!-- Notes & Warnings -->
-      <section class="notes-section">
-        <div class="notes-card">
-          <div class="notes-card-header">
-            <h3>📝 Notes</h3>
-            <button class="btn btn-small btn-dark" id="btnAddNoteInline">+ Add Note</button>
+      <!-- Content Grid -->
+      <div class="content-grid">
+        <div class="content-main">
+          <!-- Channel Card -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">📺 Channel</h3>
+            </div>
+            <div class="card-body">
+              <a href="#" class="channel-link" id="channelLink" target="_blank">
+                <div class="channel-icon" id="channelIcon">📺</div>
+                <div class="channel-info">
+                  <div class="channel-name" id="channelName">Unknown Channel</div>
+                  <div class="channel-url" id="channelUrl">No URL provided</div>
+                </div>
+                <span class="channel-arrow">→</span>
+              </a>
+              
+              <div class="api-status" id="apiStatus" style="margin-top: 16px;">
+                <span class="status-dot" id="apiStatusDot"></span>
+                <span id="apiStatusText">API not configured</span>
+              </div>
+            </div>
           </div>
-          <div class="notes-content" id="notesContent">
-            <p class="no-notes">No notes yet</p>
+
+          <!-- Notes Card -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">📝 Notes</h3>
+              <button class="btn btn-secondary btn-small" id="btnEditNotes">Edit</button>
+            </div>
+            <div class="card-body">
+              <div class="notes-content" id="notesContent">
+                <div class="notes-empty">No notes for this creator.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Warnings Card -->
+          <div class="card" id="warningsCard" style="display: none;">
+            <div class="card-header">
+              <h3 class="card-title">⚠️ Warnings</h3>
+              <button class="btn btn-secondary btn-small" id="btnEditWarnings">Edit</button>
+            </div>
+            <div class="card-body">
+              <div class="warning-box">
+                <p id="warningsContent">No warnings.</p>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div class="notes-card warnings">
-          <div class="notes-card-header">
-            <h3>⚠️ Warnings</h3>
-            <button class="btn btn-small btn-red" id="btnAddWarningInline">+ Add Warning</button>
+        <div class="content-sidebar">
+          <!-- Details Card -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">📋 Details</h3>
+            </div>
+            <div class="card-body">
+              <div class="info-list">
+                <div class="info-item">
+                  <span class="info-label">Verified By</span>
+                  <span class="info-value" id="detailVerifiedBy">-</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Accepted By</span>
+                  <span class="info-value" id="detailAcceptedBy">-</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Content Review By</span>
+                  <span class="info-value" id="detailReviewBy">-</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Creator Code</span>
+                  <span class="info-value" id="detailCode">-</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Language</span>
+                  <span class="info-value" id="detailLanguage">-</span>
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="notes-content" id="warningsContent">
-            <p class="no-notes">No warnings</p>
+
+          <!-- Contact Card -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">📧 Contact</h3>
+            </div>
+            <div class="card-body">
+              <div class="info-list">
+                <div class="info-item">
+                  <span class="info-label">Email</span>
+                  <span class="info-value" id="detailEmail">-</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Zendesk ID</span>
+                  <span class="info-value" id="detailZendesk">-</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Actions Card -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">⚡ Quick Actions</h3>
+            </div>
+            <div class="card-body">
+              <button class="btn btn-secondary btn-full" id="btnAddNote" style="margin-bottom: 8px;">
+                Add Note
+              </button>
+              <button class="btn btn-secondary btn-full" id="btnAddWarning" style="margin-bottom: 8px;">
+                Add Warning
+              </button>
+              <button class="btn btn-danger btn-full" id="btnDeleteCreator">
+                Delete Creator
+              </button>
+            </div>
           </div>
         </div>
-      </section>
-
-      <!-- API Status -->
-      <section class="api-status" id="apiStatus">
-        <div class="api-status-item" id="youtubeApiStatus">
-          <span class="api-icon">📺</span>
-          <span class="api-name">YouTube API</span>
-          <span class="api-badge not-configured">Not Configured</span>
-        </div>
-        <div class="api-status-item" id="twitchApiStatus">
-          <span class="api-icon">🎮</span>
-          <span class="api-name">Twitch API</span>
-          <span class="api-badge not-configured">Not Configured</span>
-        </div>
-        <a href="../dashboard/dashboard.html#settings" class="api-configure-link">Configure API Keys →</a>
-      </section>
-    </main>
-
-    <!-- Error State -->
-    <div class="error-state" id="errorState" style="display: none;">
-      <span class="error-icon">❌</span>
-      <h3>Creator Not Found</h3>
-      <p id="errorMessage">Could not load creator data.</p>
-      <a href="../dashboard/dashboard.html" class="btn btn-gold">Back to Dashboard</a>
+      </div>
     </div>
   </div>
 
-  <!-- Edit Creator Modal -->
+  <!-- Edit Modal -->
   <div class="modal" id="editModal">
     <div class="modal-backdrop" id="editModalBackdrop"></div>
-    <div class="modal-content modal-large">
+    <div class="modal-content">
       <div class="modal-header">
-        <h3>✏️ Edit Creator</h3>
+        <h3>Edit Creator</h3>
         <button class="modal-close" id="editModalClose">×</button>
       </div>
       <div class="modal-body">
-        <form id="editCreatorForm" class="edit-form">
-          <!-- Basic Info -->
+        <form class="edit-form" id="editForm">
           <div class="form-section">
-            <h4>📋 Basic Information</h4>
+            <h4>Basic Information</h4>
             <div class="form-grid">
               <div class="form-group">
-                <label for="editName">Name</label>
-                <input type="text" id="editName" placeholder="Creator's name">
+                <label for="editName">Display Name</label>
+                <input type="text" id="editName" placeholder="Creator name">
               </div>
               <div class="form-group">
-                <label for="editChannel">Main Channel URL</label>
-                <input type="url" id="editChannel" placeholder="https://youtube.com/...">
-              </div>
-              <div class="form-group">
-                <label for="editUUID">UUID</label>
-                <input type="text" id="editUUID" placeholder="Minecraft UUID">
-              </div>
-              <div class="form-group">
-                <label for="editCreatorCode">Creator Code</label>
-                <input type="text" id="editCreatorCode" placeholder="Creator code">
-              </div>
-            </div>
-          </div>
-
-          <!-- Channel Stats -->
-          <div class="form-section">
-            <h4>📊 Channel Stats</h4>
-            <div class="form-grid">
-              <div class="form-group">
-                <label for="editSubscribers">Subscribers</label>
-                <input type="text" id="editSubscribers" placeholder="e.g., 150000">
-              </div>
-              <div class="form-group">
-                <label for="editRank">Rank Given</label>
+                <label for="editRank">Rank</label>
                 <select id="editRank">
                   <option value="">Select rank...</option>
                   <option value="YOUTUBER">YOUTUBER</option>
+                  <option value="YT">YT</option>
                   <option value="STREAMER">STREAMER</option>
-                  <option value="CREATOR">CREATOR</option>
-                  <option value="VIP">VIP</option>
+                  <option value="BUILDER">BUILDER</option>
+                  <option value="EVENTS">EVENTS</option>
                 </select>
               </div>
+            </div>
+            <div class="form-group full-width">
+              <label for="editChannel">Channel URL</label>
+              <input type="url" id="editChannel" placeholder="https://youtube.com/...">
+            </div>
+          </div>
+          
+          <div class="form-section">
+            <h4>Stats</h4>
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="editSubscribers">Subscribers</label>
+                <input type="text" id="editSubscribers" placeholder="e.g. 1500000">
+              </div>
+              <div class="form-group">
+                <label for="editLastUpload">Last Upload</label>
+                <input type="text" id="editLastUpload" placeholder="e.g. 3 Months">
+              </div>
+            </div>
+            <div class="form-grid">
               <div class="form-group">
                 <label for="editContentType">Content Type</label>
                 <select id="editContentType">
@@ -296,46 +267,28 @@
                 </select>
               </div>
               <div class="form-group">
-                <label for="editLanguage">Content Language</label>
-                <input type="text" id="editLanguage" placeholder="e.g., English">
-              </div>
-              <div class="form-group">
-                <label for="editLastUpload">Last Upload</label>
-                <input type="text" id="editLastUpload" placeholder="e.g., 3 Months">
-              </div>
-              <div class="form-group">
                 <label for="editLocale">Locale</label>
-                <input type="text" id="editLocale" placeholder="e.g., US, UK, DE">
+                <input type="text" id="editLocale" placeholder="e.g. English">
               </div>
             </div>
           </div>
-
-          <!-- Review Info -->
+          
           <div class="form-section">
-            <h4>📋 Review Info</h4>
+            <h4>Minecraft Account</h4>
             <div class="form-grid">
               <div class="form-group">
-                <label for="editLastChecked">Last Checked</label>
-                <input type="date" id="editLastChecked">
+                <label for="editIGN">Minecraft IGN</label>
+                <input type="text" id="editIGN" placeholder="Minecraft username">
               </div>
               <div class="form-group">
-                <label for="editReviewedBy">Content Review By</label>
-                <input type="text" id="editReviewedBy" placeholder="Reviewer name">
-              </div>
-              <div class="form-group">
-                <label for="editDateAccepted">Date Accepted</label>
-                <input type="date" id="editDateAccepted">
-              </div>
-              <div class="form-group">
-                <label for="editAcceptedBy">Accepted By</label>
-                <input type="text" id="editAcceptedBy" placeholder="Who accepted them">
+                <label for="editUUID">UUID</label>
+                <input type="text" id="editUUID" placeholder="UUID">
               </div>
             </div>
           </div>
-
-          <!-- Contact Info -->
+          
           <div class="form-section">
-            <h4>📧 Contact Info</h4>
+            <h4>Contact & Notes</h4>
             <div class="form-grid">
               <div class="form-group">
                 <label for="editEmail">Contact Email</label>
@@ -346,38 +299,25 @@
                 <input type="text" id="editZendesk" placeholder="Zendesk ticket ID">
               </div>
             </div>
-          </div>
-
-          <!-- Notes & Warnings -->
-          <div class="form-section">
-            <h4>📝 Notes & Warnings</h4>
             <div class="form-group full-width">
               <label for="editNotes">Notes</label>
-              <textarea id="editNotes" rows="3" placeholder="Notes about this creator..."></textarea>
+              <textarea id="editNotes" placeholder="Any additional notes..."></textarea>
             </div>
             <div class="form-group full-width">
               <label for="editWarnings">Warnings</label>
-              <textarea id="editWarnings" rows="2" placeholder="Warnings (if any)..."></textarea>
-            </div>
-            <div class="form-group">
-              <label for="editRequiresCheckup">
-                <input type="checkbox" id="editRequiresCheckup"> Requires Checkup
-              </label>
+              <textarea id="editWarnings" placeholder="Any warnings..."></textarea>
             </div>
           </div>
         </form>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-outline" id="editModalCancel">Cancel</button>
-        <button class="btn btn-gold" id="editModalSave">
-          <span>💾</span> Save Changes
-        </button>
+        <button class="btn btn-secondary" id="editCancel">Cancel</button>
+        <button class="btn btn-primary" id="editSave">Save Changes</button>
       </div>
     </div>
   </div>
 
   <script src="../lib/csv-manager.js"></script>
-  <script src="../lib/api-manager.js"></script>
   <script src="creator.js"></script>
 </body>
 </html>
