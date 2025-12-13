@@ -8,6 +8,7 @@ const { client } = require('./bot');
 const db = require('./database/db');
 const { loadCommands, registerCommands } = require('./commands');
 const logger = require('./utils/logger');
+const { startDashboard } = require('../dashboard/server');
 const fs = require('fs');
 const path = require('path');
 
@@ -51,6 +52,9 @@ async function main() {
         
         // Register slash commands after login
         await registerCommands(client);
+        
+        // Start dashboard
+        await startDashboard();
         
     } catch (error) {
         logger.error('Failed to connect to Discord:', error.message);

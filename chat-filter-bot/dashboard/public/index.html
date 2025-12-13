@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Filter Dashboard</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <span class="logo-icon">🛡️</span>
+                    <span class="logo-text">Chat Filter</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-page="dashboard">
+                    <span class="nav-icon">📊</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item" data-page="filters">
+                    <span class="nav-icon">📋</span>
+                    <span>Filters</span>
+                </a>
+                <a href="#" class="nav-item" data-page="add-filter">
+                    <span class="nav-icon">➕</span>
+                    <span>Add Filter</span>
+                </a>
+                <a href="#" class="nav-item" data-page="bulk-import">
+                    <span class="nav-icon">📦</span>
+                    <span>Bulk Import</span>
+                </a>
+                <a href="#" class="nav-item" data-page="logs">
+                    <span class="nav-icon">📜</span>
+                    <span>Logs</span>
+                </a>
+                <a href="#" class="nav-item" data-page="whitelist">
+                    <span class="nav-icon">✅</span>
+                    <span>Whitelist</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <button class="btn btn-primary btn-reload" onclick="reloadFilters()">
+                    🔄 Reload Bot
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <h1 class="page-title" id="pageTitle">Dashboard</h1>
+                <div class="header-actions">
+                    <span class="status-badge" id="botStatus">
+                        <span class="status-dot"></span>
+                        <span id="filterCount">0</span> filters active
+                    </span>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <div class="content" id="pageContent">
+                <!-- Dashboard Page (default) -->
+                <div class="page active" id="page-dashboard">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">📋</div>
+                            <div class="stat-info">
+                                <div class="stat-value" id="statTotalFilters">0</div>
+                                <div class="stat-label">Total Filters</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">🟢</div>
+                            <div class="stat-info">
+                                <div class="stat-value" id="statEnabledFilters">0</div>
+                                <div class="stat-label">Active Filters</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">🚨</div>
+                            <div class="stat-info">
+                                <div class="stat-value" id="statViolations">0</div>
+                                <div class="stat-label">Total Violations</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">🔴</div>
+                            <div class="stat-info">
+                                <div class="stat-value" id="statDisabledFilters">0</div>
+                                <div class="stat-label">Disabled Filters</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-grid">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>🏆 Top Triggered Filters</h3>
+                            </div>
+                            <div class="card-body">
+                                <div id="topFilters" class="top-list">
+                                    <p class="empty-state">No data yet</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>⚡ Recent Violations</h3>
+                            </div>
+                            <div class="card-body">
+                                <div id="recentViolations" class="violations-list">
+                                    <p class="empty-state">No violations yet</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filters Page -->
+                <div class="page" id="page-filters">
+                    <div class="filters-toolbar">
+                        <div class="search-box">
+                            <input type="text" id="filterSearch" placeholder="Search filters..." onkeyup="filterTable()">
+                        </div>
+                        <div class="toolbar-actions">
+                            <button class="btn btn-danger" onclick="deleteSelectedFilters()">🗑️ Delete Selected</button>
+                            <button class="btn btn-primary" onclick="showPage('add-filter')">➕ Add Filter</button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table" id="filtersTable">
+                            <thead>
+                                <tr>
+                                    <th><input type="checkbox" id="selectAll" onchange="toggleSelectAll()"></th>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Pattern</th>
+                                    <th>Action</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="filtersTableBody">
+                                <!-- Filled by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Add Filter Page -->
+                <div class="page" id="page-add-filter">
+                    <div class="card form-card">
+                        <div class="card-header">
+                            <h3>➕ Add New Filter</h3>
+                        </div>
+                        <div class="card-body">
+                            <form id="addFilterForm" onsubmit="addFilter(event)">
+                                <div class="form-group">
+                                    <label for="filterName">Filter Name</label>
+                                    <input type="text" id="filterName" required placeholder="e.g., Block Bad Word">
+                                </div>
+                                <div class="form-group">
+                                    <label for="filterPattern">Regex Pattern</label>
+                                    <input type="text" id="filterPattern" required placeholder="e.g., badword|b4dw0rd">
+                                    <small class="form-help">Use | for alternatives, \b for word boundaries</small>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="filterAction">Action</label>
+                                        <select id="filterAction">
+                                            <option value="delete">Delete Message</option>
+                                            <option value="warn">Warn User (DM)</option>
+                                            <option value="timeout">Timeout User</option>
+                                            <option value="kick">Kick User</option>
+                                            <option value="ban">Ban User</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="filterCaseSensitive">Case Sensitive</label>
+                                        <select id="filterCaseSensitive">
+                                            <option value="false">No (recommended)</option>
+                                            <option value="true">Yes</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Test Pattern</label>
+                                    <input type="text" id="testInput" placeholder="Type to test your pattern...">
+                                    <div id="testResult" class="test-result"></div>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary">Add Filter</button>
+                                    <button type="button" class="btn btn-secondary" onclick="showPage('filters')">Cancel</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bulk Import Page -->
+                <div class="page" id="page-bulk-import">
+                    <div class="card form-card">
+                        <div class="card-header">
+                            <h3>📦 Bulk Import Filters</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="import-options">
+                                <button class="btn btn-secondary" onclick="loadToxicPresets()">
+                                    🛡️ Load All Toxic Presets (50+)
+                                </button>
+                            </div>
+                            <div class="divider"><span>OR</span></div>
+                            <form id="bulkImportForm" onsubmit="bulkImport(event)">
+                                <div class="form-group">
+                                    <label for="bulkWords">Words/Patterns (one per line)</label>
+                                    <textarea id="bulkWords" rows="10" placeholder="Enter words or patterns, one per line:
+
+badword
+another-word
+custom|regex|pattern
+\\bexact\\b"></textarea>
+                                    <small class="form-help">Simple words will be auto-escaped. Use regex for complex patterns.</small>
+                                </div>
+                                <div class="form-group">
+                                    <label for="bulkAction">Default Action</label>
+                                    <select id="bulkAction">
+                                        <option value="delete">Delete Message</option>
+                                        <option value="warn">Warn User (DM)</option>
+                                        <option value="timeout">Timeout User</option>
+                                        <option value="kick">Kick User</option>
+                                        <option value="ban">Ban User</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>
+                                        <input type="checkbox" id="bulkIsRegex"> 
+                                        Treat as regex patterns (don't escape)
+                                    </label>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary">Import Filters</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Logs Page -->
+                <div class="page" id="page-logs">
+                    <div class="filters-toolbar">
+                        <div class="search-box">
+                            <input type="text" id="logSearch" placeholder="Search logs..." onkeyup="filterLogs()">
+                        </div>
+                        <button class="btn btn-secondary" onclick="loadLogs()">🔄 Refresh</button>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table" id="logsTable">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>User</th>
+                                    <th>Filter</th>
+                                    <th>Message</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="logsTableBody">
+                                <!-- Filled by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Whitelist Page -->
+                <div class="page" id="page-whitelist">
+                    <div class="whitelist-grid">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>👥 Whitelisted Roles</h3>
+                            </div>
+                            <div class="card-body">
+                                <form class="inline-form" onsubmit="addWhitelistRole(event)">
+                                    <input type="text" id="roleId" placeholder="Role ID" required>
+                                    <input type="text" id="roleName" placeholder="Role Name" required>
+                                    <button type="submit" class="btn btn-primary">Add</button>
+                                </form>
+                                <div id="whitelistRoles" class="whitelist-list">
+                                    <p class="empty-state">No whitelisted roles</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>💬 Whitelisted Channels</h3>
+                            </div>
+                            <div class="card-body">
+                                <form class="inline-form" onsubmit="addWhitelistChannel(event)">
+                                    <input type="text" id="channelId" placeholder="Channel ID" required>
+                                    <input type="text" id="channelName" placeholder="Channel Name" required>
+                                    <button type="submit" class="btn btn-primary">Add</button>
+                                </form>
+                                <div id="whitelistChannels" class="whitelist-list">
+                                    <p class="empty-state">No whitelisted channels</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Edit Filter Modal -->
+    <div class="modal" id="editModal">
+        <div class="modal-backdrop" onclick="closeModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>✏️ Edit Filter</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="editFilterForm" onsubmit="saveFilter(event)">
+                    <input type="hidden" id="editFilterId">
+                    <div class="form-group">
+                        <label for="editFilterName">Filter Name</label>
+                        <input type="text" id="editFilterName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editFilterPattern">Regex Pattern</label>
+                        <input type="text" id="editFilterPattern" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editFilterAction">Action</label>
+                        <select id="editFilterAction">
+                            <option value="delete">Delete Message</option>
+                            <option value="warn">Warn User (DM)</option>
+                            <option value="timeout">Timeout User</option>
+                            <option value="kick">Kick User</option>
+                            <option value="ban">Ban User</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                        <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="/js/app.js"></script>
+</body>
+</html>
