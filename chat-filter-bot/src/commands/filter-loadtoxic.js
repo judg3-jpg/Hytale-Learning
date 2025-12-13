@@ -14,6 +14,10 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName('filter-loadtoxic')
         .setDescription('Load all toxic/harmful content filters (slurs, self-harm, hate speech)')
+        .addBooleanOption(option =>
+            option.setName('confirm')
+                .setDescription('Confirm loading all filters (set to true)')
+                .setRequired(true))
         .addStringOption(option =>
             option.setName('action')
                 .setDescription('Action to take when triggered')
@@ -25,10 +29,6 @@ module.exports = {
                     { name: 'Kick', value: 'kick' },
                     { name: 'Ban', value: 'ban' }
                 ))
-        .addBooleanOption(option =>
-            option.setName('confirm')
-                .setDescription('Confirm loading all filters (set to true)')
-                .setRequired(true))
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
     async execute(interaction) {
