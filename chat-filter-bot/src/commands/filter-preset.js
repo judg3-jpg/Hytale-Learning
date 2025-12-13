@@ -15,28 +15,31 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName('filter-preset')
         .setDescription('Add a pre-built filter or list available presets')
-        .addStringOption(option => {
-            const opt = option.setName('preset')
+        .addStringOption(option =>
+            option.setName('preset')
                 .setDescription('The preset to add (leave empty to list all)')
-                .setRequired(false);
-            
-            // Add choices for each preset
-            const presetNames = getPresetNames();
-            for (const name of presetNames) {
-                opt.addChoices({ name: presets[name].name, value: name });
-            }
-            return opt;
-        })
+                .setRequired(false)
+                .addChoices(
+                    { name: 'Discord Invites', value: 'discordInvites' },
+                    { name: 'All Links', value: 'links' },
+                    { name: 'Mass Mentions', value: 'massMentions' },
+                    { name: 'Excessive Caps', value: 'excessiveCaps' },
+                    { name: 'Repeated Characters', value: 'repeatedChars' },
+                    { name: 'Zalgo Text', value: 'zalgo' },
+                    { name: 'Scam Patterns', value: 'scamLinks' },
+                    { name: 'IP Addresses', value: 'ipAddresses' },
+                    { name: 'Phone Numbers', value: 'phoneNumbers' }
+                ))
         .addStringOption(option =>
             option.setName('action')
                 .setDescription('Override the default action')
                 .setRequired(false)
                 .addChoices(
-                    { name: '🗑️ Delete', value: 'delete' },
-                    { name: '⚠️ Warn (DM user)', value: 'warn' },
-                    { name: '⏰ Timeout', value: 'timeout' },
-                    { name: '👢 Kick', value: 'kick' },
-                    { name: '🔨 Ban', value: 'ban' }
+                    { name: 'Delete', value: 'delete' },
+                    { name: 'Warn (DM user)', value: 'warn' },
+                    { name: 'Timeout', value: 'timeout' },
+                    { name: 'Kick', value: 'kick' },
+                    { name: 'Ban', value: 'ban' }
                 ))
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages),
 
@@ -50,7 +53,7 @@ module.exports = {
             
             const listEmbed = new EmbedBuilder()
                 .setColor(0x5865F2)
-                .setTitle('📦 Available Filter Presets')
+                .setTitle('Available Filter Presets')
                 .setDescription('Use `/filter-preset preset:<name>` to add one.')
                 .setTimestamp();
 

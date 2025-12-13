@@ -26,11 +26,11 @@ module.exports = {
                 .setDescription('Action to take when triggered')
                 .setRequired(false)
                 .addChoices(
-                    { name: '🗑️ Delete', value: 'delete' },
-                    { name: '⚠️ Warn (DM user)', value: 'warn' },
-                    { name: '⏰ Timeout', value: 'timeout' },
-                    { name: '👢 Kick', value: 'kick' },
-                    { name: '🔨 Ban', value: 'ban' }
+                    { name: 'Delete', value: 'delete' },
+                    { name: 'Warn (DM user)', value: 'warn' },
+                    { name: 'Timeout', value: 'timeout' },
+                    { name: 'Kick', value: 'kick' },
+                    { name: 'Ban', value: 'ban' }
                 ))
         .addBooleanOption(option =>
             option.setName('case_sensitive')
