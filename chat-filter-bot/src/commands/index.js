@@ -62,7 +62,10 @@ async function registerCommands(client) {
             logger.success(`Registered ${commands.length} global commands`);
         }
     } catch (error) {
-        logger.error('Failed to register commands:', error);
+        logger.error('Failed to register commands:', error.message);
+        if (error.rawError) {
+            console.error('Details:', JSON.stringify(error.rawError, null, 2));
+        }
     }
 }
 
