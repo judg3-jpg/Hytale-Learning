@@ -419,10 +419,14 @@ async function addFilter(e) {
     });
 
     if (result.success) {
-        toast('Filter added successfully', 'success');
+        toast('Filter added & synced to Discord!', 'success');
         document.getElementById('addFilterForm').reset();
+        document.getElementById('filterWord').value = '';
         document.getElementById('testResult').className = 'test-result';
         document.getElementById('testResult').textContent = '';
+        
+        // Auto-refresh and go to filters page
+        await loadFilters();
         showPage('filters');
     } else {
         toast(result.error || 'Failed to add filter', 'error');
@@ -504,8 +508,11 @@ async function bulkImport(e) {
     });
 
     if (result.success) {
-        toast(`Imported ${result.data.added} filters (${result.data.failed} failed)`, 'success');
+        toast(`Imported ${result.data.added} filters & synced to Discord!`, 'success');
         document.getElementById('bulkWords').value = '';
+        
+        // Auto-refresh and go to filters page
+        await loadFilters();
         showPage('filters');
     } else {
         toast(result.error || 'Failed to import', 'error');
@@ -521,7 +528,10 @@ async function loadToxicPresets() {
     });
 
     if (result.success) {
-        toast(`Loaded ${result.data.added} toxic filters`, 'success');
+        toast(`Loaded ${result.data.added} toxic filters & synced to Discord!`, 'success');
+        
+        // Auto-refresh and go to filters page
+        await loadFilters();
         showPage('filters');
     } else {
         toast(result.error || 'Failed to load presets', 'error');
@@ -687,6 +697,22 @@ async function reloadFilters() {
     } else {
         toast(result.error || 'Failed to reload', 'error');
     }
+}
+
+/**
+ * Refresh all - reloads filters in both dashboard and Discord bot
+ */
+async function refreshAll() {
+    toast('Refreshing...', 'info');
+    
+    // Reload bot filters
+    await api('/bot/reload', { method: 'POST' });
+    
+    // Reload dashboard data
+    await loadFilters();
+    await loadDashboard();
+    
+    toast('Dashboard & Bot synced!', 'success');
 }
 
 // ============================================
