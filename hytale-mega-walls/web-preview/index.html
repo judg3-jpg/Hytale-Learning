@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mega Walls - Hytale Preview</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">
+            <span class="logo-icon">⚔️</span>
+            <h1>MEGA WALLS</h1>
+            <span class="version">Hytale Edition v1.0</span>
+        </div>
+        <nav class="nav">
+            <button class="nav-btn active" data-section="overview">Overview</button>
+            <button class="nav-btn" data-section="classes">Classes</button>
+            <button class="nav-btn" data-section="boss">Dragon Boss</button>
+            <button class="nav-btn" data-section="simulator">Simulator</button>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        
+        <!-- Overview Section -->
+        <section id="overview" class="section active">
+            <div class="overview-hero">
+                <h2>Welcome to Mega Walls</h2>
+                <p>A 4-team PvP survival game where you must protect your Dragon while destroying the enemy's!</p>
+            </div>
+            
+            <div class="game-phases">
+                <div class="phase">
+                    <div class="phase-icon">🏗️</div>
+                    <h3>Phase 1: Preparation</h3>
+                    <p>20 minutes to gather resources, craft gear, and build defenses. Teams are separated by walls.</p>
+                    <div class="phase-time">20:00</div>
+                </div>
+                <div class="phase-arrow">→</div>
+                <div class="phase">
+                    <div class="phase-icon">💥</div>
+                    <h3>Phase 2: Walls Fall</h3>
+                    <p>Walls crumble! Dragons spawn at each base. PvP is enabled. The battle begins!</p>
+                    <div class="phase-time">0:00</div>
+                </div>
+                <div class="phase-arrow">→</div>
+                <div class="phase">
+                    <div class="phase-icon">🏆</div>
+                    <h3>Phase 3: Victory</h3>
+                    <p>Kill enemy Dragons to eliminate teams. Last team with a living Dragon wins!</p>
+                    <div class="phase-time">∞</div>
+                </div>
+            </div>
+
+            <div class="teams-display">
+                <h3>4 Teams Battle</h3>
+                <div class="teams-grid">
+                    <div class="team team-red">
+                        <span class="team-icon">🐉</span>
+                        <span>Red Team</span>
+                    </div>
+                    <div class="team team-blue">
+                        <span class="team-icon">🐉</span>
+                        <span>Blue Team</span>
+                    </div>
+                    <div class="team team-green">
+                        <span class="team-icon">🐉</span>
+                        <span>Green Team</span>
+                    </div>
+                    <div class="team team-yellow">
+                        <span class="team-icon">🐉</span>
+                        <span>Yellow Team</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Classes Section -->
+        <section id="classes" class="section">
+            <h2>Choose Your Class</h2>
+            <p class="section-subtitle">Each class has unique abilities, passives, and playstyles</p>
+            
+            <div class="class-selector">
+                <button class="class-tab active" data-class="hero">
+                    <span class="class-icon">🦸</span>
+                    <span>Hero</span>
+                </button>
+                <button class="class-tab" data-class="marksman">
+                    <span class="class-icon">🏹</span>
+                    <span>Marksman</span>
+                </button>
+                <button class="class-tab" data-class="dual-warrior">
+                    <span class="class-icon">⚔️</span>
+                    <span>Dual Warrior</span>
+                </button>
+            </div>
+
+            <!-- Hero Class -->
+            <div id="class-hero" class="class-display active">
+                <div class="class-header">
+                    <div class="class-avatar hero-avatar">🦸</div>
+                    <div class="class-info">
+                        <h3>HERO</h3>
+                        <p class="class-role">Versatile Fighter / Team Support</p>
+                        <div class="class-stats">
+                            <div class="stat">
+                                <span class="stat-label">Health</span>
+                                <div class="stat-bar">
+                                    <div class="stat-fill" style="width: 73%"></div>
+                                </div>
+                                <span class="stat-value">22 HP</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Damage</span>
+                                <div class="stat-bar">
+                                    <div class="stat-fill" style="width: 70%"></div>
+                                </div>
+                                <span class="stat-value">High</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Mobility</span>
+                                <div class="stat-bar">
+                                    <div class="stat-fill" style="width: 80%"></div>
+                                </div>
+                                <span class="stat-value">High</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Support</span>
+                                <div class="stat-bar">
+                                    <div class="stat-fill" style="width: 85%"></div>
+                                </div>
+                                <span class="stat-value">Excellent</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="abilities-grid">
+                    <div class="ability active-ability">
+                        <div class="ability-header">
+                            <span class="ability-key">Q</span>
+                            <span class="ability-name">Valor Strike</span>
+                            <span class="ability-cooldown">25s</span>
+                        </div>
+                        <div class="ability-icon">⚡</div>
+                        <p class="ability-desc">Dash forward 8 blocks, dealing <strong>8 damage</strong> to all enemies in your path and <strong>stunning</strong> them for 1.5 seconds.</p>
+                        <div class="ability-stats">
+                            <span>Damage: 8</span>
+                            <span>Range: 8 blocks</span>
+                            <span>Stun: 1.5s</span>
+                        </div>
+                    </div>
+                    
+                    <div class="ability active-ability">
+                        <div class="ability-header">
+                            <span class="ability-key">E</span>
+                            <span class="ability-name">Rally Cry</span>
+                            <span class="ability-cooldown">45s</span>
+                        </div>
+                        <div class="ability-icon">💚</div>
+                        <p class="ability-desc">Let out a battle cry, <strong>healing all allies</strong> within 15 blocks for <strong>6 HP</strong> and removing negative effects. Self heal: 4 HP.</p>
+                        <div class="ability-stats">
+                            <span>Heal: 6 HP</span>
+                            <span>Range: 15 blocks</span>
+                            <span>Cleanse: Yes</span>
+                        </div>
+                    </div>
+                    
+                    <div class="ability passive-ability">
+                        <div class="ability-header">
+                            <span class="ability-key passive">P</span>
+                            <span class="ability-name">Heroic Presence</span>
+                            <span class="ability-cooldown">Passive</span>
+                        </div>
+                        <div class="ability-icon">✨</div>
+                        <p class="ability-desc">Allies within 10 blocks gain <strong>+10% damage</strong> and <strong>+5% defense</strong>. When below 50% HP, gain <strong>Last Stand</strong> (+15% damage).</p>
+                        <div class="ability-stats">
+                            <span>Aura: 10 blocks</span>
+                            <span>Team Buff: +10%</span>
+                            <span>Last Stand: +15%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="ability gathering-ability">
+                        <div class="ability-header">
+                            <span class="ability-key gather">G</span>
+                            <span class="ability-name">Veteran Explorer</span>
+                            <span class="ability-cooldown">Perk</span>
+                        </div>
+                        <div class="ability-icon">⛏️</div>
+                        <p class="ability-desc"><strong>+15% mining speed</strong>, <strong>10% double ore drops</strong>, and <strong>+20% mob loot</strong>.</p>
+                        <div class="ability-stats">
+                            <span>Mining: +15%</span>
+                            <span>Double Ore: 10%</span>
+                            <span>Loot: +20%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="starting-kit">
+                    <h4>Starting Kit</h4>
+                    <div class="kit-items">
+                        <div class="kit-item">🗡️ Wooden Sword</div>
+                        <div class="kit-item">⛏️ Wooden Pickaxe</div>
+                        <div class="kit-item">🍞 Bread x8</div>
+                        <div class="kit-item">👢 Leather Boots</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Marksman Class -->
+            <div id="class-marksman" class="class-display">
+                <div class="class-header">
+                    <div class="class-avatar marksman-avatar">🏹</div>
+                    <div class="class-info">
+                        <h3>MARKSMAN</h3>
+                        <p class="class-role">Ranged DPS / Sniper</p>
+                        <div class="class-stats">
+                            <div class="stat">
+                                <span class="stat-label">Health</span>
+                                <div class="stat-bar">
+                                    <div class="stat-fill" style="width: 60%"></div>
+                                </div>
+                                <span class="stat-value">18 HP</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Damage</span>
+                                <div class="stat-bar">
+                                    <div class="stat-fill" style="width: 95%"></div>
+                                </div>
+                                <span class="stat-value">Very High</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Mobility</span>
+                                <div class="stat-bar">
+                                    <div class="stat-fill" style="width: 65%"></div>
+                                </div>
+                                <span class="stat-value">Medium</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Range</span>
+                                <div class="stat-bar">
+                                    <div class="stat-fill" style="width: 100%"></div>
+                                </div>
+                                <span class="stat-value">Excellent</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="abilities-grid">
+                    <div class="ability active-ability">
+                        <div class="ability-header">
+                            <span class="ability-key">Q</span>
+                            <span class="ability-name">Piercing Shot</span>
+                            <span class="ability-cooldown">15s</span>
+                        </div>
+                        <div class="ability-icon">🎯</div>
+                        <p class="ability-desc">Fire a powerful arrow that <strong>pierces through enemies</strong>, dealing <strong>12 damage</strong> to all targets in a line up to 30 blocks.</p>
+                        <div class="ability-stats">
+                            <span>Damage: 12</span>
+                            <span>Range: 30 blocks</span>
+                            <span>Piercing: Yes</span>
+                        </div>
+                    </div>
+                    
+                    <div class="ability active-ability">
+                        <div class="ability-header">
+                            <span class="ability-key">E</span>
+                            <span class="ability-name">Explosive Arrow</span>
+                            <span class="ability-cooldown">30s</span>
+                        </div>
+                        <div class="ability-icon">💥</div>
+                        <p class="ability-desc">Launch an explosive arrow that <strong>detonates on impact</strong>, dealing <strong>10 damage</strong> in a 5 block radius and applying <strong>burning</strong>.</p>
+                        <div class="ability-stats">
+                            <span>Damage: 10</span>
+                            <span>Radius: 5 blocks</span>
+                            <span>Burn: 3s</span>
+                        </div>
+                    </div>
+                    
+                    <div class="ability passive-ability">
+                        <div class="ability-header">
+                            <span class="ability-key passive">P</span>
+                            <span class="ability-name">Eagle Eye</span>
+                            <span class="ability-cooldown">Passive</span>
+                        </div>
+                        <div class="ability-icon">👁️</div>
+                        <p class="ability-desc">Headshots deal <strong>+50% damage</strong>. Arrows travel <strong>25% faster</strong>. Enemies hit are <strong>highlighted</strong> for 5 seconds.</p>
+                        <div class="ability-stats">
+                            <span>Headshot: +50%</span>
+                            <span>Arrow Speed: +25%</span>
+                            <span>Mark: 5s</span>
+                        </div>
+                    </div>
+                    
+                    <div class="ability gathering-ability">
+                        <div class="ability-header">
+                            <span class="ability-key gather">G</span>
+                            <span class="ability-name">Hunter's Instinct</span>
+                            <span class="ability-cooldown">Perk</span>
+                        </div>
+                        <div class="ability-icon">🦌</div>
+                        <p class="ability-desc"><strong>+30% arrow recovery</strong>, <strong>+25% feather drops</strong>, and <strong>track nearby enemies</strong> on compass.</p>
+                        <div class="ability-stats">
+                            <span>Arrow Recovery: 30%</span>
+                            <span>Feathers: +25%</span>
+                            <span>Tracking: Yes</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="starting-kit">
+                    <h4>Starting Kit</h4>
+                    <div class="kit-items">
+                        <div class="kit-item">🏹 Bow</div>
+                        <div class="kit-item">🪶 Arrow x32</div>
+                        <div class="kit-item">🗡️ Wooden Dagger</div>
+                        <div class="kit-item">🍞 Bread x6</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dual Warrior Class -->
+            <div id="class-dual-warrior" class="class-display">
+                <div class="class-header">
+                    <div class="class-avatar warrior-avatar">⚔️</div>
+                    <div class="class-info">
+                        <h3>DUAL WARRIOR</h3>
+                        <p class="class-role">Melee DPS / Berserker</p>
+                        <div class="class-stats">
+                            <div class="stat">
+                                <span class="stat-label">Health</span>
+                                <div class="stat-bar">
+                                    <div class="stat-fill" style="width: 67%"></div>
+                                </div>
+                                <span class="stat-value">20 HP</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Damage</span>
+                                <div class="stat-bar">
+                                    <div class="stat-fill" style="width: 90%"></div>
+                                </div>
+                                <span class="stat-value">Very High</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Attack Speed</span>
+                                <div class="stat-bar">
+                                    <div class="stat-fill" style="width: 100%"></div>
+                                </div>
+                                <span class="stat-value">Fastest</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Defense</span>
+                                <div class="stat-bar">
+                                    <div class="stat-fill" style="width: 50%"></div>
+                                </div>
+                                <span class="stat-value">Low</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="abilities-grid">
+                    <div class="ability active-ability">
+                        <div class="ability-header">
+                            <span class="ability-key">Q</span>
+                            <span class="ability-name">Blade Storm</span>
+                            <span class="ability-cooldown">20s</span>
+                        </div>
+                        <div class="ability-icon">🌀</div>
+                        <p class="ability-desc">Spin rapidly for 3 seconds, dealing <strong>4 damage per hit</strong> to all enemies within 4 blocks. Immune to knockback during spin.</p>
+                        <div class="ability-stats">
+                            <span>DPS: ~12</span>
+                            <span>Radius: 4 blocks</span>
+                            <span>Duration: 3s</span>
+                        </div>
+                    </div>
+                    
+                    <div class="ability active-ability">
+                        <div class="ability-header">
+                            <span class="ability-key">E</span>
+                            <span class="ability-name">Twin Strike</span>
+                            <span class="ability-cooldown">12s</span>
+                        </div>
+                        <div class="ability-icon">⚡</div>
+                        <p class="ability-desc">Instantly strike with both blades, dealing <strong>14 damage</strong> total. If target is below 30% HP, execute for <strong>double damage</strong>.</p>
+                        <div class="ability-stats">
+                            <span>Damage: 14</span>
+                            <span>Execute: &lt;30% HP</span>
+                            <span>Bonus: x2</span>
+                        </div>
+                    </div>
+                    
+                    <div class="ability passive-ability">
+                        <div class="ability-header">
+                            <span class="ability-key passive">P</span>
+                            <span class="ability-name">Bloodlust</span>
+                            <span class="ability-cooldown">Passive</span>
+                        </div>
+                        <div class="ability-icon">🩸</div>
+                        <p class="ability-desc">Each hit grants a <strong>Bloodlust stack</strong> (max 5). Each stack: <strong>+5% attack speed</strong> and <strong>+3% lifesteal</strong>. Stacks decay after 4s.</p>
+                        <div class="ability-stats">
+                            <span>Max Stacks: 5</span>
+                            <span>Speed: +25%</span>
+                            <span>Lifesteal: 15%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="ability gathering-ability">
+                        <div class="ability-header">
+                            <span class="ability-key gather">G</span>
+                            <span class="ability-name">Battle Hardened</span>
+                            <span class="ability-cooldown">Perk</span>
+                        </div>
+                        <div class="ability-icon">🛡️</div>
+                        <p class="ability-desc"><strong>+20% wood chopping speed</strong>, <strong>craft weapons 15% faster</strong>, and <strong>bonus ore from combat kills</strong>.</p>
+                        <div class="ability-stats">
+                            <span>Chopping: +20%</span>
+                            <span>Crafting: +15%</span>
+                            <span>Combat Ore: Yes</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="starting-kit">
+                    <h4>Starting Kit</h4>
+                    <div class="kit-items">
+                        <div class="kit-item">🗡️ Wooden Sword x2</div>
+                        <div class="kit-item">🪓 Wooden Axe</div>
+                        <div class="kit-item">🍖 Steak x4</div>
+                        <div class="kit-item">🧤 Leather Gloves</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Boss Section -->
+        <section id="boss" class="section">
+            <h2>Dragon Boss</h2>
+            <p class="section-subtitle">Each team must protect their Dragon - lose it and you're eliminated!</p>
+            
+            <div class="boss-display">
+                <div class="boss-visual">
+                    <div class="dragon-model">🐉</div>
+                    <div class="boss-health-bar">
+                        <div class="health-fill" id="dragon-health-fill"></div>
+                        <span class="health-text">500 / 500 HP</span>
+                    </div>
+                </div>
+                
+                <div class="boss-stats-panel">
+                    <h3>Dragon Stats</h3>
+                    <div class="boss-stat">
+                        <span class="stat-icon">❤️</span>
+                        <span class="stat-name">Health</span>
+                        <span class="stat-val">500 HP</span>
+                    </div>
+                    <div class="boss-stat">
+                        <span class="stat-icon">🛡️</span>
+                        <span class="stat-name">Armor</span>
+                        <span class="stat-val">20% reduction</span>
+                    </div>
+                    <div class="boss-stat">
+                        <span class="stat-icon">💚</span>
+                        <span class="stat-name">Regen</span>
+                        <span class="stat-val">2 HP/sec (out of combat)</span>
+                    </div>
+                    <div class="boss-stat">
+                        <span class="stat-icon">⏱️</span>
+                        <span class="stat-name">Spawn Protection</span>
+                        <span class="stat-val">10 seconds</span>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="abilities-title">Dragon Abilities</h3>
+            <div class="boss-abilities">
+                <div class="boss-ability">
+                    <div class="boss-ability-icon fire">🔥</div>
+                    <div class="boss-ability-info">
+                        <h4>Fire Breath</h4>
+                        <span class="boss-cd">8s cooldown</span>
+                        <p>Breathes fire in a 15-block cone for 3 seconds. Deals <strong>6 damage/sec</strong> (18 total). Leaves burning ground.</p>
+                    </div>
+                </div>
+                
+                <div class="boss-ability">
+                    <div class="boss-ability-icon wind">💨</div>
+                    <div class="boss-ability-info">
+                        <h4>Wing Gust</h4>
+                        <span class="boss-cd">15s cooldown</span>
+                        <p>When 3+ enemies are close, flaps wings to <strong>knock back all enemies 10 blocks</strong>. Deals 2 damage.</p>
+                    </div>
+                </div>
+                
+                <div class="boss-ability">
+                    <div class="boss-ability-icon tail">🦎</div>
+                    <div class="boss-ability-info">
+                        <h4>Tail Swipe</h4>
+                        <span class="boss-cd">5s cooldown</span>
+                        <p>Swipes tail at enemies behind. Deals <strong>10 damage</strong> in a 5-block arc. Punishes flanking!</p>
+                    </div>
+                </div>
+                
+                <div class="boss-ability">
+                    <div class="boss-ability-icon roar">📢</div>
+                    <div class="boss-ability-info">
+                        <h4>Dragon Roar</h4>
+                        <span class="boss-cd">60s cooldown</span>
+                        <p>At 50% HP, roars! <strong>Allies get +20% damage</strong> for 10s. <strong>Enemies get slowed</strong> for 5s.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dragon-death-info">
+                <h3>⚠️ When Your Dragon Dies</h3>
+                <ul>
+                    <li>Your entire team gets <strong>-20% damage</strong> debuff</li>
+                    <li>Your entire team gets <strong>-10% movement speed</strong></li>
+                    <li>Your team <strong>cannot win</strong> - fight for honor!</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Simulator Section -->
+        <section id="simulator" class="section">
+            <h2>Combat Simulator</h2>
+            <p class="section-subtitle">Test abilities and see damage numbers!</p>
+            
+            <div class="simulator-container">
+                <div class="sim-player-panel">
+                    <h3>Your Class</h3>
+                    <select id="sim-class-select">
+                        <option value="hero">Hero</option>
+                        <option value="marksman">Marksman</option>
+                        <option value="dual-warrior">Dual Warrior</option>
+                    </select>
+                    
+                    <div class="sim-player-stats">
+                        <div class="sim-health">
+                            <span>HP:</span>
+                            <div class="sim-health-bar">
+                                <div class="sim-health-fill" id="player-hp-fill"></div>
+                            </div>
+                            <span id="player-hp-text">22/22</span>
+                        </div>
+                    </div>
+                    
+                    <div class="sim-abilities">
+                        <button class="sim-ability-btn" id="sim-q-btn" data-ability="q">
+                            <span class="key">Q</span>
+                            <span class="name" id="sim-q-name">Valor Strike</span>
+                            <div class="cooldown-overlay" id="sim-q-cd"></div>
+                        </button>
+                        <button class="sim-ability-btn" id="sim-e-btn" data-ability="e">
+                            <span class="key">E</span>
+                            <span class="name" id="sim-e-name">Rally Cry</span>
+                            <div class="cooldown-overlay" id="sim-e-cd"></div>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="sim-arena">
+                    <div class="sim-target" id="sim-target">
+                        <div class="target-icon">🐉</div>
+                        <div class="target-health-bar">
+                            <div class="target-health-fill" id="target-hp-fill"></div>
+                        </div>
+                        <span class="target-hp-text" id="target-hp-text">500/500</span>
+                        <div class="damage-numbers" id="damage-numbers"></div>
+                    </div>
+                </div>
+                
+                <div class="sim-log">
+                    <h3>Combat Log</h3>
+                    <div class="log-entries" id="combat-log">
+                        <div class="log-entry">Welcome to the Combat Simulator!</div>
+                        <div class="log-entry">Select a class and use abilities with Q/E keys or buttons.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>Mega Walls for Hytale - Preview Build</p>
+        <p>Press <kbd>Q</kbd> or <kbd>E</kbd> in Simulator to use abilities!</p>
+    </footer>
+
+    <script src="js/app.js"></script>
+</body>
+</html>

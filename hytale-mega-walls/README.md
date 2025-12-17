@@ -1,6 +1,6 @@
-# 🎮 Mega Walls for Hytale
+# 🎮 Mega Walls - Hytale Edition
 
-Ready-to-import Node Editor scripts for Mega Walls minigame.
+Complete game design, 3 classes, Dragon boss, and web preview for Mega Walls minigame.
 
 ---
 
@@ -8,107 +8,160 @@ Ready-to-import Node Editor scripts for Mega Walls minigame.
 
 ```
 hytale-mega-walls/
-├── scripts/
-│   ├── hero/
-│   │   └── hero_class.json        ← HERO CLASS (all abilities)
-│   ├── dragon/
-│   │   └── dragon_boss.json       ← DRAGON BOSS (AI + attacks)
-│   └── game/
-│       └── game_controller.json   ← GAME LOGIC (timer, win)
-├── IMPORT_INSTRUCTIONS.md         ← HOW TO USE THESE FILES
-├── QUICK_START_GUIDE.md           ← Step-by-step manual build
-└── NODE_EDITOR_IMPLEMENTATION.md  ← Detailed reference
+│
+├── 🌐 web-preview/              ← LOCALHOST PREVIEW
+│   ├── index.html
+│   ├── css/style.css
+│   └── js/app.js
+│
+├── 📜 scripts/                  ← NODE EDITOR SCRIPTS (JSON)
+│   ├── hero/hero_class.json
+│   ├── dragon/dragon_boss.json
+│   └── game/game_controller.json
+│
+├── 📖 Documentation
+│   ├── CLASSES.md               ← ALL 3 CLASSES DETAILED
+│   ├── GAME_DESIGN.md           ← Full game mechanics
+│   ├── DRAGON_BOSS.md           ← Dragon boss details
+│   └── IMPORT_INSTRUCTIONS.md   ← How to use scripts
+│
+└── README.md                    ← You are here
 ```
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Run the Web Preview (Localhost)
 
-### 1. Import the Scripts
+### Option 1: Simple Python Server
+```bash
+cd hytale-mega-walls/web-preview
+python -m http.server 8080
+```
+Then open: **http://localhost:8080**
 
-Go to `scripts/` folder and import the JSON files into Hytale's Node Editor:
+### Option 2: Node.js (if you have it)
+```bash
+cd hytale-mega-walls/web-preview
+npx serve .
+```
 
-| File | Attach To | Purpose |
-|------|-----------|---------|
-| `hero_class.json` | Player (Hero class) | All hero abilities |
-| `dragon_boss.json` | Dragon entity | Boss AI & attacks |
-| `game_controller.json` | World/Game object | Game loop |
-
-### 2. Read Import Instructions
-
-Open **[IMPORT_INSTRUCTIONS.md](./IMPORT_INSTRUCTIONS.md)** for:
-- How to import/recreate the scripts
-- Variable setup guide
-- Node type reference
-- Testing checklist
+### Option 3: Just Open the File
+Double-click `web-preview/index.html` to open in browser!
 
 ---
 
-## ⚔️ What's Included
+## ⚔️ The 3 Classes
 
-### Hero Class (`hero_class.json`)
-| Ability | Key | What It Does |
-|---------|-----|--------------|
-| **Valor Strike** | Q | Dash 8 blocks, 8 damage, stun enemies |
-| **Rally Cry** | E | Heal allies 6 HP in 15 block radius |
-| **Heroic Presence** | Passive | Nearby allies get +damage buff |
-| **Last Stand** | Passive | +damage when below 50% HP |
+### 🦸 Hero (Support/Fighter)
+| Ability | Key | Effect |
+|---------|-----|--------|
+| Valor Strike | Q | Dash 8 blocks, 8 damage, stun |
+| Rally Cry | E | Heal allies 6 HP, cleanse debuffs |
+| Heroic Presence | Passive | +10% damage to nearby allies |
+| Last Stand | Passive | +15% damage when low HP |
 
-### Dragon Boss (`dragon_boss.json`)
-| Ability | Trigger | What It Does |
-|---------|---------|--------------|
-| **Fire Breath** | Enemy in front | 18 damage cone over 3 seconds |
-| **Wing Gust** | 3+ enemies close | Knockback everyone 10 blocks |
-| **Tail Swipe** | Enemy behind | 10 damage melee |
-| **Dragon Roar** | HP < 50% | Buff allies, slow enemies |
+**Health: 22 HP** | **Role: Team Support**
 
-**Stats:** 500 HP, 20% armor, 2 HP/sec regen
+---
 
-### Game Controller (`game_controller.json`)
-- 20-minute preparation phase
-- Walls fall mechanic
-- Dragon spawning
-- Team elimination tracking
-- Win condition detection
+### 🏹 Marksman (Ranged DPS)
+| Ability | Key | Effect |
+|---------|-----|--------|
+| Piercing Shot | Q | 12 damage, pierces all enemies |
+| Explosive Arrow | E | 10 AoE damage + burning |
+| Eagle Eye | Passive | +50% headshot damage |
+| Hunter's Instinct | Perk | Track enemies, arrow recovery |
+
+**Health: 18 HP** | **Role: Sniper**
+
+---
+
+### ⚔️ Dual Warrior (Melee DPS)
+| Ability | Key | Effect |
+|---------|-----|--------|
+| Blade Storm | Q | Spin attack, ~12 damage over 3s |
+| Twin Strike | E | 14 damage (x2 execute on low HP) |
+| Bloodlust | Passive | Stacking attack speed + lifesteal |
+| Battle Hardened | Perk | Faster crafting, combat ore drops |
+
+**Health: 20 HP** | **Role: Berserker**
+
+---
+
+## 🐉 Dragon Boss
+
+| Stat | Value |
+|------|-------|
+| Health | 500 HP |
+| Armor | 20% damage reduction |
+| Regen | 2 HP/sec (out of combat) |
+
+### Dragon Abilities
+| Ability | Cooldown | Effect |
+|---------|----------|--------|
+| Fire Breath | 8s | 18 damage cone over 3s |
+| Wing Gust | 15s | Knockback all enemies 10 blocks |
+| Tail Swipe | 5s | 10 damage to enemies behind |
+| Dragon Roar | 60s | +20% ally damage, slow enemies |
 
 ---
 
 ## 📋 Game Flow
 
 ```
-1. PREPARATION (20 min)
-   └── Teams separated, gather resources
-
-2. WALLS FALL
-   ├── Walls destroyed
-   ├── Dragons spawn (10s protection)
-   └── PvP enabled
-
-3. DEATHMATCH
-   └── Attack enemy dragons, defend yours
-
-4. VICTORY
-   └── Last team with dragon wins!
+┌─────────────────────────────────────────┐
+│  PHASE 1: PREPARATION (20 minutes)      │
+│  • Teams separated by walls             │
+│  • Gather resources, craft, build       │
+│  • PvP disabled                         │
+└─────────────────────────────────────────┘
+                    ↓
+┌─────────────────────────────────────────┐
+│  PHASE 2: WALLS FALL                    │
+│  • Walls destroyed                      │
+│  • Dragons spawn (10s protection)       │
+│  • PvP enabled                          │
+└─────────────────────────────────────────┘
+                    ↓
+┌─────────────────────────────────────────┐
+│  PHASE 3: DEATHMATCH                    │
+│  • Attack enemy bases                   │
+│  • Kill enemy dragons                   │
+│  • Protect your dragon                  │
+└─────────────────────────────────────────┘
+                    ↓
+┌─────────────────────────────────────────┐
+│  VICTORY                                │
+│  • Last team with dragon wins!          │
+└─────────────────────────────────────────┘
 ```
-
----
-
-## 📖 Additional Documentation
-
-- **[QUICK_START_GUIDE.md](./QUICK_START_GUIDE.md)** - Manual step-by-step build instructions
-- **[NODE_EDITOR_IMPLEMENTATION.md](./NODE_EDITOR_IMPLEMENTATION.md)** - Full technical reference
-- **[GAME_DESIGN.md](./GAME_DESIGN.md)** - Complete game design document
 
 ---
 
 ## ✅ Implementation Status
 
-- [x] Hero Class - Complete
-- [x] Dragon Boss - Complete  
-- [x] Game Controller - Complete
-- [ ] Additional Classes (future)
-- [ ] Map/Arena (build in Hytale)
+- [x] Game Design Document
+- [x] Hero Class (complete)
+- [x] Marksman Class (complete)
+- [x] Dual Warrior Class (complete)
+- [x] Dragon Boss (complete)
+- [x] Web Preview (complete)
+- [x] Node Editor Scripts (JSON format)
+- [ ] Asset Editor Format (when access available)
+- [ ] In-game testing
 
 ---
 
-*Import the scripts and start playing!* 🎮
+## 🎮 Web Preview Features
+
+The localhost preview includes:
+- **Overview** - Game phases and teams
+- **Classes** - All 3 classes with full ability details
+- **Boss** - Dragon stats and abilities
+- **Simulator** - Test abilities and see damage numbers!
+
+Press **Q** or **E** in the Simulator to use abilities!
+
+---
+
+*Ready for Hytale implementation!* 🎮
