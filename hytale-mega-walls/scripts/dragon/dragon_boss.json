@@ -1,0 +1,1337 @@
+{
+  "name": "Dragon_Boss",
+  "description": "Dragon boss AI for Mega Walls - attach to dragon entity",
+  "version": "1.0",
+  "variables": [
+    {
+      "name": "dragon_health",
+      "type": "integer",
+      "default": 500
+    },
+    {
+      "name": "dragon_max_health",
+      "type": "integer",
+      "default": 500
+    },
+    {
+      "name": "dragon_team",
+      "type": "string",
+      "default": "red"
+    },
+    {
+      "name": "fire_cooldown",
+      "type": "float",
+      "default": 8.0
+    },
+    {
+      "name": "gust_cooldown",
+      "type": "float",
+      "default": 15.0
+    },
+    {
+      "name": "tail_cooldown",
+      "type": "float",
+      "default": 5.0
+    },
+    {
+      "name": "roar_cooldown",
+      "type": "float",
+      "default": 60.0
+    },
+    {
+      "name": "current_target",
+      "type": "entity",
+      "default": null
+    },
+    {
+      "name": "is_in_combat",
+      "type": "boolean",
+      "default": false
+    },
+    {
+      "name": "combat_timer",
+      "type": "float",
+      "default": 0
+    },
+    {
+      "name": "is_invulnerable",
+      "type": "boolean",
+      "default": true
+    }
+  ],
+  "graphs": [
+    {
+      "name": "Dragon_Spawn",
+      "trigger": "on_spawn",
+      "nodes": [
+        {
+          "id": 1,
+          "type": "event",
+          "event": "on_spawn",
+          "output": 2
+        },
+        {
+          "id": 2,
+          "type": "set_variable",
+          "variable": "dragon_health",
+          "value": 500,
+          "output": 3
+        },
+        {
+          "id": 3,
+          "type": "set_variable",
+          "variable": "fire_cooldown",
+          "value": 8.0,
+          "output": 4
+        },
+        {
+          "id": 4,
+          "type": "set_variable",
+          "variable": "gust_cooldown",
+          "value": 15.0,
+          "output": 5
+        },
+        {
+          "id": 5,
+          "type": "set_variable",
+          "variable": "tail_cooldown",
+          "value": 5.0,
+          "output": 6
+        },
+        {
+          "id": 6,
+          "type": "set_variable",
+          "variable": "roar_cooldown",
+          "value": 60.0,
+          "output": 7
+        },
+        {
+          "id": 7,
+          "type": "set_variable",
+          "variable": "is_invulnerable",
+          "value": true,
+          "output": 8
+        },
+        {
+          "id": 8,
+          "type": "spawn_particles",
+          "particle_type": "portal",
+          "position": "self.position",
+          "color": "#8B0000",
+          "count": 100,
+          "output": 9
+        },
+        {
+          "id": 9,
+          "type": "play_sound",
+          "sound": "dragon_roar",
+          "volume": 2.0,
+          "output": 10
+        },
+        {
+          "id": 10,
+          "type": "broadcast_message",
+          "message": "{dragon_team} Dragon has AWAKENED!",
+          "output": 11
+        },
+        {
+          "id": 11,
+          "type": "wait",
+          "duration": 10.0,
+          "output": 12
+        },
+        {
+          "id": 12,
+          "type": "set_variable",
+          "variable": "is_invulnerable",
+          "value": false,
+          "output": 13
+        },
+        {
+          "id": 13,
+          "type": "broadcast_message",
+          "message": "{dragon_team} Dragon is now vulnerable!"
+        }
+      ]
+    },
+    {
+      "name": "Dragon_Cooldown_Tick",
+      "trigger": "on_update",
+      "nodes": [
+        {
+          "id": 1,
+          "type": "event",
+          "event": "on_update",
+          "output": 2
+        },
+        {
+          "id": 2,
+          "type": "get_variable",
+          "variable": "fire_cooldown",
+          "output_value": "fire_cd",
+          "output": 3
+        },
+        {
+          "id": 3,
+          "type": "branch",
+          "condition": "fire_cd < 8",
+          "true_output": 4,
+          "false_output": 5
+        },
+        {
+          "id": 4,
+          "type": "set_variable",
+          "variable": "fire_cooldown",
+          "value": "fire_cd + delta_time",
+          "output": 5
+        },
+        {
+          "id": 5,
+          "type": "get_variable",
+          "variable": "gust_cooldown",
+          "output_value": "gust_cd",
+          "output": 6
+        },
+        {
+          "id": 6,
+          "type": "branch",
+          "condition": "gust_cd < 15",
+          "true_output": 7,
+          "false_output": 8
+        },
+        {
+          "id": 7,
+          "type": "set_variable",
+          "variable": "gust_cooldown",
+          "value": "gust_cd + delta_time",
+          "output": 8
+        },
+        {
+          "id": 8,
+          "type": "get_variable",
+          "variable": "tail_cooldown",
+          "output_value": "tail_cd",
+          "output": 9
+        },
+        {
+          "id": 9,
+          "type": "branch",
+          "condition": "tail_cd < 5",
+          "true_output": 10,
+          "false_output": 11
+        },
+        {
+          "id": 10,
+          "type": "set_variable",
+          "variable": "tail_cooldown",
+          "value": "tail_cd + delta_time",
+          "output": 11
+        },
+        {
+          "id": 11,
+          "type": "get_variable",
+          "variable": "roar_cooldown",
+          "output_value": "roar_cd",
+          "output": 12
+        },
+        {
+          "id": 12,
+          "type": "branch",
+          "condition": "roar_cd < 60",
+          "true_output": 13,
+          "false_output": 14
+        },
+        {
+          "id": 13,
+          "type": "set_variable",
+          "variable": "roar_cooldown",
+          "value": "roar_cd + delta_time",
+          "output": 14
+        },
+        {
+          "id": 14,
+          "type": "get_variable",
+          "variable": "combat_timer",
+          "output_value": "combat_t",
+          "output": 15
+        },
+        {
+          "id": 15,
+          "type": "set_variable",
+          "variable": "combat_timer",
+          "value": "combat_t + delta_time"
+        }
+      ]
+    },
+    {
+      "name": "Dragon_AI_Tick",
+      "trigger": "on_timer",
+      "interval": 0.5,
+      "nodes": [
+        {
+          "id": 1,
+          "type": "event",
+          "event": "on_timer",
+          "interval": 0.5,
+          "output": 2
+        },
+        {
+          "id": 2,
+          "type": "get_self_position",
+          "output_value": "dragon_pos",
+          "output": 3
+        },
+        {
+          "id": 3,
+          "type": "get_entities_in_area",
+          "shape": "sphere",
+          "center": "dragon_pos",
+          "radius": 30,
+          "filter": "players",
+          "output_value": "all_players",
+          "output": 4
+        },
+        {
+          "id": 4,
+          "type": "filter_list",
+          "list": "all_players",
+          "condition": "entity.team != dragon_team",
+          "output_value": "enemies",
+          "output": 5
+        },
+        {
+          "id": 5,
+          "type": "get_list_length",
+          "list": "enemies",
+          "output_value": "enemy_count",
+          "output": 6
+        },
+        {
+          "id": 6,
+          "type": "branch",
+          "condition": "enemy_count > 0",
+          "true_output": 7,
+          "false_output": 20
+        },
+        {
+          "id": 7,
+          "type": "get_nearest_entity",
+          "list": "enemies",
+          "from": "dragon_pos",
+          "output_value": "nearest_enemy",
+          "output": 8
+        },
+        {
+          "id": 8,
+          "type": "set_variable",
+          "variable": "current_target",
+          "value": "nearest_enemy",
+          "output": 9
+        },
+        {
+          "id": 9,
+          "type": "set_variable",
+          "variable": "is_in_combat",
+          "value": true,
+          "output": 10
+        },
+        {
+          "id": 10,
+          "type": "set_variable",
+          "variable": "combat_timer",
+          "value": 0,
+          "output": 11
+        },
+        {
+          "id": 11,
+          "type": "rotate_to_face",
+          "entity": "self",
+          "target": "nearest_enemy",
+          "output": 12
+        },
+        {
+          "id": 12,
+          "type": "call_graph",
+          "graph": "Dragon_Select_Ability",
+          "params": {
+            "target": "nearest_enemy",
+            "enemies": "enemies"
+          }
+        },
+        {
+          "id": 20,
+          "type": "call_graph",
+          "graph": "Dragon_Idle",
+          "comment": "No enemies nearby"
+        }
+      ]
+    },
+    {
+      "name": "Dragon_Select_Ability",
+      "trigger": "called",
+      "params": ["target", "enemies"],
+      "nodes": [
+        {
+          "id": 1,
+          "type": "get_distance",
+          "from": "self.position",
+          "to": "target.position",
+          "output_value": "target_distance",
+          "output": 2
+        },
+        {
+          "id": 2,
+          "type": "count_entities_in_area",
+          "center": "self.position",
+          "radius": 8,
+          "list": "enemies",
+          "output_value": "close_enemy_count",
+          "output": 3
+        },
+        {
+          "id": 3,
+          "type": "is_entity_behind",
+          "entity": "target",
+          "relative_to": "self",
+          "output_value": "target_behind",
+          "output": 4
+        },
+        {
+          "id": 4,
+          "type": "get_variable",
+          "variable": "dragon_health",
+          "output_value": "hp",
+          "output": 5
+        },
+        {
+          "id": 5,
+          "type": "get_variable",
+          "variable": "roar_cooldown",
+          "output_value": "roar_cd",
+          "output": 6
+        },
+        {
+          "id": 6,
+          "type": "branch",
+          "condition": "hp < 250 AND roar_cd >= 60",
+          "true_output": 100,
+          "false_output": 7,
+          "comment": "Priority 1: Emergency Roar at low HP"
+        },
+        {
+          "id": 7,
+          "type": "get_variable",
+          "variable": "gust_cooldown",
+          "output_value": "gust_cd",
+          "output": 8
+        },
+        {
+          "id": 8,
+          "type": "branch",
+          "condition": "close_enemy_count >= 3 AND gust_cd >= 15",
+          "true_output": 101,
+          "false_output": 9,
+          "comment": "Priority 2: Wing Gust if swarmed"
+        },
+        {
+          "id": 9,
+          "type": "get_variable",
+          "variable": "tail_cooldown",
+          "output_value": "tail_cd",
+          "output": 10
+        },
+        {
+          "id": 10,
+          "type": "branch",
+          "condition": "target_behind == true AND tail_cd >= 5",
+          "true_output": 102,
+          "false_output": 11,
+          "comment": "Priority 3: Tail Swipe if enemy behind"
+        },
+        {
+          "id": 11,
+          "type": "get_variable",
+          "variable": "fire_cooldown",
+          "output_value": "fire_cd",
+          "output": 12
+        },
+        {
+          "id": 12,
+          "type": "branch",
+          "condition": "target_distance < 15 AND fire_cd >= 8",
+          "true_output": 103,
+          "false_output": null,
+          "comment": "Priority 4: Fire Breath if in range"
+        },
+        {
+          "id": 100,
+          "type": "call_graph",
+          "graph": "Dragon_Roar"
+        },
+        {
+          "id": 101,
+          "type": "call_graph",
+          "graph": "Dragon_Wing_Gust"
+        },
+        {
+          "id": 102,
+          "type": "call_graph",
+          "graph": "Dragon_Tail_Swipe"
+        },
+        {
+          "id": 103,
+          "type": "call_graph",
+          "graph": "Dragon_Fire_Breath"
+        }
+      ]
+    },
+    {
+      "name": "Dragon_Fire_Breath",
+      "trigger": "called",
+      "nodes": [
+        {
+          "id": 1,
+          "type": "set_variable",
+          "variable": "fire_cooldown",
+          "value": 0,
+          "output": 2
+        },
+        {
+          "id": 2,
+          "type": "play_animation",
+          "animation": "fire_breath",
+          "output": 3
+        },
+        {
+          "id": 3,
+          "type": "play_sound",
+          "sound": "fire_breath",
+          "volume": 1.5,
+          "output": 4
+        },
+        {
+          "id": 4,
+          "type": "get_self_position",
+          "output_value": "dragon_pos",
+          "output": 5
+        },
+        {
+          "id": 5,
+          "type": "get_self_forward_direction",
+          "output_value": "forward",
+          "output": 6
+        },
+        {
+          "id": 6,
+          "type": "set_local_variable",
+          "name": "tick_count",
+          "value": 0,
+          "output": 7
+        },
+        {
+          "id": 7,
+          "type": "loop_while",
+          "condition": "tick_count < 6",
+          "loop_output": 8,
+          "done_output": null
+        },
+        {
+          "id": 8,
+          "type": "spawn_particles",
+          "particle_type": "flame",
+          "position": "dragon_pos + forward * 7",
+          "direction": "forward",
+          "spread": 45,
+          "count": 50,
+          "color": "#FF4500",
+          "output": 9
+        },
+        {
+          "id": 9,
+          "type": "math_multiply",
+          "a": "forward",
+          "b": 3,
+          "output_value": "sphere1_offset",
+          "output": 10
+        },
+        {
+          "id": 10,
+          "type": "math_add",
+          "a": "dragon_pos",
+          "b": "sphere1_offset",
+          "output_value": "sphere1_pos",
+          "output": 11
+        },
+        {
+          "id": 11,
+          "type": "get_entities_in_area",
+          "shape": "sphere",
+          "center": "sphere1_pos",
+          "radius": 2,
+          "filter": "players",
+          "output_value": "hit1",
+          "output": 12
+        },
+        {
+          "id": 12,
+          "type": "math_multiply",
+          "a": "forward",
+          "b": 8,
+          "output_value": "sphere2_offset",
+          "output": 13
+        },
+        {
+          "id": 13,
+          "type": "math_add",
+          "a": "dragon_pos",
+          "b": "sphere2_offset",
+          "output_value": "sphere2_pos",
+          "output": 14
+        },
+        {
+          "id": 14,
+          "type": "get_entities_in_area",
+          "shape": "sphere",
+          "center": "sphere2_pos",
+          "radius": 3,
+          "filter": "players",
+          "output_value": "hit2",
+          "output": 15
+        },
+        {
+          "id": 15,
+          "type": "math_multiply",
+          "a": "forward",
+          "b": 13,
+          "output_value": "sphere3_offset",
+          "output": 16
+        },
+        {
+          "id": 16,
+          "type": "math_add",
+          "a": "dragon_pos",
+          "b": "sphere3_offset",
+          "output_value": "sphere3_pos",
+          "output": 17
+        },
+        {
+          "id": 17,
+          "type": "get_entities_in_area",
+          "shape": "sphere",
+          "center": "sphere3_pos",
+          "radius": 4,
+          "filter": "players",
+          "output_value": "hit3",
+          "output": 18
+        },
+        {
+          "id": 18,
+          "type": "merge_lists",
+          "lists": ["hit1", "hit2", "hit3"],
+          "output_value": "all_hit",
+          "output": 19
+        },
+        {
+          "id": 19,
+          "type": "remove_duplicates",
+          "list": "all_hit",
+          "output_value": "unique_hit",
+          "output": 20
+        },
+        {
+          "id": 20,
+          "type": "for_each",
+          "list": "unique_hit",
+          "item_name": "entity",
+          "loop_output": 21,
+          "done_output": 25
+        },
+        {
+          "id": 21,
+          "type": "get_entity_team",
+          "entity": "entity",
+          "output_value": "entity_team",
+          "output": 22
+        },
+        {
+          "id": 22,
+          "type": "branch",
+          "condition": "entity_team != dragon_team",
+          "true_output": 23,
+          "false_output": 20
+        },
+        {
+          "id": 23,
+          "type": "damage_entity",
+          "entity": "entity",
+          "damage": 3,
+          "damage_type": "fire",
+          "output": 24
+        },
+        {
+          "id": 24,
+          "type": "apply_effect",
+          "entity": "entity",
+          "effect": "burning",
+          "duration": 1.0,
+          "output": 20
+        },
+        {
+          "id": 25,
+          "type": "set_local_variable",
+          "name": "tick_count",
+          "value": "tick_count + 1",
+          "output": 26
+        },
+        {
+          "id": 26,
+          "type": "wait",
+          "duration": 0.5,
+          "output": 7
+        }
+      ]
+    },
+    {
+      "name": "Dragon_Wing_Gust",
+      "trigger": "called",
+      "nodes": [
+        {
+          "id": 1,
+          "type": "set_variable",
+          "variable": "gust_cooldown",
+          "value": 0,
+          "output": 2
+        },
+        {
+          "id": 2,
+          "type": "play_animation",
+          "animation": "wing_flap",
+          "output": 3
+        },
+        {
+          "id": 3,
+          "type": "play_sound",
+          "sound": "wind_gust",
+          "volume": 1.5,
+          "output": 4
+        },
+        {
+          "id": 4,
+          "type": "get_self_position",
+          "output_value": "dragon_pos",
+          "output": 5
+        },
+        {
+          "id": 5,
+          "type": "spawn_particles",
+          "particle_type": "wind_ring",
+          "position": "dragon_pos",
+          "radius": 8,
+          "color": "#FFFFFF",
+          "count": 100,
+          "output": 6
+        },
+        {
+          "id": 6,
+          "type": "get_entities_in_area",
+          "shape": "sphere",
+          "center": "dragon_pos",
+          "radius": 8,
+          "filter": "players",
+          "output_value": "nearby",
+          "output": 7
+        },
+        {
+          "id": 7,
+          "type": "for_each",
+          "list": "nearby",
+          "item_name": "entity",
+          "loop_output": 8,
+          "done_output": null
+        },
+        {
+          "id": 8,
+          "type": "get_entity_team",
+          "entity": "entity",
+          "output_value": "entity_team",
+          "output": 9
+        },
+        {
+          "id": 9,
+          "type": "branch",
+          "condition": "entity_team != dragon_team",
+          "true_output": 10,
+          "false_output": 7
+        },
+        {
+          "id": 10,
+          "type": "get_entity_position",
+          "entity": "entity",
+          "output_value": "entity_pos",
+          "output": 11
+        },
+        {
+          "id": 11,
+          "type": "math_subtract",
+          "a": "entity_pos",
+          "b": "dragon_pos",
+          "output_value": "direction",
+          "output": 12
+        },
+        {
+          "id": 12,
+          "type": "normalize_vector",
+          "vector": "direction",
+          "output_value": "normalized_dir",
+          "output": 13
+        },
+        {
+          "id": 13,
+          "type": "math_multiply",
+          "a": "normalized_dir",
+          "b": 2.5,
+          "output_value": "knockback_velocity",
+          "output": 14
+        },
+        {
+          "id": 14,
+          "type": "set_entity_velocity",
+          "entity": "entity",
+          "velocity": "knockback_velocity",
+          "output": 15
+        },
+        {
+          "id": 15,
+          "type": "damage_entity",
+          "entity": "entity",
+          "damage": 2,
+          "damage_type": "knockback",
+          "output": 7
+        }
+      ]
+    },
+    {
+      "name": "Dragon_Tail_Swipe",
+      "trigger": "called",
+      "nodes": [
+        {
+          "id": 1,
+          "type": "set_variable",
+          "variable": "tail_cooldown",
+          "value": 0,
+          "output": 2
+        },
+        {
+          "id": 2,
+          "type": "play_animation",
+          "animation": "tail_swipe",
+          "output": 3
+        },
+        {
+          "id": 3,
+          "type": "play_sound",
+          "sound": "tail_swoosh",
+          "volume": 1.0,
+          "output": 4
+        },
+        {
+          "id": 4,
+          "type": "get_self_position",
+          "output_value": "dragon_pos",
+          "output": 5
+        },
+        {
+          "id": 5,
+          "type": "get_self_backward_direction",
+          "output_value": "backward",
+          "output": 6
+        },
+        {
+          "id": 6,
+          "type": "math_multiply",
+          "a": "backward",
+          "b": 3,
+          "output_value": "offset",
+          "output": 7
+        },
+        {
+          "id": 7,
+          "type": "math_add",
+          "a": "dragon_pos",
+          "b": "offset",
+          "output_value": "tail_center",
+          "output": 8
+        },
+        {
+          "id": 8,
+          "type": "spawn_particles",
+          "particle_type": "swoosh",
+          "position": "tail_center",
+          "color": "#808080",
+          "count": 30,
+          "output": 9
+        },
+        {
+          "id": 9,
+          "type": "get_entities_in_area",
+          "shape": "sphere",
+          "center": "tail_center",
+          "radius": 4,
+          "filter": "players",
+          "output_value": "hit_entities",
+          "output": 10
+        },
+        {
+          "id": 10,
+          "type": "for_each",
+          "list": "hit_entities",
+          "item_name": "entity",
+          "loop_output": 11,
+          "done_output": null
+        },
+        {
+          "id": 11,
+          "type": "get_entity_team",
+          "entity": "entity",
+          "output_value": "entity_team",
+          "output": 12
+        },
+        {
+          "id": 12,
+          "type": "branch",
+          "condition": "entity_team != dragon_team",
+          "true_output": 13,
+          "false_output": 10
+        },
+        {
+          "id": 13,
+          "type": "damage_entity",
+          "entity": "entity",
+          "damage": 10,
+          "damage_type": "melee",
+          "output": 10
+        }
+      ]
+    },
+    {
+      "name": "Dragon_Roar",
+      "trigger": "called",
+      "nodes": [
+        {
+          "id": 1,
+          "type": "set_variable",
+          "variable": "roar_cooldown",
+          "value": 0,
+          "output": 2
+        },
+        {
+          "id": 2,
+          "type": "play_animation",
+          "animation": "roar",
+          "output": 3
+        },
+        {
+          "id": 3,
+          "type": "play_sound",
+          "sound": "dragon_roar_loud",
+          "volume": 2.0,
+          "output": 4
+        },
+        {
+          "id": 4,
+          "type": "get_self_position",
+          "output_value": "dragon_pos",
+          "output": 5
+        },
+        {
+          "id": 5,
+          "type": "spawn_particles",
+          "particle_type": "shockwave",
+          "position": "dragon_pos",
+          "radius": 20,
+          "color": "#8B0000",
+          "count": 200,
+          "output": 6
+        },
+        {
+          "id": 6,
+          "type": "camera_shake",
+          "center": "dragon_pos",
+          "radius": 30,
+          "intensity": 0.5,
+          "duration": 1.0,
+          "output": 7
+        },
+        {
+          "id": 7,
+          "type": "get_entities_in_area",
+          "shape": "sphere",
+          "center": "dragon_pos",
+          "radius": 20,
+          "filter": "players",
+          "output_value": "nearby",
+          "output": 8
+        },
+        {
+          "id": 8,
+          "type": "for_each",
+          "list": "nearby",
+          "item_name": "player",
+          "loop_output": 9,
+          "done_output": null
+        },
+        {
+          "id": 9,
+          "type": "get_entity_team",
+          "entity": "player",
+          "output_value": "player_team",
+          "output": 10
+        },
+        {
+          "id": 10,
+          "type": "branch",
+          "condition": "player_team == dragon_team",
+          "true_output": 11,
+          "false_output": 13
+        },
+        {
+          "id": 11,
+          "type": "apply_effect",
+          "entity": "player",
+          "effect": "strength",
+          "level": 2,
+          "duration": 10.0,
+          "output": 12
+        },
+        {
+          "id": 12,
+          "type": "display_message",
+          "message": "Dragon's Fury! +Damage for 10s",
+          "target": "player",
+          "output": 8
+        },
+        {
+          "id": 13,
+          "type": "apply_effect",
+          "entity": "player",
+          "effect": "slowness",
+          "level": 2,
+          "duration": 5.0,
+          "output": 14
+        },
+        {
+          "id": 14,
+          "type": "display_message",
+          "message": "You feel FEAR from the dragon's roar!",
+          "target": "player",
+          "output": 8
+        }
+      ]
+    },
+    {
+      "name": "Dragon_On_Damaged",
+      "trigger": "on_damaged",
+      "nodes": [
+        {
+          "id": 1,
+          "type": "event",
+          "event": "on_damaged",
+          "output": 2
+        },
+        {
+          "id": 2,
+          "type": "get_variable",
+          "variable": "is_invulnerable",
+          "output_value": "invuln",
+          "output": 3
+        },
+        {
+          "id": 3,
+          "type": "branch",
+          "condition": "invuln == true",
+          "true_output": 4,
+          "false_output": 5
+        },
+        {
+          "id": 4,
+          "type": "cancel_event",
+          "comment": "Block damage during spawn protection"
+        },
+        {
+          "id": 5,
+          "type": "get_event_data",
+          "data": "damage_amount",
+          "output_value": "raw_damage",
+          "output": 6
+        },
+        {
+          "id": 6,
+          "type": "get_event_data",
+          "data": "damage_source",
+          "output_value": "attacker",
+          "output": 7
+        },
+        {
+          "id": 7,
+          "type": "math_multiply",
+          "a": "raw_damage",
+          "b": 0.8,
+          "output_value": "actual_damage",
+          "comment": "20% armor reduction",
+          "output": 8
+        },
+        {
+          "id": 8,
+          "type": "get_variable",
+          "variable": "dragon_health",
+          "output_value": "current_hp",
+          "output": 9
+        },
+        {
+          "id": 9,
+          "type": "math_subtract",
+          "a": "current_hp",
+          "b": "actual_damage",
+          "output_value": "new_hp",
+          "output": 10
+        },
+        {
+          "id": 10,
+          "type": "set_variable",
+          "variable": "dragon_health",
+          "value": "new_hp",
+          "output": 11
+        },
+        {
+          "id": 11,
+          "type": "set_variable",
+          "variable": "current_target",
+          "value": "attacker",
+          "output": 12
+        },
+        {
+          "id": 12,
+          "type": "set_variable",
+          "variable": "combat_timer",
+          "value": 0,
+          "output": 13
+        },
+        {
+          "id": 13,
+          "type": "set_variable",
+          "variable": "is_in_combat",
+          "value": true,
+          "output": 14
+        },
+        {
+          "id": 14,
+          "type": "branch",
+          "condition": "new_hp <= 0",
+          "true_output": 15,
+          "false_output": null
+        },
+        {
+          "id": 15,
+          "type": "call_graph",
+          "graph": "Dragon_Death"
+        }
+      ]
+    },
+    {
+      "name": "Dragon_Death",
+      "trigger": "called",
+      "nodes": [
+        {
+          "id": 1,
+          "type": "play_animation",
+          "animation": "death",
+          "output": 2
+        },
+        {
+          "id": 2,
+          "type": "play_sound",
+          "sound": "dragon_death_cry",
+          "volume": 2.0,
+          "output": 3
+        },
+        {
+          "id": 3,
+          "type": "wait",
+          "duration": 2.0,
+          "output": 4
+        },
+        {
+          "id": 4,
+          "type": "get_self_position",
+          "output_value": "death_pos",
+          "output": 5
+        },
+        {
+          "id": 5,
+          "type": "spawn_particles",
+          "particle_type": "explosion",
+          "position": "death_pos",
+          "color": "#FF0000",
+          "count": 300,
+          "output": 6
+        },
+        {
+          "id": 6,
+          "type": "play_sound",
+          "sound": "explosion_large",
+          "volume": 2.0,
+          "output": 7
+        },
+        {
+          "id": 7,
+          "type": "get_variable",
+          "variable": "dragon_team",
+          "output_value": "team",
+          "output": 8
+        },
+        {
+          "id": 8,
+          "type": "broadcast_message",
+          "message": "{team} DRAGON HAS BEEN SLAIN!",
+          "output": 9
+        },
+        {
+          "id": 9,
+          "type": "set_global_variable",
+          "variable": "team_{team}_alive",
+          "value": false,
+          "output": 10
+        },
+        {
+          "id": 10,
+          "type": "get_all_players",
+          "output_value": "all_players",
+          "output": 11
+        },
+        {
+          "id": 11,
+          "type": "filter_list",
+          "list": "all_players",
+          "condition": "entity.team == team",
+          "output_value": "team_members",
+          "output": 12
+        },
+        {
+          "id": 12,
+          "type": "for_each",
+          "list": "team_members",
+          "item_name": "player",
+          "loop_output": 13,
+          "done_output": 16
+        },
+        {
+          "id": 13,
+          "type": "apply_effect",
+          "entity": "player",
+          "effect": "weakness",
+          "level": 1,
+          "duration": 99999,
+          "output": 14
+        },
+        {
+          "id": 14,
+          "type": "apply_effect",
+          "entity": "player",
+          "effect": "slowness",
+          "level": 1,
+          "duration": 99999,
+          "output": 15
+        },
+        {
+          "id": 15,
+          "type": "display_message",
+          "message": "Your Dragon has fallen! You are weakened.",
+          "target": "player",
+          "output": 12
+        },
+        {
+          "id": 16,
+          "type": "destroy_entity",
+          "entity": "self",
+          "output": 17
+        },
+        {
+          "id": 17,
+          "type": "call_graph",
+          "graph": "Check_Win_Condition"
+        }
+      ]
+    },
+    {
+      "name": "Dragon_Idle",
+      "trigger": "called",
+      "nodes": [
+        {
+          "id": 1,
+          "type": "get_variable",
+          "variable": "combat_timer",
+          "output_value": "combat_t",
+          "output": 2
+        },
+        {
+          "id": 2,
+          "type": "branch",
+          "condition": "combat_t > 10",
+          "true_output": 3,
+          "false_output": null
+        },
+        {
+          "id": 3,
+          "type": "set_variable",
+          "variable": "is_in_combat",
+          "value": false,
+          "output": 4
+        },
+        {
+          "id": 4,
+          "type": "get_variable",
+          "variable": "dragon_health",
+          "output_value": "hp",
+          "output": 5
+        },
+        {
+          "id": 5,
+          "type": "get_variable",
+          "variable": "dragon_max_health",
+          "output_value": "max_hp",
+          "output": 6
+        },
+        {
+          "id": 6,
+          "type": "branch",
+          "condition": "hp < max_hp",
+          "true_output": 7,
+          "false_output": null
+        },
+        {
+          "id": 7,
+          "type": "math_add",
+          "a": "hp",
+          "b": 1,
+          "output_value": "new_hp",
+          "comment": "Regen 2 HP/sec (called every 0.5s)",
+          "output": 8
+        },
+        {
+          "id": 8,
+          "type": "math_min",
+          "a": "new_hp",
+          "b": "max_hp",
+          "output_value": "clamped_hp",
+          "output": 9
+        },
+        {
+          "id": 9,
+          "type": "set_variable",
+          "variable": "dragon_health",
+          "value": "clamped_hp"
+        }
+      ]
+    }
+  ]
+}
