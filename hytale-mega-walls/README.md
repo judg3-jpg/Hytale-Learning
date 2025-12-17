@@ -1,110 +1,114 @@
-# 🎮 Mega Walls for Hytale - Node Editor Build
+# 🎮 Mega Walls for Hytale
 
-Complete step-by-step guide to build Mega Walls using **only the Node Editor**.
+Ready-to-import Node Editor scripts for Mega Walls minigame.
 
 ---
 
-## 📁 Files
+## 📁 Project Structure
 
-| File | What It Contains |
-|------|------------------|
-| **[QUICK_START_GUIDE.md](./QUICK_START_GUIDE.md)** | ⭐ **START HERE** - Step-by-step instructions |
-| [NODE_EDITOR_IMPLEMENTATION.md](./NODE_EDITOR_IMPLEMENTATION.md) | Detailed node graphs and logic |
-| [GAME_DESIGN.md](./GAME_DESIGN.md) | Full game design reference |
-| [HERO_CLASS.md](./HERO_CLASS.md) | Hero class details |
-| [DRAGON_BOSS.md](./DRAGON_BOSS.md) | Dragon boss details |
+```
+hytale-mega-walls/
+├── scripts/
+│   ├── hero/
+│   │   └── hero_class.json        ← HERO CLASS (all abilities)
+│   ├── dragon/
+│   │   └── dragon_boss.json       ← DRAGON BOSS (AI + attacks)
+│   └── game/
+│       └── game_controller.json   ← GAME LOGIC (timer, win)
+├── IMPORT_INSTRUCTIONS.md         ← HOW TO USE THESE FILES
+├── QUICK_START_GUIDE.md           ← Step-by-step manual build
+└── NODE_EDITOR_IMPLEMENTATION.md  ← Detailed reference
+```
 
 ---
 
 ## 🚀 Quick Start
 
-### Open `QUICK_START_GUIDE.md` and follow the steps in order:
+### 1. Import the Scripts
 
-**Phase 1: Hero Class**
-- Step 1-2: Create script & variables
-- Step 3: Hero initialization (spawn with items)
-- Step 4: Cooldown system
-- Step 5: Valor Strike (dash attack)
-- Step 6: Rally Cry (heal ability)
-- Step 7: Heroic Presence (passive aura)
+Go to `scripts/` folder and import the JSON files into Hytale's Node Editor:
 
-**Phase 2: Dragon Boss**
-- Step 8-9: Create script & variables
-- Step 10: Dragon spawn
-- Step 11-12: AI targeting & ability selection
-- Step 13: Fire Breath
-- Step 14: Wing Gust
-- Step 15: Tail Swipe
-- Step 16: Dragon Roar
-- Step 17-18: Damage & death
-- Step 19: Win condition
+| File | Attach To | Purpose |
+|------|-----------|---------|
+| `hero_class.json` | Player (Hero class) | All hero abilities |
+| `dragon_boss.json` | Dragon entity | Boss AI & attacks |
+| `game_controller.json` | World/Game object | Game loop |
+
+### 2. Read Import Instructions
+
+Open **[IMPORT_INSTRUCTIONS.md](./IMPORT_INSTRUCTIONS.md)** for:
+- How to import/recreate the scripts
+- Variable setup guide
+- Node type reference
+- Testing checklist
 
 ---
 
-## ⚔️ What You're Building
+## ⚔️ What's Included
 
-### Hero Class
-| Ability | Key | Effect |
-|---------|-----|--------|
-| Valor Strike | Q | Dash 8 blocks, 8 damage, stun |
-| Rally Cry | E | Heal allies 6 HP in 15 block radius |
-| Heroic Presence | Passive | +Strength to nearby allies |
-| Last Stand | Passive | +Strength when low HP |
+### Hero Class (`hero_class.json`)
+| Ability | Key | What It Does |
+|---------|-----|--------------|
+| **Valor Strike** | Q | Dash 8 blocks, 8 damage, stun enemies |
+| **Rally Cry** | E | Heal allies 6 HP in 15 block radius |
+| **Heroic Presence** | Passive | Nearby allies get +damage buff |
+| **Last Stand** | Passive | +damage when below 50% HP |
 
-### Dragon Boss
-| Ability | Trigger | Effect |
-|---------|---------|--------|
-| Fire Breath | Enemy in front | 18 damage cone over 3 sec |
-| Wing Gust | 3+ enemies close | Knockback everyone |
-| Tail Swipe | Enemy behind | 10 damage melee |
-| Dragon Roar | Below 50% HP | Buff allies, slow enemies |
+### Dragon Boss (`dragon_boss.json`)
+| Ability | Trigger | What It Does |
+|---------|---------|--------------|
+| **Fire Breath** | Enemy in front | 18 damage cone over 3 seconds |
+| **Wing Gust** | 3+ enemies close | Knockback everyone 10 blocks |
+| **Tail Swipe** | Enemy behind | 10 damage melee |
+| **Dragon Roar** | HP < 50% | Buff allies, slow enemies |
 
----
+**Stats:** 500 HP, 20% armor, 2 HP/sec regen
 
-## 📋 Checklist
-
-### Hero Class
-- [ ] Script created
-- [ ] Variables added
-- [ ] Spawns with items & 22 HP
-- [ ] Valor Strike works
-- [ ] Rally Cry works
-- [ ] Passive buffs work
-
-### Dragon Boss
-- [ ] Script created
-- [ ] Variables added
-- [ ] Spawns with effects
-- [ ] AI targets enemies
-- [ ] Fire Breath works
-- [ ] Wing Gust works
-- [ ] Tail Swipe works
-- [ ] Roar triggers at 50% HP
-- [ ] Death eliminates team
-- [ ] Win condition works
+### Game Controller (`game_controller.json`)
+- 20-minute preparation phase
+- Walls fall mechanic
+- Dragon spawning
+- Team elimination tracking
+- Win condition detection
 
 ---
 
-## 💡 Tips
+## 📋 Game Flow
 
-1. **Build one thing at a time** - Don't try to do everything at once
-2. **Test frequently** - Test after each step
-3. **Save often** - Don't lose your work!
-4. **Check connections** - Make sure nodes are properly linked
-5. **Use debug messages** - Add "Print" nodes to see values
+```
+1. PREPARATION (20 min)
+   └── Teams separated, gather resources
 
----
+2. WALLS FALL
+   ├── Walls destroyed
+   ├── Dragons spawn (10s protection)
+   └── PvP enabled
 
-## 🔮 Future Additions
+3. DEATHMATCH
+   └── Attack enemy dragons, defend yours
 
-After Phase 1 is complete:
-- [ ] More classes (Warrior, Archer, Mage)
-- [ ] Preparation phase with timer
-- [ ] Walls that fall
-- [ ] 4-team map
-- [ ] Team selection UI
-- [ ] Scoreboard
+4. VICTORY
+   └── Last team with dragon wins!
+```
 
 ---
 
-*Start with QUICK_START_GUIDE.md - good luck!* 🎮
+## 📖 Additional Documentation
+
+- **[QUICK_START_GUIDE.md](./QUICK_START_GUIDE.md)** - Manual step-by-step build instructions
+- **[NODE_EDITOR_IMPLEMENTATION.md](./NODE_EDITOR_IMPLEMENTATION.md)** - Full technical reference
+- **[GAME_DESIGN.md](./GAME_DESIGN.md)** - Complete game design document
+
+---
+
+## ✅ Implementation Status
+
+- [x] Hero Class - Complete
+- [x] Dragon Boss - Complete  
+- [x] Game Controller - Complete
+- [ ] Additional Classes (future)
+- [ ] Map/Arena (build in Hytale)
+
+---
+
+*Import the scripts and start playing!* 🎮
