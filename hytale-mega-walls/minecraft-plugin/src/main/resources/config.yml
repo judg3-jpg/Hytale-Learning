@@ -1,0 +1,72 @@
+# ==========================================
+# Mega Walls Configuration
+# ==========================================
+
+# Game Settings
+game:
+  # Preparation phase duration in seconds (default: 20 minutes)
+  prep-time: 1200
+  # Minimum players per team to start
+  min-players-per-team: 1
+  # Maximum players per team
+  max-players-per-team: 10
+  # Number of teams
+  team-count: 4
+  # Grace period after walls fall (seconds)
+  grace-period: 10
+
+# Class Settings
+classes:
+  hero:
+    health: 22
+    valor-strike-damage: 8
+    valor-strike-cooldown: 12
+    rally-cry-heal: 6
+    rally-cry-cooldown: 20
+    heroic-presence-bonus: 0.10
+    last-stand-threshold: 0.3
+    last-stand-bonus: 0.15
+
+  marksman:
+    health: 18
+    piercing-shot-damage: 12
+    piercing-shot-cooldown: 10
+    explosive-arrow-damage: 10
+    explosive-arrow-cooldown: 15
+    eagle-eye-multiplier: 1.5
+
+  dual-warrior:
+    health: 20
+    blade-storm-damage: 4
+    blade-storm-duration: 3
+    blade-storm-cooldown: 14
+    twin-strike-damage: 14
+    twin-strike-cooldown: 8
+    bloodlust-max-stacks: 5
+    bloodlust-attack-speed: 0.05
+    bloodlust-lifesteal: 0.02
+
+# Dragon Boss Settings
+dragon:
+  health: 500
+  armor: 0.20
+  regen-per-second: 2
+  fire-breath-damage: 6
+  fire-breath-cooldown: 8
+  wing-gust-knockback: 2.0
+  wing-gust-cooldown: 15
+  tail-swipe-damage: 10
+  tail-swipe-cooldown: 5
+  dragon-roar-cooldown: 60
+  dragon-roar-buff-duration: 10
+
+# Messages
+messages:
+  prefix: "&6[MegaWalls] &r"
+  game-starting: "&aThe game is starting in %time% seconds!"
+  walls-falling: "&c&lTHE WALLS ARE FALLING!"
+  dragon-spawned: "&5Your team's Dragon has spawned!"
+  dragon-killed: "&c%team%'s Dragon has been slain!"
+  team-eliminated: "&c%team% has been eliminated!"
+  victory: "&6&l%team% WINS THE GAME!"
+  class-selected: "&aYou have selected the %class% class!"

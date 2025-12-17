@@ -1,0 +1,24 @@
+name: MegaWalls
+version: 1.0.0
+main: com.megawalls.MegaWalls
+api-version: 1.20
+description: Mega Walls minigame with 3 classes and Dragon boss
+author: MegaWallsTeam
+
+commands:
+  megawalls:
+    description: Main Mega Walls command
+    aliases: [mw]
+    usage: /megawalls <start|stop|setup|join|leave|class|stats>
+  mwadmin:
+    description: Admin commands for Mega Walls
+    permission: megawalls.admin
+    usage: /mwadmin <setspawn|setlobby|setdragon|reload>
+
+permissions:
+  megawalls.play:
+    description: Allows playing Mega Walls
+    default: true
+  megawalls.admin:
+    description: Admin permissions for Mega Walls
+    default: op
