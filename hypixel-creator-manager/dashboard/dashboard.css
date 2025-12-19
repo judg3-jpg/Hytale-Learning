@@ -1,4 +1,7 @@
-/* ==================== HYPIXEL CREATOR MANAGER v5.0 - BOLD REDESIGN ==================== */
+/* ==================== HYPIXEL CREATOR MANAGER v5.0.1 - PERFORMANCE OPTIMIZED ==================== */
+
+/* ==================== PERFORMANCE OPTIMIZATIONS ==================== */
+/* Use GPU acceleration and reduce paint operations */
 
 /* ==================== NEW COLOR PALETTE ==================== */
 :root {
@@ -87,7 +90,7 @@ body {
   overflow-x: hidden;
 }
 
-/* Animated background gradient */
+/* Static background gradient - no animation for performance */
 body::before {
   content: '';
   position: fixed;
@@ -96,17 +99,11 @@ body::before {
   right: 0;
   bottom: 0;
   background: 
-    radial-gradient(ellipse 80% 50% at 20% -20%, rgba(0, 217, 255, 0.15) 0%, transparent 50%),
-    radial-gradient(ellipse 60% 40% at 80% 120%, rgba(168, 85, 247, 0.12) 0%, transparent 50%),
-    radial-gradient(ellipse 50% 30% at 50% 50%, rgba(245, 166, 35, 0.05) 0%, transparent 50%);
+    radial-gradient(ellipse 80% 50% at 20% -20%, rgba(0, 217, 255, 0.12) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 40% at 80% 120%, rgba(168, 85, 247, 0.08) 0%, transparent 50%);
   pointer-events: none;
   z-index: 0;
-  animation: bgPulse 10s ease-in-out infinite alternate;
-}
-
-@keyframes bgPulse {
-  0% { opacity: 0.7; }
-  100% { opacity: 1; }
+  /* Removed animation for better performance */
 }
 
 .app {
@@ -162,13 +159,14 @@ body::before {
   font-size: 22px;
   color: var(--bg-darkest);
   font-weight: 800;
-  box-shadow: var(--shadow-glow-cyan);
-  animation: logoFloat 3s ease-in-out infinite;
+  box-shadow: 0 0 20px var(--cyan-glow);
+  /* Removed constant animation - only animate on hover */
+  transition: transform 0.2s ease;
+  will-change: transform;
 }
 
-@keyframes logoFloat {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
+.logo-icon:hover {
+  transform: translateY(-3px) scale(1.05);
 }
 
 .logo-text h1 {
@@ -269,12 +267,8 @@ body::before {
   display: flex;
   align-items: center;
   justify-content: center;
-  animation: badgePulse 2s ease-in-out infinite;
-}
-
-@keyframes badgePulse {
-  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
-  50% { transform: scale(1.1); box-shadow: 0 0 20px rgba(239, 68, 68, 0.6); }
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+  /* Removed constant animation */
 }
 
 .sidebar-footer {
@@ -294,13 +288,15 @@ body::before {
   justify-content: space-between;
   align-items: center;
   padding: 20px 36px;
-  background: rgba(10, 15, 26, 0.8);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: rgba(10, 15, 26, 0.95);
+  /* Reduced blur for performance */
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--border-dim);
   position: sticky;
   top: 0;
   z-index: 50;
+  contain: layout style;
 }
 
 .header-left h2 {
@@ -379,18 +375,13 @@ body::before {
   height: 10px;
   border-radius: 50%;
   background: var(--danger);
-  box-shadow: 0 0 12px rgba(239, 68, 68, 0.6);
-  animation: statusPulse 1.5s ease-in-out infinite;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+  /* Removed animation for performance */
 }
 
 .status-dot.loaded {
   background: var(--success);
-  box-shadow: 0 0 12px rgba(34, 197, 94, 0.6);
-}
-
-@keyframes statusPulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
 }
 
 /* ==================== BUTTONS - BOLD NEW STYLE ==================== */
@@ -405,38 +396,18 @@ body::before {
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
   text-decoration: none;
-}
-
-.btn::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  transition: width 0.6s ease, height 0.6s ease;
-}
-
-.btn:hover::after {
-  width: 300px;
-  height: 300px;
+  will-change: transform;
 }
 
 .btn:active {
-  transform: scale(0.95);
+  transform: scale(0.97);
 }
 
 .btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-  transform: none !important;
 }
 
 .btn-primary {
@@ -537,7 +508,7 @@ body::before {
   overflow: hidden;
 }
 
-/* Animated border glow */
+/* Border glow on hover - no animation */
 .upload-card::before {
   content: '';
   position: absolute;
@@ -549,17 +520,11 @@ body::before {
   border-radius: 26px;
   z-index: -1;
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.2s ease;
 }
 
 .upload-card:hover::before {
-  opacity: 1;
-  animation: borderGlow 2s ease-in-out infinite;
-}
-
-@keyframes borderGlow {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 1; }
+  opacity: 0.7;
 }
 
 .upload-icon {
@@ -610,12 +575,11 @@ body::before {
   font-size: 56px;
   display: block;
   margin-bottom: 16px;
-  animation: cloudFloat 2s ease-in-out infinite;
+  transition: transform 0.2s ease;
 }
 
-@keyframes cloudFloat {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
+.upload-area:hover .upload-cloud {
+  transform: translateY(-6px);
 }
 
 .upload-content p {
@@ -729,31 +693,15 @@ body::before {
   display: flex;
   align-items: flex-start;
   gap: 20px;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-}
-
-.stat-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: var(--gradient-brand);
-  transform: scaleX(0);
-  transition: transform 0.3s ease;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  will-change: transform;
+  contain: layout style;
 }
 
 .stat-card:hover {
-  transform: translateY(-6px);
+  transform: translateY(-4px);
   border-color: var(--border-cyan);
-  box-shadow: var(--shadow-glow-cyan);
-}
-
-.stat-card:hover::before {
-  transform: scaleX(1);
+  box-shadow: 0 0 20px var(--cyan-glow);
 }
 
 .stat-icon {
@@ -1163,13 +1111,13 @@ body::before {
   background: var(--bg-card);
   border: 1px solid var(--border-dim);
   border-radius: var(--radius);
-  transition: all 0.3s ease;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+  will-change: transform;
 }
 
 .review-item:hover {
   border-color: var(--border-cyan);
-  transform: translateX(8px);
-  box-shadow: var(--shadow-glow-cyan);
+  transform: translateX(4px);
 }
 
 .review-item-checkbox {
@@ -1406,8 +1354,9 @@ body::before {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  box-shadow: var(--shadow-card), var(--shadow-glow-cyan);
-  animation: modalIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: var(--shadow-card), 0 0 30px var(--cyan-glow);
+  animation: modalIn 0.25s ease-out;
+  will-change: transform, opacity;
 }
 
 .modal-large {
@@ -1416,7 +1365,7 @@ body::before {
 
 @keyframes modalIn {
   from {
-    transform: scale(0.85) translateY(40px);
+    transform: scale(0.95) translateY(20px);
     opacity: 0;
   }
   to {
@@ -1604,18 +1553,19 @@ body::before {
   gap: 16px;
   z-index: 10000;
   box-shadow: var(--shadow-card);
-  animation: notifSlideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: notifSlideIn 0.25s ease-out;
   font-size: 14px;
   max-width: 450px;
+  will-change: transform, opacity;
 }
 
 @keyframes notifSlideIn {
   from {
-    transform: translateX(100%) scale(0.8);
+    transform: translateX(50px);
     opacity: 0;
   }
   to {
-    transform: translateX(0) scale(1);
+    transform: translateX(0);
     opacity: 1;
   }
 }
@@ -1732,4 +1682,36 @@ body::before {
 ::selection {
   background: rgba(0, 217, 255, 0.3);
   color: var(--text-white);
+}
+
+/* ==================== PERFORMANCE OPTIMIZATIONS ==================== */
+/* Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* GPU acceleration hints for animated elements */
+.sidebar,
+.main-header,
+.modal-content,
+.notification,
+.btn,
+.stat-card,
+.review-item,
+.nav-item {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Layout containment for better performance */
+.page,
+.card,
+.stat-card,
+.chart-card,
+.settings-section {
+  contain: layout style;
 }

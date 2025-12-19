@@ -57,7 +57,7 @@ body {
   overflow: hidden;
 }
 
-/* Animated background */
+/* Static background - no animation */
 body::before {
   content: '';
   position: absolute;
@@ -66,16 +66,10 @@ body::before {
   width: 200%;
   height: 200%;
   background: 
-    radial-gradient(ellipse at 30% 0%, rgba(0, 217, 255, 0.2) 0%, transparent 50%),
-    radial-gradient(ellipse at 70% 100%, rgba(168, 85, 247, 0.15) 0%, transparent 50%);
+    radial-gradient(ellipse at 30% 0%, rgba(0, 217, 255, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 100%, rgba(168, 85, 247, 0.1) 0%, transparent 50%);
   pointer-events: none;
   z-index: 0;
-  animation: bgMove 8s ease-in-out infinite alternate;
-}
-
-@keyframes bgMove {
-  0% { transform: translate(0, 0); }
-  100% { transform: translate(-5%, -5%); }
 }
 
 .popup {
@@ -105,13 +99,12 @@ body::before {
   font-size: 24px;
   color: var(--bg-darkest);
   font-weight: 800;
-  box-shadow: 0 0 30px var(--cyan-glow);
-  animation: logoGlow 2s ease-in-out infinite alternate;
+  box-shadow: 0 0 25px var(--cyan-glow);
+  transition: transform 0.2s ease;
 }
 
-@keyframes logoGlow {
-  0% { box-shadow: 0 0 20px var(--cyan-glow); }
-  100% { box-shadow: 0 0 40px var(--cyan-glow), 0 0 60px rgba(245, 166, 35, 0.3); }
+.logo-icon:hover {
+  transform: scale(1.05);
 }
 
 .logo-text h1 {
@@ -147,18 +140,12 @@ body::before {
   height: 12px;
   border-radius: 50%;
   background: var(--danger);
-  box-shadow: 0 0 15px rgba(239, 68, 68, 0.6);
-  animation: statusPulse 1.5s ease-in-out infinite;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
 }
 
 .status-dot.loaded {
   background: var(--success);
-  box-shadow: 0 0 15px rgba(34, 197, 94, 0.6);
-}
-
-@keyframes statusPulse {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(0.8); opacity: 0.6; }
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
 }
 
 .status-text {
@@ -194,33 +181,14 @@ body::before {
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
   text-decoration: none;
   width: 100%;
-  position: relative;
-  overflow: hidden;
-}
-
-.btn::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  transition: width 0.5s ease, height 0.5s ease;
-}
-
-.btn:hover::after {
-  width: 300px;
-  height: 300px;
+  will-change: transform;
 }
 
 .btn:active {
-  transform: scale(0.96);
+  transform: scale(0.97);
 }
 
 .btn-primary {

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Hypixel Creator Manager",
-  "version": "5.0.0",
+  "version": "5.0.1",
   "description": "Creator management dashboard with bold new design - Cyan/Gold theme, neon glows, and smooth animations",
   "author": "Judge",
   "icons": {
