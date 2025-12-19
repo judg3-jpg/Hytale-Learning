@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Hypixel Creator Manager",
-  "version": "4.1.0",
-  "description": "Professional creator management dashboard with enhanced UI/UX, glassmorphism effects, and YouTube/Twitch API integration",
+  "version": "5.0.0",
+  "description": "Creator management dashboard with bold new design - Cyan/Gold theme, neon glows, and smooth animations",
   "author": "Judge",
   "icons": {
     "16": "icons/icon16.png",
