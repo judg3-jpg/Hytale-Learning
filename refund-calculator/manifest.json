@@ -1,7 +1,7 @@
 ﻿{
   "manifest_version": 3,
   "name": "Refund Calculator",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Quick and easy refund amount calculator for support teams",
   "author": "Support Team",
   "icons": {
@@ -23,5 +23,8 @@
   },
   "background": {
     "service_worker": "background.js"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
   }
 }
