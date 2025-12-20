@@ -405,15 +405,39 @@ function getInitials(name) {
 }
 
 function attachCardClickHandlers() {
-    document.querySelectorAll('.moderator-card[data-mod-id]').forEach(card => {
-        card.addEventListener('click', (e) => {
-            if (e.target.closest('.card-action-btn')) return;
-            const modId = card.getAttribute('data-mod-id');
-            if (modId) {
-                showModeratorDetail(parseInt(modId));
-            }
-        });
-    });
+    // Use event delegation on the grid container for better performance
+    const grid = document.getElementById('moderatorGrid');
+    if (!grid) return;
+    
+    // Remove old listener if exists
+    grid.removeEventListener('click', handleCardClick);
+    
+    // Add new listener
+    grid.addEventListener('click', handleCardClick);
+}
+
+function handleCardClick(e) {
+    // Find the closest moderator card
+    const card = e.target.closest('.moderator-card[data-mod-id]');
+    if (!card) return;
+    
+    // Don't trigger if clicking on interactive elements
+    if (e.target.closest('button') || 
+        e.target.closest('input') || 
+        e.target.closest('a') ||
+        e.target.tagName === 'BUTTON' ||
+        e.target.tagName === 'INPUT') {
+        return;
+    }
+    
+    // Allow clicks on canvas but still open detail
+    const modId = card.getAttribute('data-mod-id');
+    if (modId) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('Opening moderator detail for ID:', modId);
+        showModeratorDetail(parseInt(modId));
+    }
 }
 
 // Search and Filter
@@ -554,8 +578,16 @@ function populateModeratorDropdowns() {
 
 // Individual Moderator View
 async function showModeratorDetail(moderatorId) {
+    console.log('showModeratorDetail called with ID:', moderatorId);
+    
     const modal = document.getElementById('moderatorDetailModal');
     const content = document.getElementById('moderatorDetailContent');
+    
+    if (!modal || !content) {
+        console.error('Modal elements not found!');
+        alert('Error: Modal not found. Please refresh the page.');
+        return;
+    }
     
     content.innerHTML = '<div class="loading">Loading...</div>';
     openModal('moderatorDetailModal');
@@ -563,6 +595,7 @@ async function showModeratorDetail(moderatorId) {
     try {
         const moderator = moderators.find(m => m.id === moderatorId);
         if (!moderator) {
+            console.error('Moderator not found:', moderatorId);
             content.innerHTML = '<p>Moderator not found</p>';
             return;
         }
