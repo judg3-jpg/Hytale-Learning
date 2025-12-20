@@ -483,6 +483,15 @@ function setupModals() {
         openModal('exportModal');
         populateModeratorDropdowns();
     });
+    
+    const importBtn = document.getElementById('importNovemberBtn');
+    if (importBtn) {
+        importBtn.addEventListener('click', async () => {
+            if (confirm('Import November 2024 hours for all moderators?')) {
+                await importNovemberHours();
+            }
+        });
+    }
 }
 
 function openModal(modalId) {
@@ -785,6 +794,117 @@ function setupEventListeners() {
     setupModals();
     setupForms();
 }
+
+// Import November Hours Function
+async function importNovemberHours() {
+    const novemberHours = {
+        'Gerbor': 100,
+        'Smoarzified': 111,
+        'SaltyLia': 100,
+        'Gainful': 122,
+        'Rhune': 128,
+        'Changitesz': 116,
+        'MCVisuals': 135,
+        'LeBrilliant': 74,
+        'Quack': 66,
+        'AmyTheMudkip': 105,
+        'DeluxeRose': 180,
+        'Blake': 80,
+        'Alexa': 80,
+        'Jade': 90
+    };
+    
+    const year = 2024;
+    const month = 11; // November
+    
+    // Reload moderators to ensure we have latest data
+    moderators = await getAllModerators();
+    
+    let imported = 0;
+    let updated = 0;
+    let notFound = [];
+    const results = [];
+    
+    for (const [name, hours] of Object.entries(novemberHours)) {
+        const moderator = moderators.find(m => m.name === name);
+        
+        if (!moderator) {
+            notFound.push(name);
+            results.push(`❌ Moderator not found: ${name}`);
+            continue;
+        }
+        
+        try {
+            // Check if stats entry exists
+            const existingStats = await getModeratorStats(moderator.id, 12);
+            const existing = existingStats.find(s => s.year === year && s.month === month);
+            
+            if (existing) {
+                // Update existing - preserve other fields
+                await createStats({
+                    moderator_id: moderator.id,
+                    year: year,
+                    month: month,
+                    hours_worked: hours,
+                    reports_handled: existing.reports_handled || 0,
+                    punishments_issued: existing.punishments_issued || 0,
+                    warnings_issued: existing.warnings_issued || 0,
+                    mutes_issued: existing.mutes_issued || 0,
+                    kicks_issued: existing.kicks_issued || 0,
+                    bans_issued: existing.bans_issued || 0,
+                    appeals_reviewed: existing.appeals_reviewed || 0,
+                    tickets_resolved: existing.tickets_resolved || 0,
+                    quality_score: existing.quality_score || null,
+                    response_time_avg: existing.response_time_avg || null,
+                    notes: existing.notes || null
+                });
+                updated++;
+                results.push(`✅ Updated: ${name} - ${hours} hours`);
+            } else {
+                // Create new
+                await createStats({
+                    moderator_id: moderator.id,
+                    year: year,
+                    month: month,
+                    hours_worked: hours,
+                    reports_handled: 0,
+                    punishments_issued: 0,
+                    warnings_issued: 0,
+                    mutes_issued: 0,
+                    kicks_issued: 0,
+                    bans_issued: 0,
+                    appeals_reviewed: 0,
+                    tickets_resolved: 0,
+                    quality_score: null,
+                    response_time_avg: null,
+                    notes: null
+                });
+                imported++;
+                results.push(`✅ Imported: ${name} - ${hours} hours`);
+            }
+        } catch (error) {
+            results.push(`❌ Error processing ${name}: ${error.message}`);
+            console.error(`Error processing ${name}:`, error);
+        }
+    }
+    
+    console.log('\n📊 November Hours Import Summary:');
+    results.forEach(r => console.log(r));
+    console.log(`\n   ✅ Imported: ${imported}`);
+    console.log(`   🔄 Updated: ${updated}`);
+    if (notFound.length > 0) {
+        console.log(`   ❌ Not Found: ${notFound.join(', ')}`);
+    }
+    
+    // Reload dashboard
+    await loadDashboard();
+    
+    const message = `November 2024 hours imported!\n\n✅ Imported: ${imported}\n🔄 Updated: ${updated}${notFound.length > 0 ? `\n❌ Not Found: ${notFound.join(', ')}` : ''}`;
+    alert(message);
+}
+
+// Make it available globally
+window.importNovemberHours = importNovemberHours;
 
 // Utilities
 function escapeHtml(text) {
