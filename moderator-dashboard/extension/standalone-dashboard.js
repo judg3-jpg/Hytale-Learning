@@ -617,79 +617,207 @@ async function showModeratorDetail(moderatorId) {
         
         document.getElementById('detailModeratorName').textContent = moderator.name;
         
+        const avatar = moderator.avatar_url || getInitials(moderator.name);
+        const workSection = moderator.notes || moderator.rank || 'Moderator';
+        
         content.innerHTML = `
-            <div class="detail-section">
-                <h3>Moderator Information</h3>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-                    <div><strong>Name:</strong> ${escapeHtml(moderator.name)}</div>
-                    <div><strong>Rank:</strong> ${escapeHtml(moderator.rank || 'N/A')}</div>
-                    <div><strong>Status:</strong> <span class="card-status status-${moderator.status}">${moderator.status}</span></div>
-                    <div><strong>Work Section:</strong> ${escapeHtml(moderator.notes || 'N/A')}</div>
-                    <div><strong>Discord ID:</strong> ${escapeHtml(moderator.discord_id || 'N/A')}</div>
-                    <div><strong>Join Date:</strong> ${moderator.join_date || 'N/A'}</div>
+            <div class="detail-header">
+                <div class="detail-avatar">
+                    ${typeof avatar === 'string' && avatar.startsWith('http') 
+                        ? `<img src="${avatar}" alt="${moderator.name}">`
+                        : `<div class="avatar-initials">${avatar}</div>`}
+                </div>
+                <div class="detail-header-info">
+                    <h2>${escapeHtml(moderator.name)}</h2>
+                    <div class="detail-badges">
+                        <span class="detail-badge detail-badge-mod">MODERATOR</span>
+                        <span class="detail-badge detail-badge-section">${escapeHtml(workSection)}</span>
+                        <span class="card-status status-${moderator.status}">${moderator.status}</span>
+                    </div>
+                    <button id="addStatsFromDetailBtn" class="btn-primary" style="margin-top: 1rem;">
+                        + Add Stats for This Moderator
+                    </button>
+                </div>
+            </div>
+            
+            <div class="detail-info-grid">
+                <div class="detail-info-item">
+                    <span class="detail-info-label">Rank</span>
+                    <span class="detail-info-value">${escapeHtml(moderator.rank || 'N/A')}</span>
+                </div>
+                <div class="detail-info-item">
+                    <span class="detail-info-label">Discord ID</span>
+                    <span class="detail-info-value">${escapeHtml(moderator.discord_id || 'N/A')}</span>
+                </div>
+                <div class="detail-info-item">
+                    <span class="detail-info-label">Join Date</span>
+                    <span class="detail-info-value">${moderator.join_date ? new Date(moderator.join_date).toLocaleDateString() : 'N/A'}</span>
                 </div>
             </div>
             
             <div class="detail-section">
-                <h3>12-Month Statistics</h3>
+                <div class="detail-section-header">
+                    <h3>📈 12-Month Statistics</h3>
+                </div>
                 <div class="detail-chart-container">
                     <canvas id="detailChart"></canvas>
                 </div>
             </div>
             
             <div class="detail-section">
-                <h3>Monthly Breakdown</h3>
+                <div class="detail-section-header">
+                    <h3>📅 Monthly Breakdown</h3>
+                    <span class="detail-section-subtitle">Last 12 months of activity</span>
+                </div>
                 <div class="detail-stats-grid">
-                    ${sortedStats.slice(0, 12).map(s => `
-                        <div style="background: var(--bg-secondary); padding: 1rem; border-radius: 0.5rem; border: 1px solid var(--border-color);">
-                            <div style="font-weight: 600; margin-bottom: 0.75rem; font-size: 1rem; color: var(--text-primary);">
-                                ${getMonthName(s.month)} ${s.year}
+                    ${sortedStats.length > 0 ? sortedStats.slice(0, 12).map(s => `
+                        <div class="monthly-stat-card">
+                            <div class="monthly-stat-header">
+                                <span class="monthly-stat-month">${getMonthName(s.month)}</span>
+                                <span class="monthly-stat-year">${s.year}</span>
                             </div>
-                            <div style="font-size: 0.875rem; color: var(--text-secondary); display: grid; gap: 0.5rem;">
-                                <div><strong>Reports:</strong> ${s.reports_handled || 0}</div>
-                                <div><strong>Hours:</strong> ${(s.hours_worked || 0).toFixed(1)}</div>
-                                <div><strong>Quality Score:</strong> ${(s.quality_score || 0).toFixed(2)}/5.00</div>
-                                <div><strong>Punishments:</strong> ${s.punishments_issued || 0}</div>
-                                <div><strong>Warnings:</strong> ${s.warnings_issued || 0}</div>
-                                <div><strong>Mutes:</strong> ${s.mutes_issued || 0}</div>
-                                <div><strong>Kicks:</strong> ${s.kicks_issued || 0}</div>
-                                <div><strong>Bans:</strong> ${s.bans_issued || 0}</div>
-                                <div><strong>Appeals:</strong> ${s.appeals_reviewed || 0}</div>
-                                <div><strong>SkyBlock Reports:</strong> ${s.tickets_resolved || 0}</div>
-                                ${s.response_time_avg ? `<div><strong>Avg Response:</strong> ${s.response_time_avg} min</div>` : ''}
-                                ${s.notes ? `<div style="margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--border-color);"><strong>Notes:</strong> ${escapeHtml(s.notes)}</div>` : ''}
+                            <div class="monthly-stat-content">
+                                <div class="monthly-stat-row">
+                                    <span class="monthly-stat-label">📝 Reports</span>
+                                    <span class="monthly-stat-value">${s.reports_handled || 0}</span>
+                                </div>
+                                <div class="monthly-stat-row">
+                                    <span class="monthly-stat-label">⏱️ Hours</span>
+                                    <span class="monthly-stat-value">${(s.hours_worked || 0).toFixed(1)}</span>
+                                </div>
+                                <div class="monthly-stat-row">
+                                    <span class="monthly-stat-label">⭐ Quality</span>
+                                    <span class="monthly-stat-value">${(s.quality_score || 0).toFixed(2)}</span>
+                                </div>
+                                <div class="monthly-stat-row">
+                                    <span class="monthly-stat-label">⚖️ Punishments</span>
+                                    <span class="monthly-stat-value">${s.punishments_issued || 0}</span>
+                                </div>
+                                <div class="monthly-stat-row">
+                                    <span class="monthly-stat-label">⚠️ Warnings</span>
+                                    <span class="monthly-stat-value">${s.warnings_issued || 0}</span>
+                                </div>
+                                <div class="monthly-stat-row">
+                                    <span class="monthly-stat-label">🔇 Mutes</span>
+                                    <span class="monthly-stat-value">${s.mutes_issued || 0}</span>
+                                </div>
+                                <div class="monthly-stat-row">
+                                    <span class="monthly-stat-label">👢 Kicks</span>
+                                    <span class="monthly-stat-value">${s.kicks_issued || 0}</span>
+                                </div>
+                                <div class="monthly-stat-row">
+                                    <span class="monthly-stat-label">🚫 Bans</span>
+                                    <span class="monthly-stat-value">${s.bans_issued || 0}</span>
+                                </div>
+                                <div class="monthly-stat-row">
+                                    <span class="monthly-stat-label">📋 Appeals</span>
+                                    <span class="monthly-stat-value">${s.appeals_reviewed || 0}</span>
+                                </div>
+                                <div class="monthly-stat-row">
+                                    <span class="monthly-stat-label">🎮 SkyBlock Reports</span>
+                                    <span class="monthly-stat-value">${s.tickets_resolved || 0}</span>
+                                </div>
+                                ${s.response_time_avg ? `
+                                <div class="monthly-stat-row">
+                                    <span class="monthly-stat-label">⏱️ Avg Response</span>
+                                    <span class="monthly-stat-value">${s.response_time_avg} min</span>
+                                </div>
+                                ` : ''}
+                                ${s.notes ? `
+                                <div class="monthly-stat-notes">
+                                    <strong>Notes:</strong> ${escapeHtml(s.notes)}
+                                </div>
+                                ` : ''}
                             </div>
                         </div>
-                    `).join('')}
+                    `).join('') : '<div class="no-stats-message">No statistics available yet. Add stats to see monthly breakdown.</div>'}
                 </div>
             </div>
         `;
         
+        // Attach add stats button handler
+        const addStatsBtn = document.getElementById('addStatsFromDetailBtn');
+        if (addStatsBtn) {
+            addStatsBtn.addEventListener('click', () => {
+                closeModal('moderatorDetailModal');
+                // Pre-select this moderator in the add stats form
+                setTimeout(() => {
+                    openModal('addStatsModal');
+                    const statsModeratorSelect = document.getElementById('statsModerator');
+                    if (statsModeratorSelect) {
+                        statsModeratorSelect.value = moderatorId;
+                    }
+                    const now = new Date();
+                    document.getElementById('statsYear').value = now.getFullYear();
+                    document.getElementById('statsMonth').value = now.getMonth() + 1;
+                }, 300);
+            });
+        }
+        
+        // Create chart after a short delay to ensure DOM is ready
         if (stats.length > 0) {
-            setTimeout(() => createDetailChart(stats), 100);
+            setTimeout(() => {
+                createDetailChart(stats);
+            }, 200);
+        } else {
+            const chartContainer = document.querySelector('.detail-chart-container');
+            if (chartContainer) {
+                chartContainer.innerHTML = '<div class="no-stats-message">No statistics available yet. Add stats to see the chart.</div>';
+            }
         }
     } catch (error) {
         console.error('Error loading moderator details:', error);
-        content.innerHTML = '<p>Error loading moderator details</p>';
+        content.innerHTML = '<p class="error-message">Error loading moderator details: ' + escapeHtml(error.message) + '</p>';
     }
 }
 
 function createDetailChart(stats) {
     const canvas = document.getElementById('detailChart');
-    if (!canvas) return;
+    if (!canvas) {
+        console.error('Chart canvas not found!');
+        return;
+    }
     
+    // Check if Chart.js is loaded
+    if (typeof Chart === 'undefined') {
+        console.error('Chart.js is not loaded!');
+        const container = canvas.parentElement;
+        if (container) {
+            container.innerHTML = '<div class="error-message">Chart.js library not loaded. Please refresh the page.</div>';
+        }
+        return;
+    }
+    
+    // Sort stats chronologically (oldest to newest)
     const sortedStats = [...stats].sort((a, b) => {
         if (a.year !== b.year) return a.year - b.year;
         return a.month - b.month;
     });
     
+    // Get last 12 months (or all if less than 12)
     const last12Months = sortedStats.slice(-12);
     
+    if (last12Months.length === 0) {
+        console.warn('No stats data available for chart');
+        const container = canvas.parentElement;
+        if (container) {
+            container.innerHTML = '<div class="no-stats-message">No statistics available to display.</div>';
+        }
+        return;
+    }
+    
+    console.log('Creating chart with', last12Months.length, 'data points');
+    
+    // Destroy existing chart if it exists
+    if (canvas.chart) {
+        canvas.chart.destroy();
+    }
+    
     const ctx = canvas.getContext('2d');
-    new Chart(ctx, {
+    canvas.chart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: last12Months.map(s => `${getMonthName(s.month)} ${s.year}`),
+            labels: last12Months.map(s => `${getMonthName(s.month).substring(0, 3)} ${s.year}`),
             datasets: [
                 {
                     label: 'Reports Handled',
@@ -697,7 +825,9 @@ function createDetailChart(stats) {
                     borderColor: 'rgb(59, 130, 246)',
                     backgroundColor: 'rgba(59, 130, 246, 0.1)',
                     tension: 0.4,
-                    fill: true
+                    fill: true,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
                 },
                 {
                     label: 'Hours Worked',
@@ -706,24 +836,82 @@ function createDetailChart(stats) {
                     backgroundColor: 'rgba(16, 185, 129, 0.1)',
                     tension: 0.4,
                     fill: true,
-                    yAxisID: 'y1'
+                    yAxisID: 'y1',
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                },
+                {
+                    label: 'Punishments Issued',
+                    data: last12Months.map(s => s.punishments_issued || 0),
+                    borderColor: 'rgb(239, 68, 68)',
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    tension: 0.4,
+                    fill: false,
+                    pointRadius: 3,
+                    pointHoverRadius: 5
                 }
             ]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
             plugins: {
-                legend: { display: true },
-                tooltip: { enabled: true }
+                legend: { 
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 15
+                    }
+                },
+                tooltip: { 
+                    enabled: true,
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    titleFont: { size: 14 },
+                    bodyFont: { size: 13 }
+                }
             },
             scales: {
                 y: {
                     beginAtZero: true,
                     position: 'left',
-                    title: { display: true, text: 'Reports' }
+                    title: { 
+                        display: true, 
+                        text: 'Reports / Punishments',
+                        font: { size: 12 }
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    }
                 },
                 y1: {
+                    beginAtZero: true,
+                    position: 'right',
+                    title: { 
+                        display: true, 
+                        text: 'Hours',
+                        font: { size: 12 }
+                    },
+                    grid: {
+                        drawOnChartArea: false
+                    }
+                },
+                x: {
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    }
+                }
+            }
+        }
+    });
+    
+    console.log('Chart created successfully');
+}
                     beginAtZero: true,
                     position: 'right',
                     title: { display: true, text: 'Hours' },
