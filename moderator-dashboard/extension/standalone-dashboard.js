@@ -275,14 +275,15 @@ async function renderModeratorCards() {
         createModeratorCardHTML(moderator, stats, currentMonth)
     ).join('');
     
+    // Attach click handlers BEFORE creating charts (so charts don't break)
+    attachCardClickHandlers();
+    
+    // Create charts after handlers are attached
     cardsData.forEach(({ moderator, stats }) => {
         if (stats.length > 0) {
             createMiniChart(moderator.id, stats);
         }
     });
-    
-    // Attach click handlers directly to each card
-    attachCardClickHandlers();
 }
 
 function createModeratorCardHTML(moderator, stats, currentMonth) {
@@ -292,7 +293,7 @@ function createModeratorCardHTML(moderator, stats, currentMonth) {
     const workSection = moderator.notes || moderator.rank || 'Moderator';
     
     return `
-        <div class="moderator-card" data-mod-id="${moderator.id}" style="cursor: pointer;">
+        <div class="moderator-card" data-mod-id="${moderator.id}" onclick="window.showModeratorDetail(${moderator.id})" style="cursor: pointer;">
             <div class="card-content">
                 <div class="card-header">
                     <div class="card-avatar">
@@ -411,18 +412,21 @@ function attachCardClickHandlers() {
     console.log(`Found ${cards.length} moderator cards to attach handlers`);
     
     cards.forEach(card => {
-        // Remove any existing listeners by cloning
-        const newCard = card.cloneNode(true);
-        card.parentNode.replaceChild(newCard, card);
-        
-        // Get mod ID from the new card
-        const modId = newCard.getAttribute('data-mod-id');
+        const modId = card.getAttribute('data-mod-id');
         if (!modId) {
-            console.warn('Card missing data-mod-id:', newCard);
+            console.warn('Card missing data-mod-id');
             return;
         }
         
-        // Attach click handler
+        // Remove any existing click listeners by replacing the card
+        const parent = card.parentNode;
+        const newCard = card.cloneNode(true);
+        parent.replaceChild(newCard, card);
+        
+        // Get mod ID from new card
+        const newModId = newCard.getAttribute('data-mod-id');
+        
+        // Attach click handler to the new card
         newCard.addEventListener('click', function(e) {
             // Don't trigger if clicking on buttons or inputs
             if (e.target.closest('button') || 
@@ -432,13 +436,13 @@ function attachCardClickHandlers() {
                 return;
             }
             
-            console.log('Card clicked, opening detail for ID:', modId);
+            console.log('Card clicked, opening detail for ID:', newModId);
             e.preventDefault();
             e.stopPropagation();
-            showModeratorDetail(parseInt(modId));
+            showModeratorDetail(parseInt(newModId));
         });
         
-        // Also add pointer cursor style
+        // Ensure cursor style
         newCard.style.cursor = 'pointer';
     });
     
@@ -801,6 +805,11 @@ async function exportData(moderatorId, format) {
 
 window.exportData = exportData;
 window.showModeratorDetail = showModeratorDetail;
+
+// Make sure it's available globally for onclick handlers
+if (typeof window.showModeratorDetail === 'undefined') {
+    window.showModeratorDetail = showModeratorDetail;
+}
 
 // Theme Management
 function initializeTheme() {
