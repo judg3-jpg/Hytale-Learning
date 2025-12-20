@@ -53,61 +53,123 @@ function initDB() {
 // Initialize dashboard
 document.addEventListener('DOMContentLoaded', async () => {
     try {
+        console.log('Initializing dashboard...');
         await initDB();
+        console.log('Database initialized');
+        
+        const count = await getModeratorCount();
+        console.log('Current moderator count:', count);
+        
         await initializeModerators();
+        console.log('Moderators initialized');
+        
+        const finalCount = await getModeratorCount();
+        console.log('Final moderator count:', finalCount);
+        
         initializeTheme();
         await loadDashboard();
         setupEventListeners();
+        console.log('Dashboard loaded successfully');
     } catch (error) {
         console.error('Error initializing:', error);
+        alert('Error initializing dashboard: ' + error.message);
     }
 });
 
 // Initialize default moderators if database is empty
 async function initializeModerators() {
-    const count = await getModeratorCount();
-    if (count === 0) {
-        const defaultMods = [
-            { name: 'Alexa', notes: 'SkyBlock Moderator', rank: 'Mod', status: 'active' },
-            { name: 'AmyTheMudkip', notes: 'Report Moderator', rank: 'Mod', status: 'active' },
-            { name: 'Blake', notes: 'SkyBlock Moderator', rank: 'Mod', status: 'active' },
-            { name: 'Changitesz', notes: 'Report Moderator', rank: 'Mod', status: 'active' },
-            { name: 'DeluxeRose', notes: 'Report Moderator', rank: 'Mod', status: 'active' },
-            { name: 'Gainful', notes: 'Report Moderator', rank: 'Mod', status: 'active' },
-            { name: 'Gerbor', notes: 'SkyBlock Moderator', rank: 'Mod', status: 'active' },
-            { name: 'Jade', notes: 'Report Moderator', rank: 'Mod', status: 'active' },
-            { name: 'LeBrilliant', notes: 'Report Moderator', rank: 'Mod', status: 'active' },
-            { name: 'Quack', notes: 'Forum & Report Moderator', rank: 'Mod', status: 'active' },
-            { name: 'Rhune', notes: 'SkyBlock Moderator', rank: 'Mod', status: 'active' },
-            { name: 'SaltyLia', notes: 'Report & SkyBlock Moderator', rank: 'Mod', status: 'active' },
-            { name: 'Smoarzified', notes: 'Appeals & SkyBlock Moderator', rank: 'Mod', status: 'active' },
-            { name: 'MCVisuals', notes: 'Appeals & Report Moderator', rank: 'Mod', status: 'active' }
-        ];
+    try {
+        const count = await getModeratorCount();
+        console.log('Checking moderator count:', count);
         
-        for (const mod of defaultMods) {
-            await createModerator(mod);
+        if (count === 0) {
+            console.log('Database is empty, seeding default moderators...');
+            const defaultMods = [
+                { name: 'Alexa', notes: 'SkyBlock Moderator', rank: 'Mod', status: 'active' },
+                { name: 'AmyTheMudkip', notes: 'Report Moderator', rank: 'Mod', status: 'active' },
+                { name: 'Blake', notes: 'SkyBlock Moderator', rank: 'Mod', status: 'active' },
+                { name: 'Changitesz', notes: 'Report Moderator', rank: 'Mod', status: 'active' },
+                { name: 'DeluxeRose', notes: 'Report Moderator', rank: 'Mod', status: 'active' },
+                { name: 'Gainful', notes: 'Report Moderator', rank: 'Mod', status: 'active' },
+                { name: 'Gerbor', notes: 'SkyBlock Moderator', rank: 'Mod', status: 'active' },
+                { name: 'Jade', notes: 'Report Moderator', rank: 'Mod', status: 'active' },
+                { name: 'LeBrilliant', notes: 'Report Moderator', rank: 'Mod', status: 'active' },
+                { name: 'Quack', notes: 'Forum & Report Moderator', rank: 'Mod', status: 'active' },
+                { name: 'Rhune', notes: 'SkyBlock Moderator', rank: 'Mod', status: 'active' },
+                { name: 'SaltyLia', notes: 'Report & SkyBlock Moderator', rank: 'Mod', status: 'active' },
+                { name: 'Smoarzified', notes: 'Appeals & SkyBlock Moderator', rank: 'Mod', status: 'active' },
+                { name: 'MCVisuals', notes: 'Appeals & Report Moderator', rank: 'Mod', status: 'active' }
+            ];
+            
+            for (let i = 0; i < defaultMods.length; i++) {
+                const mod = defaultMods[i];
+                try {
+                    const id = await createModerator(mod);
+                    console.log(`Created moderator ${i + 1}/${defaultMods.length}: ${mod.name} (ID: ${id})`);
+                } catch (error) {
+                    console.error(`Error creating moderator ${mod.name}:`, error);
+                }
+            }
+            
+            const newCount = await getModeratorCount();
+            console.log(`Seeding complete. Total moderators: ${newCount}`);
+        } else {
+            console.log(`Database already has ${count} moderators, skipping seed.`);
         }
+    } catch (error) {
+        console.error('Error in initializeModerators:', error);
+        throw error;
     }
 }
 
 async function getModeratorCount() {
     return new Promise((resolve, reject) => {
-        const transaction = db.transaction(['moderators'], 'readonly');
-        const store = transaction.objectStore('moderators');
-        const request = store.count();
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(request.error);
+        if (!db) {
+            reject(new Error('Database not initialized'));
+            return;
+        }
+        try {
+            const transaction = db.transaction(['moderators'], 'readonly');
+            const store = transaction.objectStore('moderators');
+            const request = store.count();
+            request.onsuccess = () => {
+                console.log('Moderator count result:', request.result);
+                resolve(request.result);
+            };
+            request.onerror = () => {
+                console.error('Error getting moderator count:', request.error);
+                reject(request.error);
+            };
+        } catch (error) {
+            console.error('Exception getting moderator count:', error);
+            reject(error);
+        }
     });
 }
 
 // Database operations
 async function getAllModerators() {
     return new Promise((resolve, reject) => {
-        const transaction = db.transaction(['moderators'], 'readonly');
-        const store = transaction.objectStore('moderators');
-        const request = store.getAll();
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(request.error);
+        if (!db) {
+            reject(new Error('Database not initialized'));
+            return;
+        }
+        try {
+            const transaction = db.transaction(['moderators'], 'readonly');
+            const store = transaction.objectStore('moderators');
+            const request = store.getAll();
+            request.onsuccess = () => {
+                console.log('Loaded moderators:', request.result.length);
+                resolve(request.result || []);
+            };
+            request.onerror = () => {
+                console.error('Error getting all moderators:', request.error);
+                reject(request.error);
+            };
+        } catch (error) {
+            console.error('Exception getting all moderators:', error);
+            reject(error);
+        }
     });
 }
 
@@ -234,13 +296,29 @@ async function getDashboardStats() {
 
 // Dashboard loading
 async function loadDashboard() {
-    moderators = await getAllModerators();
-    dashboardStats = await getDashboardStats();
-    filteredModerators = [...moderators];
-    
-    updateSummaryCards();
-    renderModeratorCards();
-    populateModeratorDropdowns();
+    try {
+        console.log('Loading dashboard...');
+        moderators = await getAllModerators();
+        console.log('Moderators loaded:', moderators.length);
+        
+        if (moderators.length === 0) {
+            console.warn('No moderators found! Attempting to re-initialize...');
+            await initializeModerators();
+            moderators = await getAllModerators();
+            console.log('After re-initialization, moderators:', moderators.length);
+        }
+        
+        dashboardStats = await getDashboardStats();
+        filteredModerators = [...moderators];
+        
+        updateSummaryCards();
+        renderModeratorCards();
+        populateModeratorDropdowns();
+        console.log('Dashboard loaded successfully');
+    } catch (error) {
+        console.error('Error loading dashboard:', error);
+        alert('Error loading dashboard: ' + error.message);
+    }
 }
 
 function updateSummaryCards() {
