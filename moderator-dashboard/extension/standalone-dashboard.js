@@ -281,6 +281,7 @@ async function renderModeratorCards() {
         }
     });
     
+    // Attach click handlers directly to each card
     attachCardClickHandlers();
 }
 
@@ -405,39 +406,43 @@ function getInitials(name) {
 }
 
 function attachCardClickHandlers() {
-    // Use event delegation on the grid container for better performance
-    const grid = document.getElementById('moderatorGrid');
-    if (!grid) return;
+    // Attach click handler directly to each card
+    const cards = document.querySelectorAll('.moderator-card[data-mod-id]');
+    console.log(`Found ${cards.length} moderator cards to attach handlers`);
     
-    // Remove old listener if exists
-    grid.removeEventListener('click', handleCardClick);
+    cards.forEach(card => {
+        // Remove any existing listeners by cloning
+        const newCard = card.cloneNode(true);
+        card.parentNode.replaceChild(newCard, card);
+        
+        // Get mod ID from the new card
+        const modId = newCard.getAttribute('data-mod-id');
+        if (!modId) {
+            console.warn('Card missing data-mod-id:', newCard);
+            return;
+        }
+        
+        // Attach click handler
+        newCard.addEventListener('click', function(e) {
+            // Don't trigger if clicking on buttons or inputs
+            if (e.target.closest('button') || 
+                e.target.closest('input') || 
+                e.target.tagName === 'BUTTON' ||
+                e.target.tagName === 'INPUT') {
+                return;
+            }
+            
+            console.log('Card clicked, opening detail for ID:', modId);
+            e.preventDefault();
+            e.stopPropagation();
+            showModeratorDetail(parseInt(modId));
+        });
+        
+        // Also add pointer cursor style
+        newCard.style.cursor = 'pointer';
+    });
     
-    // Add new listener
-    grid.addEventListener('click', handleCardClick);
-}
-
-function handleCardClick(e) {
-    // Find the closest moderator card
-    const card = e.target.closest('.moderator-card[data-mod-id]');
-    if (!card) return;
-    
-    // Don't trigger if clicking on interactive elements
-    if (e.target.closest('button') || 
-        e.target.closest('input') || 
-        e.target.closest('a') ||
-        e.target.tagName === 'BUTTON' ||
-        e.target.tagName === 'INPUT') {
-        return;
-    }
-    
-    // Allow clicks on canvas but still open detail
-    const modId = card.getAttribute('data-mod-id');
-    if (modId) {
-        e.preventDefault();
-        e.stopPropagation();
-        console.log('Opening moderator detail for ID:', modId);
-        showModeratorDetail(parseInt(modId));
-    }
+    console.log('Card click handlers attached successfully');
 }
 
 // Search and Filter
