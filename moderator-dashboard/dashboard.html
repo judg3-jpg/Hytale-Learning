@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moderator Statistics Dashboard</title>
+    <link rel="stylesheet" href="dashboard.css">
+    <style>
+        /* Additional styles for standalone version */
+        body {
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <!-- Header -->
+    <header class="dashboard-header">
+        <div class="header-content">
+            <h1>📊 Moderator Statistics Dashboard</h1>
+            <div class="header-actions">
+                <button id="themeToggle" class="btn-icon" title="Toggle theme">
+                    <span id="themeIcon">🌙</span>
+                </button>
+                <button id="exportBtn" class="btn-secondary">Export Data</button>
+                <button id="addModeratorBtn" class="btn-primary">+ Add Moderator</button>
+                <button id="addStatsBtn" class="btn-primary">+ Add Stats</button>
+                <button id="importNovemberBtn" class="btn-secondary" title="Import November 2024 hours">📥 Import Nov Hours</button>
+                <button id="resetDatabaseBtn" class="btn-secondary" title="Reset and re-seed database" style="background: #ef4444; color: white;">🔄 Reset DB</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Filters Bar -->
+    <div class="filters-bar">
+        <div class="filters-content">
+            <input type="text" id="searchInput" class="search-input" placeholder="Search moderators...">
+            <select id="rankFilter" class="filter-select">
+                <option value="">All Ranks</option>
+                <option value="Senior Mod">Senior Mod</option>
+                <option value="Mod">Mod</option>
+                <option value="Trial Mod">Trial Mod</option>
+            </select>
+            <select id="statusFilter" class="filter-select">
+                <option value="">All Status</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+                <option value="on_leave">On Leave</option>
+            </select>
+            <button id="clearFilters" class="btn-link">Clear Filters</button>
+        </div>
+    </div>
+
+    <!-- Summary Section -->
+    <section class="summary-section">
+        <div class="summary-cards">
+            <div class="summary-card">
+                <div class="summary-icon">👥</div>
+                <div class="summary-content">
+                    <h3 id="totalModerators">0</h3>
+                    <p>Total Moderators</p>
+                </div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-icon">✅</div>
+                <div class="summary-content">
+                    <h3 id="activeModerators">0</h3>
+                    <p>Active Moderators</p>
+                </div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-icon">📝</div>
+                <div class="summary-content">
+                    <h3 id="totalReports">0</h3>
+                    <p>Reports This Month</p>
+                </div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-icon">⏱️</div>
+                <div class="summary-content">
+                    <h3 id="totalHours">0</h3>
+                    <p>Hours This Month</p>
+                </div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-icon">⭐</div>
+                <div class="summary-content">
+                    <h3 id="avgQuality">0.0</h3>
+                    <p>Avg Quality Score</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Top Performers Section -->
+    <section class="top-performers-section">
+        <h2>🏆 Top Performers This Month</h2>
+        <div id="topPerformers" class="top-performers-list"></div>
+    </section>
+
+    <!-- Moderator Grid -->
+    <section class="moderator-grid-section">
+        <div class="section-header">
+            <h2>Moderators</h2>
+        </div>
+        <div id="moderatorGrid" class="moderator-grid"></div>
+        <div id="noResults" class="no-results" style="display: none;">
+            <p>No moderators found matching your filters.</p>
+        </div>
+    </section>
+
+    <!-- Add Moderator Modal -->
+    <div id="addModeratorModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add New Moderator</h2>
+                <button class="modal-close" data-modal="addModeratorModal">&times;</button>
+            </div>
+            <form id="addModeratorForm">
+                <div class="form-group">
+                    <label for="modName">Name *</label>
+                    <input type="text" id="modName" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="modDiscordId">Discord ID</label>
+                    <input type="text" id="modDiscordId" name="discord_id">
+                </div>
+                <div class="form-group">
+                    <label for="modRank">Rank</label>
+                    <select id="modRank" name="rank">
+                        <option value="">Select Rank</option>
+                        <option value="Senior Mod">Senior Mod</option>
+                        <option value="Mod">Mod</option>
+                        <option value="Trial Mod">Trial Mod</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="modStatus">Status</label>
+                    <select id="modStatus" name="status">
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="on_leave">On Leave</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="modWorkSection">Work Section *</label>
+                    <input type="text" id="modWorkSection" name="notes" placeholder="e.g., SkyBlock Moderator" required>
+                </div>
+                <div class="form-group">
+                    <label for="modJoinDate">Join Date</label>
+                    <input type="date" id="modJoinDate" name="join_date">
+                </div>
+                <div class="form-group">
+                    <label for="modAvatarUrl">Avatar URL</label>
+                    <input type="url" id="modAvatarUrl" name="avatar_url">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" data-modal="addModeratorModal">Cancel</button>
+                    <button type="submit" class="btn-primary">Create Moderator</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Stats Modal -->
+    <div id="addStatsModal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2>Add Monthly Statistics</h2>
+                <button class="modal-close" data-modal="addStatsModal">&times;</button>
+            </div>
+            <form id="addStatsForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="statsModerator">Moderator *</label>
+                        <select id="statsModerator" name="moderator_id" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="statsYear">Year *</label>
+                        <input type="number" id="statsYear" name="year" min="2020" max="2099" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="statsMonth">Month *</label>
+                        <select id="statsMonth" name="month" required>
+                            <option value="">Select Month</option>
+                            <option value="1">January</option>
+                            <option value="2">February</option>
+                            <option value="3">March</option>
+                            <option value="4">April</option>
+                            <option value="5">May</option>
+                            <option value="6">June</option>
+                            <option value="7">July</option>
+                            <option value="8">August</option>
+                            <option value="9">September</option>
+                            <option value="10">October</option>
+                            <option value="11">November</option>
+                            <option value="12">December</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="statsReports">Reports Handled</label>
+                        <input type="number" id="statsReports" name="reports_handled" min="0" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="statsHours">Hours Worked</label>
+                        <input type="number" id="statsHours" name="hours_worked" min="0" max="744" step="0.1" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="statsQuality">Quality Score (0-5)</label>
+                        <input type="number" id="statsQuality" name="quality_score" min="0" max="5" step="0.01" value="0">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="statsWarnings">Warnings Issued</label>
+                        <input type="number" id="statsWarnings" name="warnings_issued" min="0" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="statsMutes">Mutes Issued</label>
+                        <input type="number" id="statsMutes" name="mutes_issued" min="0" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="statsKicks">Kicks Issued</label>
+                        <input type="number" id="statsKicks" name="kicks_issued" min="0" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="statsBans">Bans Issued</label>
+                        <input type="number" id="statsBans" name="bans_issued" min="0" value="0">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="statsAppeals">Appeals Reviewed</label>
+                        <input type="number" id="statsAppeals" name="appeals_reviewed" min="0" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="statsTickets">SkyBlock Reports</label>
+                        <input type="number" id="statsTickets" name="tickets_resolved" min="0" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="statsResponseTime">Avg Response Time (minutes)</label>
+                        <input type="number" id="statsResponseTime" name="response_time_avg" min="0" value="0">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="statsNotes">Notes</label>
+                    <textarea id="statsNotes" name="notes" rows="3"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" data-modal="addStatsModal">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Statistics</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Moderator Detail Modal -->
+    <div id="moderatorDetailModal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2 id="detailModeratorName">Moderator Details</h2>
+                <button class="modal-close" data-modal="moderatorDetailModal">&times;</button>
+            </div>
+            <div id="moderatorDetailContent" class="moderator-detail-content">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Modal -->
+    <div id="exportModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Export Data</h2>
+                <button class="modal-close" data-modal="exportModal">&times;</button>
+            </div>
+            <div class="export-options">
+                <div class="export-option">
+                    <h3>Export All Moderators</h3>
+                    <button class="btn-primary" onclick="exportData(null, 'csv')">Export as CSV</button>
+                </div>
+                <div class="export-option">
+                    <h3>Export Individual Moderator</h3>
+                    <select id="exportModeratorSelect"></select>
+                    <button class="btn-primary" onclick="exportData(document.getElementById('exportModeratorSelect').value, 'csv')">Export as CSV</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="dashboard.js"></script>
+</body>
+</html>
+
