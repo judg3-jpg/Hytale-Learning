@@ -10,12 +10,7 @@
     "128": "icons/icon128.png"
   },
   "permissions": [
-    "storage",
-    "tabs"
-  ],
-  "host_permissions": [
-    "http://localhost:3000/*",
-    "http://127.0.0.1:3000/*"
+    "storage"
   ],
   "action": {
     "default_icon": {
@@ -28,6 +23,12 @@
   "background": {
     "service_worker": "background.js"
   },
+  "web_accessible_resources": [
+    {
+      "resources": ["dashboard.html", "standalone-dashboard.js", "sidepanel/dashboard.css"],
+      "matches": ["<all_urls>"]
+    }
+  ],
   "commands": {
     "open-dashboard": {
       "suggested_key": {
