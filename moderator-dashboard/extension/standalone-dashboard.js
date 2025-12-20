@@ -175,21 +175,36 @@ async function getAllModerators() {
 
 async function createModerator(moderator) {
     return new Promise((resolve, reject) => {
-        const transaction = db.transaction(['moderators'], 'readwrite');
-        const store = transaction.objectStore('moderators');
-        const modData = {
-            name: moderator.name,
-            discord_id: moderator.discord_id || null,
-            rank: moderator.rank || 'Mod',
-            status: moderator.status || 'active',
-            join_date: moderator.join_date || null,
-            avatar_url: moderator.avatar_url || null,
-            notes: moderator.notes || moderator.rank || 'Moderator',
-            created_at: new Date().toISOString()
-        };
-        const request = store.add(modData);
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(request.error);
+        if (!db) {
+            reject(new Error('Database not initialized'));
+            return;
+        }
+        try {
+            const transaction = db.transaction(['moderators'], 'readwrite');
+            const store = transaction.objectStore('moderators');
+            const modData = {
+                name: moderator.name,
+                discord_id: moderator.discord_id || null,
+                rank: moderator.rank || 'Mod',
+                status: moderator.status || 'active',
+                join_date: moderator.join_date || null,
+                avatar_url: moderator.avatar_url || null,
+                notes: moderator.notes || moderator.rank || 'Moderator',
+                created_at: new Date().toISOString()
+            };
+            const request = store.add(modData);
+            request.onsuccess = () => {
+                console.log('Moderator created successfully:', moderator.name, 'ID:', request.result);
+                resolve(request.result);
+            };
+            request.onerror = () => {
+                console.error('Error creating moderator:', request.error);
+                reject(request.error);
+            };
+        } catch (error) {
+            console.error('Exception creating moderator:', error);
+            reject(error);
+        }
     });
 }
 
@@ -601,6 +616,13 @@ function setupModals() {
             if (confirm('Import November 2024 hours for all moderators?')) {
                 await importNovemberHours();
             }
+        });
+    }
+    
+    const resetBtn = document.getElementById('resetDatabaseBtn');
+    if (resetBtn) {
+        resetBtn.addEventListener('click', async () => {
+            await resetDatabase();
         });
     }
 }
@@ -1100,6 +1122,51 @@ function updateThemeIcon(theme) {
 }
 
 // Event Listeners
+// Reset database and re-seed moderators
+async function resetDatabase() {
+    if (!confirm('This will clear all data and re-seed the default moderators. Continue?')) {
+        return;
+    }
+    
+    try {
+        console.log('Resetting database...');
+        
+        // Close existing database connection
+        if (db) {
+            db.close();
+        }
+        
+        // Delete the database
+        const deleteRequest = indexedDB.deleteDatabase(DB_NAME);
+        await new Promise((resolve, reject) => {
+            deleteRequest.onsuccess = () => {
+                console.log('Database deleted');
+                resolve();
+            };
+            deleteRequest.onerror = () => reject(deleteRequest.error);
+            deleteRequest.onblocked = () => {
+                console.warn('Database deletion blocked, retrying...');
+                setTimeout(resolve, 100);
+            };
+        });
+        
+        // Re-initialize
+        await initDB();
+        console.log('Database re-initialized');
+        
+        // Re-seed moderators
+        await initializeModerators();
+        
+        // Reload dashboard
+        await loadDashboard();
+        
+        alert('Database reset successfully! All moderators have been re-seeded.');
+    } catch (error) {
+        console.error('Error resetting database:', error);
+        alert('Error resetting database: ' + error.message);
+    }
+}
+
 function setupEventListeners() {
     const themeToggle = document.getElementById('themeToggle');
     if (themeToggle) themeToggle.addEventListener('click', toggleTheme);
