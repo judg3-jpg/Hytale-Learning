@@ -26,16 +26,19 @@ function initDB() {
         };
         
         request.onupgradeneeded = (event) => {
+            console.log('Database upgrade needed, creating stores...');
             const db = event.target.result;
             
             // Create moderators store
             if (!db.objectStoreNames.contains('moderators')) {
+                console.log('Creating moderators store...');
                 const modStore = db.createObjectStore('moderators', { keyPath: 'id', autoIncrement: true });
                 modStore.createIndex('name', 'name', { unique: false });
             }
             
             // Create stats store
             if (!db.objectStoreNames.contains('stats')) {
+                console.log('Creating stats store...');
                 const statsStore = db.createObjectStore('stats', { keyPath: 'id', autoIncrement: true });
                 statsStore.createIndex('moderator_id', 'moderator_id', { unique: false });
                 statsStore.createIndex('year_month', ['moderator_id', 'year', 'month'], { unique: true });
@@ -43,9 +46,11 @@ function initDB() {
             
             // Create activity log store
             if (!db.objectStoreNames.contains('activity_log')) {
+                console.log('Creating activity_log store...');
                 const logStore = db.createObjectStore('activity_log', { keyPath: 'id', autoIncrement: true });
                 logStore.createIndex('moderator_id', 'moderator_id', { unique: false });
             }
+            console.log('Database stores created successfully');
         };
     });
 }
