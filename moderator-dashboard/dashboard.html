@@ -13,6 +13,21 @@
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+        // Ensure Chart.js is loaded before proceeding
+        window.chartJSReady = false;
+        if (typeof Chart !== 'undefined') {
+            window.chartJSReady = true;
+        } else {
+            // Wait for Chart.js to load
+            const checkChart = setInterval(() => {
+                if (typeof Chart !== 'undefined') {
+                    window.chartJSReady = true;
+                    clearInterval(checkChart);
+                }
+            }, 50);
+        }
+    </script>
 </head>
 <body>
     <!-- Header -->

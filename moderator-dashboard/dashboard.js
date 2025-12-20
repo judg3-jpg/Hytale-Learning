@@ -859,11 +859,11 @@ async function showModeratorDetail(moderatorId) {
             });
         }
         
-        // Create chart after a short delay to ensure DOM is ready
+        // Create chart after ensuring Chart.js is loaded
         if (stats.length > 0) {
-            setTimeout(() => {
+            waitForChartJS(() => {
                 createDetailChart(stats);
-            }, 200);
+            });
         } else {
             const chartContainer = document.querySelector('.detail-chart-container');
             if (chartContainer) {
@@ -876,6 +876,27 @@ async function showModeratorDetail(moderatorId) {
     }
 }
 
+// Wait for Chart.js to be available
+function waitForChartJS(callback, maxAttempts = 50, attempt = 0) {
+    if (typeof Chart !== 'undefined') {
+        callback();
+        return;
+    }
+    
+    if (attempt >= maxAttempts) {
+        console.error('Chart.js failed to load after maximum attempts');
+        const container = document.querySelector('.detail-chart-container');
+        if (container) {
+            container.innerHTML = '<div class="error-message">Chart.js library failed to load. Please refresh the page.</div>';
+        }
+        return;
+    }
+    
+    setTimeout(() => {
+        waitForChartJS(callback, maxAttempts, attempt + 1);
+    }, 100);
+}
+
 function createDetailChart(stats) {
     const canvas = document.getElementById('detailChart');
     if (!canvas) {
@@ -885,11 +906,8 @@ function createDetailChart(stats) {
     
     // Check if Chart.js is loaded
     if (typeof Chart === 'undefined') {
-        console.error('Chart.js is not loaded!');
-        const container = canvas.parentElement;
-        if (container) {
-            container.innerHTML = '<div class="error-message">Chart.js library not loaded. Please refresh the page.</div>';
-        }
+        console.error('Chart.js is not loaded! Attempting to wait...');
+        waitForChartJS(() => createDetailChart(stats));
         return;
     }
     
