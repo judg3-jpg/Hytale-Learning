@@ -171,6 +171,13 @@ function setupEventListeners() {
     await chrome.storage.sync.set({ reviewerName: e.target.value });
     showNotification('Settings saved!', 'success');
   });
+  
+  // Bulk actions
+  document.getElementById('btnBulkRefreshStats')?.addEventListener('click', bulkRefreshStats);
+  document.getElementById('btnBulkReviewAll')?.addEventListener('click', bulkReviewAll);
+  
+  // Bulk progress modal close
+  document.getElementById('bulkProgressClose')?.addEventListener('click', closeBulkProgressModal);
 }
 
 // Setup file upload
@@ -1278,4 +1285,395 @@ function showNameChangeResults(results) {
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// ==================== BULK PROGRESS MODAL FUNCTIONS ====================
+
+function showBulkProgressModal(title) {
+  const modal = document.getElementById('bulkProgressModal');
+  const titleEl = document.getElementById('bulkProgressTitle');
+  const fillEl = document.getElementById('bulkProgressFill');
+  const textEl = document.getElementById('bulkProgressText');
+  const statusEl = document.getElementById('bulkProgressStatus');
+  const logEl = document.getElementById('bulkProgressLog');
+  const footerEl = document.getElementById('bulkProgressFooter');
+  
+  titleEl.textContent = title;
+  fillEl.style.width = '0%';
+  textEl.textContent = '0 / 0';
+  statusEl.textContent = 'Starting...';
+  logEl.innerHTML = '';
+  footerEl.style.display = 'none';
+  
+  modal.classList.add('active');
+}
+
+function updateBulkProgress(current, total, status, logEntry = null) {
+  const fillEl = document.getElementById('bulkProgressFill');
+  const textEl = document.getElementById('bulkProgressText');
+  const statusEl = document.getElementById('bulkProgressStatus');
+  const logEl = document.getElementById('bulkProgressLog');
+  
+  const percentage = total > 0 ? Math.round((current / total) * 100) : 0;
+  
+  fillEl.style.width = `${percentage}%`;
+  textEl.textContent = `${current} / ${total}`;
+  statusEl.textContent = status;
+  
+  if (logEntry) {
+    const entryEl = document.createElement('div');
+    entryEl.className = `log-entry ${logEntry.type || ''}`;
+    entryEl.textContent = logEntry.message;
+    logEl.appendChild(entryEl);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+}
+
+function completeBulkProgress(summary) {
+  const statusEl = document.getElementById('bulkProgressStatus');
+  const footerEl = document.getElementById('bulkProgressFooter');
+  
+  statusEl.textContent = summary;
+  footerEl.style.display = 'flex';
+}
+
+function closeBulkProgressModal() {
+  document.getElementById('bulkProgressModal')?.classList.remove('active');
+}
+
+// ==================== BULK REFRESH STATS FUNCTION ====================
+
+async function bulkRefreshStats() {
+  const creators = csvManager.getAllCreators();
+  
+  if (creators.length === 0) {
+    showNotification('No creators to refresh', 'error');
+    return;
+  }
+  
+  // Get API settings
+  const settings = await chrome.storage.sync.get(['youtubeApiKey', 'twitchClientId', 'twitchClientSecret']);
+  
+  if (!settings.youtubeApiKey && (!settings.twitchClientId || !settings.twitchClientSecret)) {
+    showNotification('No API keys configured. Go to Settings to add YouTube or Twitch API keys.', 'error');
+    return;
+  }
+  
+  // Filter creators with valid channel URLs
+  const creatorsWithChannels = creators.filter(c => {
+    const channel = c.creator.channel;
+    if (!channel) return false;
+    const isYouTube = channel.toLowerCase().includes('youtube.com') || channel.toLowerCase().includes('youtu.be');
+    const isTwitch = channel.toLowerCase().includes('twitch.tv');
+    return (isYouTube && settings.youtubeApiKey) || (isTwitch && settings.twitchClientId && settings.twitchClientSecret);
+  });
+  
+  if (creatorsWithChannels.length === 0) {
+    showNotification('No creators with supported channel URLs found (or missing API keys for their platforms)', 'error');
+    return;
+  }
+  
+  // Confirm with user
+  if (!confirm(`This will refresh stats for ${creatorsWithChannels.length} creators.\n\nThis may take several minutes due to API rate limits.\n\nContinue?`)) {
+    return;
+  }
+  
+  showBulkProgressModal('Refreshing Creator Stats');
+  
+  const results = {
+    success: 0,
+    failed: 0,
+    skipped: 0
+  };
+  
+  // Rate limiting: process with delays to avoid API limits
+  const delayBetweenRequests = 500; // 500ms between each request
+  
+  for (let i = 0; i < creatorsWithChannels.length; i++) {
+    const { rowIndex, creator } = creatorsWithChannels[i];
+    const creatorName = creator.name || 'Unknown';
+    
+    updateBulkProgress(i + 1, creatorsWithChannels.length, `Processing: ${creatorName}...`);
+    
+    try {
+      const channel = creator.channel;
+      const isYouTube = channel.toLowerCase().includes('youtube.com') || channel.toLowerCase().includes('youtu.be');
+      const isTwitch = channel.toLowerCase().includes('twitch.tv');
+      
+      let stats;
+      
+      if (isYouTube && settings.youtubeApiKey) {
+        stats = await fetchYouTubeStatsWithUpload(channel, settings.youtubeApiKey);
+      } else if (isTwitch && settings.twitchClientId && settings.twitchClientSecret) {
+        stats = await fetchTwitchStatsWithLastStream(channel, settings.twitchClientId, settings.twitchClientSecret);
+      }
+      
+      if (stats) {
+        // Prepare updates
+        const updates = {};
+        
+        // Update subscribers/followers
+        if (stats.subscribers || stats.followers) {
+          updates[csvManager.COLUMNS.SUBSCRIBERS] = String(stats.subscribers || stats.followers);
+        }
+        
+        // Update last upload time
+        if (stats.lastUploadAgo) {
+          updates[csvManager.COLUMNS.LAST_UPLOAD_AGO] = stats.lastUploadAgo;
+        }
+        
+        // Update last upload date if available
+        if (stats.lastUploadDate) {
+          updates[csvManager.COLUMNS.LAST_UPLOAD_DATE] = stats.lastUploadDate;
+        }
+        
+        // Apply updates
+        await csvManager.updateMultipleCells(rowIndex, updates);
+        
+        results.success++;
+        updateBulkProgress(i + 1, creatorsWithChannels.length, `Processing: ${creatorName}...`, {
+          type: 'log-success',
+          message: `✓ ${creatorName}: ${formatNumber(stats.subscribers || stats.followers)} subs, ${stats.lastUploadAgo || 'no recent uploads'}`
+        });
+      } else {
+        results.skipped++;
+        updateBulkProgress(i + 1, creatorsWithChannels.length, `Processing: ${creatorName}...`, {
+          type: 'log-skip',
+          message: `⊘ ${creatorName}: No stats returned`
+        });
+      }
+      
+    } catch (error) {
+      results.failed++;
+      updateBulkProgress(i + 1, creatorsWithChannels.length, `Processing: ${creatorName}...`, {
+        type: 'log-error',
+        message: `✗ ${creatorName}: ${error.message || 'Failed'}`
+      });
+    }
+    
+    // Rate limiting delay
+    if (i < creatorsWithChannels.length - 1) {
+      await sleep(delayBetweenRequests);
+    }
+  }
+  
+  // Save and complete
+  await csvManager.saveToStorage();
+  
+  const summary = `Complete! Updated: ${results.success}, Failed: ${results.failed}, Skipped: ${results.skipped}`;
+  completeBulkProgress(summary);
+  
+  // Refresh data display
+  await loadAllData();
+  
+  showNotification(`Bulk refresh complete: ${results.success} updated, ${results.failed} failed`, results.failed > 0 ? 'warning' : 'success');
+}
+
+// Fetch YouTube stats with last upload info
+async function fetchYouTubeStatsWithUpload(channelUrl, apiKey) {
+  let channelId = null;
+  let searchQuery = null;
+  
+  const patterns = [
+    { regex: /youtube\.com\/channel\/([a-zA-Z0-9_-]+)/, type: 'id' },
+    { regex: /youtube\.com\/c\/([a-zA-Z0-9_-]+)/, type: 'custom' },
+    { regex: /youtube\.com\/@([a-zA-Z0-9_-]+)/, type: 'handle' },
+    { regex: /youtube\.com\/user\/([a-zA-Z0-9_-]+)/, type: 'user' }
+  ];
+  
+  for (const pattern of patterns) {
+    const match = channelUrl.match(pattern.regex);
+    if (match) {
+      if (pattern.type === 'id') channelId = match[1];
+      else searchQuery = match[1];
+      break;
+    }
+  }
+  
+  // If we have a handle/custom URL, search for the channel
+  if (!channelId && searchQuery) {
+    const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&q=${encodeURIComponent(searchQuery)}&key=${apiKey}`;
+    const searchResponse = await fetch(searchUrl);
+    const searchData = await searchResponse.json();
+    
+    if (searchData.error) throw new Error(searchData.error.message);
+    if (searchData.items?.length > 0) channelId = searchData.items[0].snippet.channelId;
+    else throw new Error('Channel not found');
+  }
+  
+  if (!channelId) throw new Error('Could not parse channel URL');
+  
+  // Get channel statistics
+  const statsUrl = `https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&id=${channelId}&key=${apiKey}`;
+  const statsResponse = await fetch(statsUrl);
+  const statsData = await statsResponse.json();
+  
+  if (statsData.error) throw new Error(statsData.error.message);
+  if (!statsData.items?.length) throw new Error('Channel not found');
+  
+  const channel = statsData.items[0];
+  
+  // Get most recent video
+  const videosUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${channelId}&order=date&maxResults=1&type=video&key=${apiKey}`;
+  const videosResponse = await fetch(videosUrl);
+  const videosData = await videosResponse.json();
+  
+  let lastUploadAgo = null;
+  let lastUploadDate = null;
+  
+  if (videosData.items?.length > 0) {
+    const publishDate = new Date(videosData.items[0].snippet.publishedAt);
+    lastUploadDate = publishDate.toISOString().split('T')[0];
+    lastUploadAgo = getTimeSinceUpload(publishDate);
+  }
+  
+  return {
+    name: channel.snippet.title,
+    subscribers: channel.statistics.subscriberCount,
+    totalViews: channel.statistics.viewCount,
+    videoCount: channel.statistics.videoCount,
+    lastUploadAgo,
+    lastUploadDate
+  };
+}
+
+// Fetch Twitch stats with last stream info
+async function fetchTwitchStatsWithLastStream(channelUrl, clientId, clientSecret) {
+  const match = channelUrl.match(/twitch\.tv\/([a-zA-Z0-9_]+)/);
+  if (!match) throw new Error('Could not parse Twitch URL');
+  const username = match[1];
+  
+  // Get access token
+  const tokenResponse = await fetch('https://id.twitch.tv/oauth2/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: `client_id=${clientId}&client_secret=${clientSecret}&grant_type=client_credentials`
+  });
+  const tokenData = await tokenResponse.json();
+  
+  if (!tokenData.access_token) throw new Error('Failed to authenticate with Twitch');
+  
+  // Get user info
+  const userResponse = await fetch(`https://api.twitch.tv/helix/users?login=${username}`, {
+    headers: {
+      'Client-ID': clientId,
+      'Authorization': `Bearer ${tokenData.access_token}`
+    }
+  });
+  const userData = await userResponse.json();
+  
+  if (!userData.data?.length) throw new Error('Twitch user not found');
+  
+  const user = userData.data[0];
+  
+  // Get follower count
+  const followersResponse = await fetch(`https://api.twitch.tv/helix/channels/followers?broadcaster_id=${user.id}`, {
+    headers: {
+      'Client-ID': clientId,
+      'Authorization': `Bearer ${tokenData.access_token}`
+    }
+  });
+  const followersData = await followersResponse.json();
+  
+  // Get recent VODs for last stream date
+  const videosResponse = await fetch(`https://api.twitch.tv/helix/videos?user_id=${user.id}&first=1&type=archive`, {
+    headers: {
+      'Client-ID': clientId,
+      'Authorization': `Bearer ${tokenData.access_token}`
+    }
+  });
+  const videosData = await videosResponse.json();
+  
+  let lastUploadAgo = null;
+  let lastUploadDate = null;
+  
+  if (videosData.data?.length > 0) {
+    const streamDate = new Date(videosData.data[0].created_at);
+    lastUploadDate = streamDate.toISOString().split('T')[0];
+    lastUploadAgo = getTimeSinceUpload(streamDate);
+  }
+  
+  return {
+    name: user.display_name,
+    followers: followersData.total || 0,
+    lastUploadAgo,
+    lastUploadDate
+  };
+}
+
+// Calculate time since upload in human-readable format
+function getTimeSinceUpload(date) {
+  const now = new Date();
+  const diffMs = now - date;
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  
+  if (diffDays < 1) return 'Today';
+  if (diffDays === 1) return '1 Day';
+  if (diffDays < 7) return `${diffDays} Days`;
+  if (diffDays < 14) return '1 Week';
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)} Weeks`;
+  if (diffDays < 60) return '1 Month';
+  if (diffDays < 365) return `${Math.floor(diffDays / 30)} Months`;
+  if (diffDays < 730) return '1 Year';
+  return `${Math.floor(diffDays / 365)} Years`;
+}
+
+// ==================== BULK REVIEW ALL FUNCTION ====================
+
+async function bulkReviewAll() {
+  const creators = csvManager.getAllCreators();
+  
+  if (creators.length === 0) {
+    showNotification('No creators to review', 'error');
+    return;
+  }
+  
+  // Confirm with user
+  if (!confirm(`This will mark ALL ${creators.length} creators as reviewed with today's date.\n\nContinue?`)) {
+    return;
+  }
+  
+  const settings = await chrome.storage.sync.get({ reviewerName: 'Judge' });
+  const reviewerName = settings.reviewerName;
+  const today = new Date().toISOString().split('T')[0];
+  
+  showBulkProgressModal('Marking Creators as Reviewed');
+  
+  let successCount = 0;
+  let failedCount = 0;
+  
+  for (let i = 0; i < creators.length; i++) {
+    const { rowIndex, creator } = creators[i];
+    const creatorName = creator.name || 'Unknown';
+    
+    updateBulkProgress(i + 1, creators.length, `Reviewing: ${creatorName}...`);
+    
+    try {
+      // Update last checked date and reviewer
+      const updates = {};
+      updates[csvManager.COLUMNS.LAST_CHECKED] = today;
+      updates[csvManager.COLUMNS.CONTENT_REVIEW_BY] = reviewerName;
+      
+      await csvManager.updateMultipleCells(rowIndex, updates);
+      successCount++;
+      
+    } catch (error) {
+      failedCount++;
+      updateBulkProgress(i + 1, creators.length, `Reviewing: ${creatorName}...`, {
+        type: 'log-error',
+        message: `✗ ${creatorName}: ${error.message || 'Failed'}`
+      });
+    }
+  }
+  
+  // Save to storage
+  await csvManager.saveToStorage();
+  
+  const summary = `Complete! Reviewed: ${successCount}, Failed: ${failedCount}`;
+  completeBulkProgress(summary);
+  
+  // Refresh data display
+  await loadAllData();
+  
+  showNotification(`Bulk review complete: ${successCount} creators marked as reviewed`, 'success');
 }
