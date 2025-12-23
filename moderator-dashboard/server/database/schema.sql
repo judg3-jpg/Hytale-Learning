@@ -55,3 +55,5 @@ CREATE INDEX IF NOT EXISTS idx_activity_log_timestamp ON activity_log(timestamp)
 CREATE INDEX IF NOT EXISTS idx_moderators_status ON moderators(status);
 CREATE INDEX IF NOT EXISTS idx_moderators_rank ON moderators(rank);
 
+
+
