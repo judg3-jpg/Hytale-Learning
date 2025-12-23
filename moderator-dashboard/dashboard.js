@@ -474,6 +474,7 @@ async function renderModeratorCards() {
     
     // Attach click handlers BEFORE creating charts (so charts don't break)
     attachCardClickHandlers();
+    attachEditButtonHandlers();
     
     // Create charts after handlers are attached
     cardsData.forEach(({ moderator, stats }) => {
@@ -488,7 +489,9 @@ function createModeratorCardHTML(moderator, stats, currentMonth) {
     const statusClass = `status-${moderator.status || 'active'}`;
     const performanceBadge = getPerformanceBadge(currentMonth);
     const workSection = moderator.notes || moderator.rank || 'Moderator';
-    const absentInfo = moderator.absent ? `<div class="card-absent-info">🚫 Absent: ${escapeHtml(moderator.absent)}</div>` : '';
+    // Check for absent field - handle both null, undefined, and empty string
+    const hasAbsent = moderator.absent && moderator.absent.trim() !== '';
+    const absentInfo = hasAbsent ? `<div class="card-absent-info">🚫 Absent: ${escapeHtml(moderator.absent)}</div>` : '';
     
     return `
         <div class="moderator-card" data-mod-id="${moderator.id}" style="cursor: pointer;">
@@ -506,7 +509,7 @@ function createModeratorCardHTML(moderator, stats, currentMonth) {
                         <span class="card-status ${statusClass}" style="margin-top: 0.5rem; display: inline-block;">${moderator.status || 'active'}</span>
                         ${absentInfo}
                     </div>
-                    <button class="card-edit-btn" onclick="event.stopPropagation(); window.editModerator(${moderator.id})" title="Edit Moderator">
+                    <button class="card-edit-btn" data-edit-mod-id="${moderator.id}" title="Edit Moderator">
                         ✏️
                     </button>
                 </div>
@@ -620,16 +623,8 @@ function attachCardClickHandlers() {
             return;
         }
         
-        // Remove any existing click listeners by replacing the card
-        const parent = card.parentNode;
-        const newCard = card.cloneNode(true);
-        parent.replaceChild(newCard, card);
-        
-        // Get mod ID from new card
-        const newModId = newCard.getAttribute('data-mod-id');
-        
-        // Attach click handler to the new card
-        newCard.addEventListener('click', function(e) {
+        // Attach click handler to the card
+        card.addEventListener('click', function(e) {
             // Don't trigger if clicking on buttons or inputs
             if (e.target.closest('button') || 
                 e.target.closest('input') || 
@@ -639,17 +634,48 @@ function attachCardClickHandlers() {
                 return;
             }
             
-            console.log('Card clicked, opening detail for ID:', newModId);
+            console.log('Card clicked, opening detail for ID:', modId);
             e.preventDefault();
             e.stopPropagation();
-            showModeratorDetail(parseInt(newModId));
+            showModeratorDetail(parseInt(modId));
         });
         
         // Ensure cursor style
-        newCard.style.cursor = 'pointer';
+        card.style.cursor = 'pointer';
     });
     
     console.log('Card click handlers attached successfully');
+}
+
+function attachEditButtonHandlers() {
+    // Attach click handlers to all edit buttons
+    const editButtons = document.querySelectorAll('.card-edit-btn[data-edit-mod-id]');
+    console.log(`Found ${editButtons.length} edit buttons to attach handlers`);
+    
+    editButtons.forEach(button => {
+        const modId = button.getAttribute('data-edit-mod-id');
+        if (!modId) {
+            console.warn('Edit button missing data-edit-mod-id');
+            return;
+        }
+        
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Edit button clicked for moderator ID:', modId);
+            const modIdInt = parseInt(modId);
+            if (typeof editModerator === 'function') {
+                editModerator(modIdInt);
+            } else if (typeof window.editModerator === 'function') {
+                window.editModerator(modIdInt);
+            } else {
+                console.error('editModerator function not found');
+                alert('Edit functionality not available. Please refresh the page.');
+            }
+        });
+    });
+    
+    console.log('Edit button handlers attached successfully');
 }
 
 // Search and Filter
