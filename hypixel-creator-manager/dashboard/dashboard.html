@@ -117,6 +117,18 @@
               <button class="btn btn-outline btn-small" id="btnReimport">↑ Re-import CSV</button>
             </div>
           </div>
+          
+          <div class="bulk-actions-bar">
+            <h4>Bulk Actions</h4>
+            <div class="bulk-actions-buttons">
+              <button class="btn btn-primary" id="btnBulkRefreshStats">
+                📊 Refresh All Stats
+              </button>
+              <button class="btn btn-success" id="btnBulkReviewAll">
+                ✓ Review All Creators
+              </button>
+            </div>
+          </div>
 
           <div class="stats-grid" id="statsGrid">
             <div class="stat-card">
@@ -450,6 +462,29 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-primary" id="nameChangesOk">Got It</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Bulk Progress Modal -->
+  <div class="modal" id="bulkProgressModal">
+    <div class="modal-backdrop" id="bulkProgressBackdrop"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="bulkProgressTitle">Processing...</h3>
+      </div>
+      <div class="modal-body">
+        <div class="bulk-progress-container">
+          <div class="bulk-progress-bar">
+            <div class="bulk-progress-fill" id="bulkProgressFill" style="width: 0%"></div>
+          </div>
+          <div class="bulk-progress-text" id="bulkProgressText">0 / 0</div>
+          <div class="bulk-progress-status" id="bulkProgressStatus">Starting...</div>
+        </div>
+        <div class="bulk-progress-log" id="bulkProgressLog"></div>
+      </div>
+      <div class="modal-footer" id="bulkProgressFooter" style="display: none;">
+        <button class="btn btn-primary" id="bulkProgressClose">Close</button>
       </div>
     </div>
   </div>
