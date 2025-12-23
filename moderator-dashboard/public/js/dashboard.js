@@ -794,3 +794,4 @@ function showSuccess(message) {
     alert('Success: ' + message);
 }
 
+window.saveAbsentDate = saveAbsentDate;
