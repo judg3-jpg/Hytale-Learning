@@ -426,6 +426,38 @@ body {
     font-weight: 500;
 }
 
+.card-absent-info {
+    margin-top: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--danger-color);
+    font-weight: 500;
+    display: inline-block;
+}
+
+.card-edit-btn {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+    align-self: flex-start;
+    margin-left: auto;
+}
+
+.card-edit-btn:hover {
+    background: var(--primary-color);
+    color: white;
+    transform: scale(1.1);
+    box-shadow: var(--shadow-md);
+}
+
 .status-active {
     background-color: rgba(16, 185, 129, 0.1);
     color: var(--success-color);
