@@ -5,7 +5,7 @@
 
 // IndexedDB setup
 const DB_NAME = 'ModeratorDashboard';
-const DB_VERSION = 1;
+const DB_VERSION = 2; // Incremented to add absent field
 let db = null;
 
 // Global state
@@ -14,20 +14,52 @@ let filteredModerators = [];
 let dashboardStats = {};
 let charts = {};
 
+// Migrate absent field for existing moderators
+async function migrateAbsentFieldIfNeeded(db) {
+    return new Promise((resolve, reject) => {
+        try {
+            const transaction = db.transaction(['moderators'], 'readwrite');
+            const store = transaction.objectStore('moderators');
+            const request = store.getAll();
+            
+            request.onsuccess = () => {
+                const moderators = request.result;
+                let needsMigration = false;
+                
+                moderators.forEach(mod => {
+                    if (!mod.hasOwnProperty('absent')) {
+                        mod.absent = null;
+                        store.put(mod);
+                        needsMigration = true;
+                    }
+                });
+                
+                if (needsMigration) {
+                    console.log('Migrated absent field for existing moderators');
+                }
+                resolve();
+            };
+            
+            request.onerror = () => reject(request.error);
+        } catch (error) {
+            // If migration fails, continue anyway
+            console.warn('Migration warning:', error);
+            resolve();
+        }
+    });
+}
+
 // Initialize IndexedDB
 function initDB() {
     return new Promise((resolve, reject) => {
         const request = indexedDB.open(DB_NAME, DB_VERSION);
         
         request.onerror = () => reject(request.error);
-        request.onsuccess = () => {
-            db = request.result;
-            resolve(db);
-        };
         
         request.onupgradeneeded = (event) => {
             console.log('Database upgrade needed, creating stores...');
             const db = event.target.result;
+            const oldVersion = event.oldVersion;
             
             // Create moderators store
             if (!db.objectStoreNames.contains('moderators')) {
@@ -50,7 +82,16 @@ function initDB() {
                 const logStore = db.createObjectStore('activity_log', { keyPath: 'id', autoIncrement: true });
                 logStore.createIndex('moderator_id', 'moderator_id', { unique: false });
             }
+            
             console.log('Database stores created successfully');
+        };
+        
+        request.onsuccess = () => {
+            db = request.result;
+            // Migration: Add absent field to existing moderators
+            migrateAbsentFieldIfNeeded(db).then(() => {
+                resolve(db);
+            }).catch(reject);
         };
     });
 }
@@ -165,7 +206,14 @@ async function getAllModerators() {
             const request = store.getAll();
             request.onsuccess = () => {
                 console.log('Loaded moderators:', request.result.length);
-                resolve(request.result || []);
+                // Ensure all moderators have absent field
+                const moderators = (request.result || []).map(mod => {
+                    if (!mod.hasOwnProperty('absent')) {
+                        mod.absent = null;
+                    }
+                    return mod;
+                });
+                resolve(moderators);
             };
             request.onerror = () => {
                 console.error('Error getting all moderators:', request.error);
@@ -195,6 +243,7 @@ async function createModerator(moderator) {
                 join_date: moderator.join_date || null,
                 avatar_url: moderator.avatar_url || null,
                 notes: moderator.notes || moderator.rank || 'Moderator',
+                absent: moderator.absent || null,
                 created_at: new Date().toISOString()
             };
             const request = store.add(modData);
@@ -208,6 +257,56 @@ async function createModerator(moderator) {
             };
         } catch (error) {
             console.error('Exception creating moderator:', error);
+            reject(error);
+        }
+    });
+}
+
+async function updateModerator(moderatorId, updates) {
+    return new Promise((resolve, reject) => {
+        if (!db) {
+            reject(new Error('Database not initialized'));
+            return;
+        }
+        try {
+            const transaction = db.transaction(['moderators'], 'readwrite');
+            const store = transaction.objectStore('moderators');
+            const getRequest = store.get(moderatorId);
+            
+            getRequest.onsuccess = () => {
+                const moderator = getRequest.result;
+                if (!moderator) {
+                    reject(new Error('Moderator not found'));
+                    return;
+                }
+                
+                // Update fields
+                if (updates.name !== undefined) moderator.name = updates.name;
+                if (updates.discord_id !== undefined) moderator.discord_id = updates.discord_id || null;
+                if (updates.rank !== undefined) moderator.rank = updates.rank;
+                if (updates.status !== undefined) moderator.status = updates.status;
+                if (updates.join_date !== undefined) moderator.join_date = updates.join_date || null;
+                if (updates.avatar_url !== undefined) moderator.avatar_url = updates.avatar_url || null;
+                if (updates.notes !== undefined) moderator.notes = updates.notes;
+                if (updates.absent !== undefined) moderator.absent = updates.absent || null;
+                
+                const updateRequest = store.put(moderator);
+                updateRequest.onsuccess = () => {
+                    console.log('Moderator updated successfully:', moderatorId);
+                    resolve(moderator);
+                };
+                updateRequest.onerror = () => {
+                    console.error('Error updating moderator:', updateRequest.error);
+                    reject(updateRequest.error);
+                };
+            };
+            
+            getRequest.onerror = () => {
+                console.error('Error getting moderator:', getRequest.error);
+                reject(getRequest.error);
+            };
+        } catch (error) {
+            console.error('Exception updating moderator:', error);
             reject(error);
         }
     });
@@ -389,9 +488,10 @@ function createModeratorCardHTML(moderator, stats, currentMonth) {
     const statusClass = `status-${moderator.status || 'active'}`;
     const performanceBadge = getPerformanceBadge(currentMonth);
     const workSection = moderator.notes || moderator.rank || 'Moderator';
+    const absentInfo = moderator.absent ? `<div class="card-absent-info">🚫 Absent: ${escapeHtml(moderator.absent)}</div>` : '';
     
     return `
-        <div class="moderator-card" data-mod-id="${moderator.id}" onclick="window.showModeratorDetail(${moderator.id})" style="cursor: pointer;">
+        <div class="moderator-card" data-mod-id="${moderator.id}" style="cursor: pointer;">
             <div class="card-content">
                 <div class="card-header">
                     <div class="card-avatar">
@@ -404,7 +504,11 @@ function createModeratorCardHTML(moderator, stats, currentMonth) {
                         <div class="card-name">${escapeHtml(moderator.name)}</div>
                         <div class="card-work-section">${escapeHtml(workSection)}</div>
                         <span class="card-status ${statusClass}" style="margin-top: 0.5rem; display: inline-block;">${moderator.status || 'active'}</span>
+                        ${absentInfo}
                     </div>
+                    <button class="card-edit-btn" onclick="event.stopPropagation(); window.editModerator(${moderator.id})" title="Edit Moderator">
+                        ✏️
+                    </button>
                 </div>
                 <div class="card-stats">
                     <div class="stat-item">
@@ -529,6 +633,7 @@ function attachCardClickHandlers() {
             // Don't trigger if clicking on buttons or inputs
             if (e.target.closest('button') || 
                 e.target.closest('input') || 
+                e.target.closest('.card-edit-btn') ||
                 e.target.tagName === 'BUTTON' ||
                 e.target.tagName === 'INPUT') {
                 return;
@@ -677,6 +782,34 @@ function setupForms() {
             alert('Error: ' + (error.message || 'Failed to save statistics'));
         }
     });
+    
+    const editForm = document.getElementById('editModeratorForm');
+    if (editForm) {
+        editForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const moderatorId = parseInt(formData.get('id'));
+            const data = {
+                name: formData.get('name'),
+                discord_id: formData.get('discord_id'),
+                rank: formData.get('rank'),
+                status: formData.get('status'),
+                notes: formData.get('notes'),
+                join_date: formData.get('join_date'),
+                avatar_url: formData.get('avatar_url'),
+                absent: formData.get('absent')
+            };
+            
+            try {
+                await updateModerator(moderatorId, data);
+                closeModal('editModeratorModal');
+                await loadDashboard();
+                alert('Moderator updated successfully');
+            } catch (error) {
+                alert('Error: ' + (error.message || 'Failed to update moderator'));
+            }
+        });
+    }
 }
 
 function populateModeratorDropdowns() {
@@ -1105,12 +1238,38 @@ async function exportData(moderatorId, format) {
     }
 }
 
+// Edit Moderator
+async function editModerator(moderatorId) {
+    const moderator = moderators.find(m => m.id === moderatorId);
+    if (!moderator) {
+        alert('Moderator not found');
+        return;
+    }
+    
+    // Populate the edit form
+    document.getElementById('editModId').value = moderator.id;
+    document.getElementById('editModName').value = moderator.name || '';
+    document.getElementById('editModDiscordId').value = moderator.discord_id || '';
+    document.getElementById('editModRank').value = moderator.rank || '';
+    document.getElementById('editModStatus').value = moderator.status || 'active';
+    document.getElementById('editModWorkSection').value = moderator.notes || '';
+    document.getElementById('editModJoinDate').value = moderator.join_date || '';
+    document.getElementById('editModAvatarUrl').value = moderator.avatar_url || '';
+    document.getElementById('editModAbsent').value = moderator.absent || '';
+    
+    openModal('editModeratorModal');
+}
+
 window.exportData = exportData;
 window.showModeratorDetail = showModeratorDetail;
+window.editModerator = editModerator;
 
 // Make sure it's available globally for onclick handlers
 if (typeof window.showModeratorDetail === 'undefined') {
     window.showModeratorDetail = showModeratorDetail;
+}
+if (typeof window.editModerator === 'undefined') {
+    window.editModerator = editModerator;
 }
 
 // Theme Management

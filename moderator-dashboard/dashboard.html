@@ -170,9 +170,71 @@
                     <label for="modAvatarUrl">Avatar URL</label>
                     <input type="url" id="modAvatarUrl" name="avatar_url">
                 </div>
+                <div class="form-group">
+                    <label for="modAbsent">Absent (When not working)</label>
+                    <input type="text" id="modAbsent" name="absent" placeholder="e.g., Out of town Dec 15-20, Vacation Jan 1-7">
+                </div>
                 <div class="form-actions">
                     <button type="button" class="btn-secondary" data-modal="addModeratorModal">Cancel</button>
                     <button type="submit" class="btn-primary">Create Moderator</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Moderator Modal -->
+    <div id="editModeratorModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Moderator</h2>
+                <button class="modal-close" data-modal="editModeratorModal">&times;</button>
+            </div>
+            <form id="editModeratorForm">
+                <input type="hidden" id="editModId" name="id">
+                <div class="form-group">
+                    <label for="editModName">Name *</label>
+                    <input type="text" id="editModName" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="editModDiscordId">Discord ID</label>
+                    <input type="text" id="editModDiscordId" name="discord_id">
+                </div>
+                <div class="form-group">
+                    <label for="editModRank">Rank</label>
+                    <select id="editModRank" name="rank">
+                        <option value="">Select Rank</option>
+                        <option value="Senior Mod">Senior Mod</option>
+                        <option value="Mod">Mod</option>
+                        <option value="Trial Mod">Trial Mod</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="editModStatus">Status</label>
+                    <select id="editModStatus" name="status">
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="on_leave">On Leave</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="editModWorkSection">Work Section *</label>
+                    <input type="text" id="editModWorkSection" name="notes" placeholder="e.g., SkyBlock Moderator" required>
+                </div>
+                <div class="form-group">
+                    <label for="editModJoinDate">Join Date</label>
+                    <input type="date" id="editModJoinDate" name="join_date">
+                </div>
+                <div class="form-group">
+                    <label for="editModAvatarUrl">Avatar URL</label>
+                    <input type="url" id="editModAvatarUrl" name="avatar_url">
+                </div>
+                <div class="form-group">
+                    <label for="editModAbsent">Absent (When not working)</label>
+                    <input type="text" id="editModAbsent" name="absent" placeholder="e.g., Out of town Dec 15-20, Vacation Jan 1-7">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" data-modal="editModeratorModal">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Changes</button>
                 </div>
             </form>
         </div>
